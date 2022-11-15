@@ -88,6 +88,43 @@
   </repositories>
 
   <dependencies>
+
+    <dependency>
+      <groupId>ai.djl</groupId>
+      <artifactId>basicdataset</artifactId>
+      <version>0.25.0</version>
+    </dependency>
+    <dependency>
+      <groupId>ai.djl</groupId>
+      <artifactId>model-zoo</artifactId>
+      <version>0.25.0</version>
+    </dependency>
+    <dependency>
+      <groupId>ai.djl</groupId>
+      <artifactId>api</artifactId>
+      <version>0.25.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>rl4j</artifactId>
+      <version>1.0.0-M1.1</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>io.github.elki-project</groupId>
+      <artifactId>elki</artifactId>
+      <version>0.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.activecomponents.jadex</groupId>
+      <artifactId>jadex-distribution-standard</artifactId>
+      <version>4.0.267</version>
+    </dependency>
+    <dependency>
+      <groupId>com.uber</groupId>
+      <artifactId>h3</artifactId>
+      <version>4.1.1</version>
+    </dependency>
     <dependency>
       <groupId>io.github.agentsoz</groupId>
       <artifactId>bdi-abm</artifactId>

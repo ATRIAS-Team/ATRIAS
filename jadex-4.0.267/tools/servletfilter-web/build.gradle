@@ -1,0 +1,9 @@
+description 'Servletfilter Web-App.'
+
+dependencies
+{
+	api project(':tools:servletfilter')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

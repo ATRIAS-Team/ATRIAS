@@ -1,0 +1,70 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>TestEventprocessStartEvent</jadex:modelname>
+    <jadex:componentflags keepalive="false" monitoring="OFF" suspend="false" synchronous="false"/>
+  </bpmn:extension>
+  <bpmn:process id="VkKri5cBRYKjzY3x" name="Pool">
+    <bpmn:subProcess id="BN6NQnDCfnsKNShG" triggeredByEvent="true">
+      <bpmn:outgoing>PFxnDrRViXQFrwHT</bpmn:outgoing>
+      <bpmn:startEvent id="z1vDx6pJQvutYhmN">
+        <bpmn:outgoing>9fWLp0w2NJONsh42</bpmn:outgoing>
+        <bpmn:conditionalEventDefinition/>
+        <bpmn:extensionElements>
+          <jadex:property name="eventtypes">new java.lang.String[]{&quot;EventSubprocessStart&quot;}</jadex:property>
+          <jadex:property name="condition">$event.value==7</jadex:property>
+        </bpmn:extensionElements>
+      </bpmn:startEvent>
+      <bpmn:task id="9dQ2QrH6z7TdyX1R" name="Task">
+        <bpmn:incoming>9fWLp0w2NJONsh42</bpmn:incoming>
+        <bpmn:outgoing>qwHGugR/tHq5msQF</bpmn:outgoing>
+        <bpmn:extensionElements>
+          <jadex:class>jadex.bpmn.runtime.task.PrintTask</jadex:class>
+          <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;&quot;+$component.getId()+&quot; after event: &quot;+$event</jadex:parameter>
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:endEvent id="BW619SMSOFSI8dGf">
+        <bpmn:incoming>qwHGugR/tHq5msQF</bpmn:incoming>
+      </bpmn:endEvent>
+    </bpmn:subProcess>
+    <bpmn:endEvent id="oCu/rKaa0Hg/pllB">
+      <bpmn:incoming>PFxnDrRViXQFrwHT</bpmn:incoming>
+      <bpmn:terminateEventDefinition/>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="PFxnDrRViXQFrwHT" sourceRef="BN6NQnDCfnsKNShG" targetRef="oCu/rKaa0Hg/pllB">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="9fWLp0w2NJONsh42" sourceRef="z1vDx6pJQvutYhmN" targetRef="9dQ2QrH6z7TdyX1R">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="qwHGugR/tHq5msQF" sourceRef="9dQ2QrH6z7TdyX1R" targetRef="BW619SMSOFSI8dGf">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="VkKri5cBRYKjzY3x">
+        <dc:Bounds height="300.0" width="680.0" x="50.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="BN6NQnDCfnsKNShG" isExpanded="true">
+        <dc:Bounds height="180.0" width="420.0" x="100.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="z1vDx6pJQvutYhmN">
+        <dc:Bounds height="40.0" width="40.0" x="40.0" y="70.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="9dQ2QrH6z7TdyX1R">
+        <dc:Bounds height="100.0" width="160.0" x="140.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="BW619SMSOFSI8dGf">
+        <dc:Bounds height="40.0" width="40.0" x="350.0" y="70.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="oCu/rKaa0Hg/pllB">
+        <dc:Bounds height="40.0" width="40.0" x="610.0" y="120.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="9fWLp0w2NJONsh42">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="qwHGugR/tHq5msQF">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="PFxnDrRViXQFrwHT">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

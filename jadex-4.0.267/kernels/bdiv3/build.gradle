@@ -1,0 +1,22 @@
+description 'BDIV3 Kernel supports belief-desire-intention (BDI) agents in XML as well as in annotated Java POJOs and uses byte code manipulation for performance improvements.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':util:javaparser')
+	api project(':platform:bridge')
+	api project(':kernels:base')
+	api project(':kernels:component')
+	api project(':kernels:micro')
+	api project(':rules:eca')
+	api project(':serialization:xml')
+	api project(':util:bytecode')
+	
+	api 'org.ow2.asm:asm:9.1'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+//	api 'org.ow2.asm:asm:6.2.1'
+//	api 'org.ow2.asm:asm-all:6.0_ALPHA'
+}
+

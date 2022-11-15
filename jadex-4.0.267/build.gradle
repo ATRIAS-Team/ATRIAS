@@ -1,0 +1,945 @@
+import java.awt.SplashScreen
+import java.nio.file.Paths
+import java.util.concurrent.Callable
+import java.util.regex.Matcher
+import org.gradle.api.artifacts.ProjectDependency
+import org.apache.tools.ant.filters.*
+
+apply plugin: 'java-library' // needed for distsDir on root project level
+apply plugin: 'eclipse-wtp'
+def maindistsuffix = ''
+gradle.ext.selecteddists.each { dname ->
+	maindistsuffix += '-' + dname
+}
+// resource files that are filtered for variables
+project.ext.filterfiles = '*.xml,*.xsd,*.bat,*.sh,*.txt,*.gradle,*.md'
+
+// resource files that are executable and should be flagged as such in the zip, must be subset of filterfiles
+project.ext.execfiles = '*.bat,*.sh'
+
+def sigkey = findProperty('sigKey');
+if (sigkey != null)
+	project.ext.signingKey=sigkey.replace("\\n", "\n");
+project.ext.signatory	= null	// ext property to cache signatory across all sign tasks (set by first task)
+
+project.ext.srcdir = 'src'
+
+project.ext.subprojectmap  = new HashMap()
+project.subprojects.each { sp ->
+	addSubproject(sp)
+}
+
+project.ext.runtimearts = new HashMap<String, Set<String>>();
+
+project.ext.keepplural = new HashSet<String>();
+project.ext.keepplural.add('rules');
+project.ext.keepplural.add('tools');
+project.ext.keepplural.add('applications');
+
+project.ext.workspaceRootDir = ".";
+apply from: "${workspaceRootDir}/src/main/buildutils/versioning.gradle"
+project.ext.version = fetchNextBuildNameFromGitTag();
+// Legacy variable, needs replacement with version.full...
+project.ext.jadex_build_version = project.ext.version.full;
+println "Jadex Build Version " + project.ext.jadex_build_version 
+
+def buildutilsdirfile = new File(project.projectDir, 'src/main/buildutils');
+project.ext.buildutilsdir = buildutilsdirfile.getCanonicalPath()
+
+System.setOut(new PrintStream(new OutputStream() {
+	private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	public void write(int b) {
+		if ('\n' == b) {
+			project.logger.lifecycle(buffer.toString());
+			buffer.reset();
+		}
+		else {
+			buffer.write(b);
+		}
+	}
+}));
+System.setErr(System.out);
+
+apply plugin: 'jacoco'
+//apply plugin: 'application'
+apply plugin: 'org.sonarqube'
+apply plugin: 'io.codearte.nexus-staging'
+
+nexusStaging {
+    //packageGroup = "org.mycompany.myproject" //optional if packageGroup == project.getGroup()
+    //stagingProfileId = "yourStagingProfileId" //when not defined will be got from server using "packageGroup"
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'Jadex'
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.required	= true
+    }
+}
+
+buildscript 
+{
+    repositories
+    {
+        mavenLocal()
+        mavenCentral()
+		maven
+		{
+			url "https://maven.google.com"
+		}
+		maven 
+		{
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies
+    {
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+		classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0' // for nexus-oss auto-close
+		classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.8'
+		classpath "org.bouncycastle:bcprov-jdk15on:1.64" // bouncycastle for ssh
+		classpath "org.bouncycastle:bcpkix-jdk15on:1.64" // bouncycastle for ssh
+		classpath 'com.hierynomus:sshj:0.27.0' // ssh capabilities for docs upload
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.2"
+		classpath 'org.eclipse.jgit:org.eclipse.jgit:5.10.0.202012080955-r' // git capabilities
+		classpath 'de.marcphilipp.gradle:nexus-publish-plugin:0.4.0'
+		classpath 'org.owasp:dependency-check-gradle:6.2.2'
+    }
+    
+    apply from: "$rootDir/src/main/buildutils/util.gradle"
+}
+
+//apply plugin: 'eclipse'
+
+apply plugin: 'de.marcphilipp.nexus-publish'
+
+allprojects
+{
+	version = rootProject.ext.version
+	def gsuffix = ""
+	if (getProjectDepth(project) > 1)
+	{
+		gsuffix = path.substring(0, path.lastIndexOf(":")).replace(":",".").substring(1)
+	}
+    if(isCommercial(project))
+    {
+	    group = 'com.actoron.jadex' + gsuffix
+	}
+	else
+	{
+	    group = 'org.activecomponents.jadex' + gsuffix
+	}
+
+    repositories
+    {
+        mavenCentral()
+        
+        // public sonatype repository for jmonkey artifacts
+		maven
+		{
+			name 'sonatype public'
+			url 'https://oss.sonatype.org/content/groups/public/'
+		}
+    }
+    
+   	// Auto check dependencies for vulnerabilities (CVEs)
+	// run all with `gradlew dependencyCheckAggregate`
+	// run on subproject with, e.g., `gradlew :tools:runtimetools-web:dependencyCheckAnalyze`
+	apply plugin: 'org.owasp.dependencycheck'
+	// https://github.com/dependency-check/dependency-check-gradle/issues/73
+	dependencyCheck {
+ 		analyzers {
+    		bundleAuditEnabled = false
+  		}
+	}
+    
+    buildscript 
+	{
+	    repositories
+	    {
+			mavenLocal()
+	    	mavenCentral()
+			
+			maven
+			{
+				url "https://maven.google.com"
+			}
+	    }
+	}
+	
+	if (JavaVersion.current().isJava8Compatible()) {
+		tasks.withType(Javadoc) {
+        	options.addStringOption('Xdoclint:none', '-quiet')
+        }
+	}
+
+	// Make distributions reproducible
+	tasks.withType(AbstractArchiveTask) {
+		reproducibleFileOrder = true
+	}
+	tasks.withType(Jar) {
+		preserveFileTimestamps = false
+	}
+	
+	// Collect runtime dependencies for inclusion in distributions
+	project.afterEvaluate {
+		def confs = project.configurations.runtimeClasspath
+		def files = rootProject.ext.runtimearts.get(project.getPath())
+		if (files == null)
+		{
+			files = new HashSet<>()
+			rootProject.ext.runtimearts.put(project.getPath(), files)
+		}		
+		files.addAll(confs.getFiles())
+	}
+}
+
+// In order to run first, needs to depend on these two parallel tasks
+allprojects
+{
+}
+
+subprojects
+{
+    def mainSrcDir  = 'src/main/java'
+    def testSrcDir  = 'src/test/java'
+    def junit       = 'junit:junit:4.13.2'
+
+	apply plugin: 'eclipse' // hack to allow starting web projects in eclipse with correct dependencies
+	apply plugin: 'eclipse-wtp' // hack to allow starting web projects in eclipse with correct dependencies
+	
+	if (getProjectDepth(project) > 1)
+	{
+		
+		def toplevelname = project.path.substring(1);
+		toplevelname = toplevelname.substring(0, toplevelname.indexOf(':'))
+		toplevelname = singularize(toplevelname)
+		/*if (toplevelname.endsWith('s') && !keepplural.contains(toplevelname))
+			toplevelname = toplevelname.substring(0, toplevelname.length() - 1)*/
+		eclipse.project.name = toplevelname + '-' + project.name
+	}
+	else if (getProjectDepth(project) == 1) // Hack! Should not be needed?
+		eclipse.project.name = project.path.substring(1)
+	
+	//if (project.getPath().toString().startsWith(":kernels") && !project.getPath().toString().equals(":kernels"))
+	//{
+		//eclipse.project.name = 'kernel-' + project.name
+	//}
+	
+	// ignore gradle 'build' dir in eclipse workspace (e.g. also in searches)
+	// cf. https://docs.gradle.org/current/javadoc/org/gradle/plugins/ide/eclipse/model/ResourceFilter.html
+	// TODO: exlude subproject folders from parent project
+	eclipse.project.resourceFilter {
+       appliesTo = 'FOLDERS'
+       type = 'EXCLUDE_ALL'
+       matcher {
+         id = 'org.eclipse.ui.ide.multiFilter'
+         // to find out which arguments to use, configure the desired
+         // filter with Eclipse's UI and copy the arguments string from .project
+         arguments = '1.0-name-matches-false-false-build'
+       }
+     }
+	
+	
+    ext.libraries = [
+            protobuf: "com.google.protobuf:protobuf-java:2.4.1",
+            junit: junit,
+    ]
+
+
+		apply plugin: 'java-library'
+		if (isWebApplicationProject(project)) {
+			apply plugin: 'war'
+			artifacts {
+				archives jar
+			}
+			war.archiveBaseName = getArtifactName(project)
+		}
+		jar.archiveBaseName = getArtifactName(project)
+//			test {
+//				reports.html.enabled = false
+//			}
+//		}
+		test {
+			testLogging {
+				 showStandardStreams = true
+			}
+
+			//maxParallelForks = 4
+		}
+
+        compileJava.options.encoding = 'UTF-8'
+        // include all resources that are placed inside src dirs
+        sourceSets.main.resources.srcDirs    mainSrcDir
+        sourceSets.test.resources.srcDirs    testSrcDir
+
+        dependencies
+        {
+            testImplementation junit
+        }
+
+		// Replace jadex version in some source files (e.g. schema version in xmls)
+        processResources {
+			filesMatching('**/version.properties')
+			{
+				filter{String line -> line.replace('${jadex_build_version}', "" + project.version.toString())}
+			}
+		}
+
+        afterEvaluate {
+        	// Set correct bootclasspath for each project, depending on sourceCompatibility
+            setBootClassPath(project)
+			// add scope mappings to include parent configurations in deployed pom.xml
+//			[install, uploadArchives].each { task ->
+//				addParentScopeMappings(task, configurations.compile)
+//			}
+        }
+
+//		test {
+//			reports {
+//				junitXml.enabled = true
+//				html.enabled = true
+//			}
+//		}
+
+	javadoc {
+		// No version in title to allow build cache across versions if content doesn't change
+		def	projname	= project.name
+		def parent	= project.parent
+		while(parent!=null)	{
+			projname = parent.name + "-" + projname
+			parent	= parent.parent
+		}
+		title	= "API Documentation for " + projname + "."
+	}
+	addJavadocJarTask(project)
+	addSourcesJarTask(project)
+
+	// needs to be applied after java plugins:
+	if(project.getChildProjects().isEmpty()) {
+//		println 'publishing leaf project ' + project
+		apply from: "$rootDir/src/main/buildutils/publishing.gradle"
+	}
+//	else {
+//		println 'not publishing grouping project ' + project
+//	}
+
+	
+	// process schemas and generate schemadocs
+	if (project.projectDir.toPath().resolve('src/main/schema').toFile().exists()) {
+		addSchemaTasks(project)
+	}
+
+    sourceCompatibility = 1.11
+    targetCompatibility = 1.11
+    
+	tasks.withType(Test) {
+		// Add current time as test input so tests are always run (i.e. outputs not uptodate and not taken from cache by gradle)
+		// cf. https://blog.gradle.org/stop-rerunning-tests
+		systemProperty "test.timestamp", ""+System.currentTimeMillis()
+		
+		if(isTestParallel(project)) {	
+ 			maxParallelForks = Runtime.runtime.availableProcessors()
+ 		}
+	}
+
+    /* subprojects
+    {
+		task allDeps(type: DependencyReportTask) {}
+	}*/
+	
+	// Add srcZip<Dist> tasks for project, if it is a dist project
+	def	distname	=
+		project.parent!=null && project.parent.name.equals("distributions")
+			? project.name :
+		project.parent!=null && project.parent.name.equals("addons")
+			? 'addon'+project.name : null
+	if(distname!=null) {
+//		println 'dist: ' + distname + ', ' +isAddon([distname])
+		def arts = gradle.ext.distartmap.get(distname)
+		def prefixsize	= rootProject.projectDir.canonicalPath.length()
+		def	isaddon	= isAddon([distname])
+		def commercial = false
+		arts.each { artname ->
+			commercial |= isCommercial(rootProject.ext.subprojectmap.get(artname))
+		}
+
+		task srcZip(type: Zip) {
+			dependsOn build
+			destinationDirectory	= new File(getDistsDir(rootProject), "sources")
+			archiveFileName	= 'jadex-'  + distname + '-' + jadex_build_version + '-sources.zip'
+			preserveFileTimestamps = false
+			
+			// Add all included artifact projects and their parents (but exclude root project for addons)
+			def projs = new HashSet();	// keep track of added projects to avoid duplicates
+			arts.each { artname ->
+				Project sp = subprojectmap.get(artname)
+				if(sp==null)
+				{
+					out.println("Project not found: "+artname);
+				}
+				else
+				{
+					while((isaddon?sp!=rootProject:sp!=null) && !projs.contains(sp)) {
+						projs.add(sp);
+						from(sp.projectDir) {
+							into 'sources' + sp.projectDir.canonicalPath.replace(File.separator, "/").substring(prefixsize)
+							includes = ['*.properties', '*.gradle', 'src/**', 'dist/**', 'lib/**', 'gradle/**', 'gradlew.bat']
+							excludes = ['secret.properties', '**/.gradle', 'src/main/config', 'dist/generated/**']
+						}
+						from(sp.projectDir) {
+							into 'sources' + sp.projectDir.canonicalPath.replace(File.separator, "/").substring(prefixsize)
+							include	'gradlew'
+							fileMode 0755
+						}
+	//					// Allow special files being included in source tree (e.g. readmes for building)
+	//					from(new File(sp.projectDir, '/dist/sources')) {
+	//						into 'sources'
+	//						includes = ['*/**']
+	//					}
+						sp	= sp.parent;
+					}
+				}
+			}		
+		}
+
+		// Create examplesZip task(s), if any
+		def dir	= new File(project.projectDir, 'dist/exampleprojects')
+		if(dir.exists() && dir.isDirectory())
+		{
+			def examples	= dir.listFiles().findAll { it.isDirectory() }
+			examples.each { example ->
+				def task	= project.tasks.create([name: examples.size()==1 ? "exampleZip" : "exampleZip-" + example.getName(), type: Zip]) {
+					destinationDirectory	=  new File(getDistsDir(rootProject), 'exampleprojects')
+					archiveFileName	= example.getName() + '.zip'
+					preserveFileTimestamps = false
+					
+					from (example) {
+						into example.getName()
+						include '**/*'
+						exclude rootProject.ext.filterfiles.split("\\s*,\\s*")
+					}
+					from (example) {
+						into example.getName()
+						include rootProject.ext.filterfiles.split("\\s*,\\s*")
+						filter(ReplaceTokens, beginToken: '${', endToken: '}', tokens: [jadex_build_version: jadex_build_version])
+					}
+				}
+			}
+		}
+
+		// Create jadexDistZip task
+		task jadexDistZip(type: Zip) {
+			archiveFileName	= 'jadex-'  + distname  + '-' + jadex_build_version + '.zip'
+			duplicatesStrategy DuplicatesStrategy.EXCLUDE // TODO: Workaround for our broken mechanism
+			gradle.projectsEvaluated() {
+				// Add all included artifact projects and their parents (but exclude root project for addons)
+				def projs = new HashSet();	// keep track of added projects to avoid duplicates
+				def projs_orig = new HashSet();	// compare hierarchy vs arts only
+				def extdists = new HashSet()	// keep track of added extra artifacts to avoid duplicates
+				arts.each { artname ->
+					Project sp = subprojectmap.get(artname)
+					projs_orig.add(sp)
+//					println 'artifact: ' +sp
+					while((isaddon?sp!=rootProject:sp!=null) && !projs.contains(sp)) {
+						projs.add(sp);
+
+						// Only collect artifacts from leaf projects
+						if(sp.getChildProjects().isEmpty()) {
+							if (isApp(sp)) {
+								// Legacy mode: include war and jar in apps!?
+								def mytasks	= sp.tasks.matching {
+									it.name.equals('war') || it.name.equals('jar')
+								}
+								// Fetch jar only if no war.
+//								if(mytasks.isEmpty())
+//									mytasks	= sp.tasks.matching {it.name.equals('jar')}
+								mytasks.each {task ->
+									from(task.outputs) {
+										into 'jadex-'  + jadex_build_version + '/apps'
+									}
+								}
+							}
+							else  {
+								// Fetch jar if any.
+								sp.tasks.matching {
+									it.name.equals('jar')
+								}.each {task ->
+//									println 'outputs: ' + task + ', ' + task.outputs.files.files
+									//&& !sp.getPath().contains(':distributions:')	// Legacy(?) hack: do not include distribution projects, todo: include? or exclude all dist/no-content projects
+									from(task.outputs) {
+										into 'jadex-'  + jadex_build_version + '/lib'
+									}
+								}
+		
+								// copy all runtime deps:
+								if(sp.parent!=null) {
+									// 'runtimeElements' instead of 'runtime'!? cf. https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph
+									
+									rootProject.ext.runtimearts.get(sp.getPath()).each{ file ->
+										if (!extdists.contains(file)) {
+											from (file.getParent()) {
+												into 'jadex-'  + jadex_build_version + '/lib'
+												includes = [file.getName()]
+											}
+											extdists.add(file)
+										}
+									}
+								}
+							}
+						}
+	
+						// Files to be included from dist/files directories
+						// 1) plain files w/o filtering or executable flag
+						from(new File(sp.projectDir, '/dist/files')) {
+							into 'jadex-'  + jadex_build_version
+							include	'*/**'
+							exclude rootProject.ext.filterfiles.split("\\s*,\\s*")
+							exclude rootProject.ext.execfiles.split("\\s*,\\s*")
+						}
+						// 2) files with filtering but not executable
+						from(new File(sp.projectDir, '/dist/files')) {
+							into 'jadex-'  + jadex_build_version
+							include	rootProject.ext.filterfiles.split("\\s*,\\s*")
+							exclude	rootProject.ext.execfiles.split("\\s*,\\s*")
+							filter(ReplaceTokens, beginToken: '${', endToken: '}', tokens: [jadex_build_version: jadex_build_version])
+						}
+						// 3) executable files with new permissions (always filtered)
+						from(new File(sp.projectDir, '/dist/files')) {
+							into 'jadex-'  + jadex_build_version
+							include	rootProject.ext.execfiles.split("\\s*,\\s*")
+							filter(ReplaceTokens, beginToken: '${', endToken: '}', tokens: [jadex_build_version: jadex_build_version])
+							fileMode 0755	// Does not work with 755!?
+						}
+						
+						// Copy generated example zips, if any
+						sp.tasks.matching {
+							it.name.startsWith('exampleZip')
+						}.each { task ->
+							from(task.outputs) {
+								into 'jadex-'  + jadex_build_version
+							}
+						}
+	
+						sp	= sp.parent;
+					}
+				}
+			
+				println 'Distribution "' + distname + '" is ' + (commercial? 'commercial' : 'non-commercial') + ' and ' + (isaddon? 'an add-on.' : 'standalone.')
+				//destinationDir new File(getDistsDir(rootProject), commercial? 'commercial' : 'noncommercial')
+				destinationDirectory	= new File(getDistsDir(rootProject), 'zips')
+			}
+			
+			// Copy generated srcZip
+			from(project.srcZip.outputs) {
+				into 'jadex-'  + jadex_build_version
+				rename {name -> isaddon ? 'sources-' + distname + '.zip' : 'sources.zip'}
+			}
+		}
+		
+		if(!isaddon) {
+		// Create unzipSources task
+		task unzipSources(type: Copy) {
+			dependsOn srcZip
+			from zipTree(project.srcZip.outputs.files.first())
+			into new File(project.buildDir, 'rebuild')
+//			// Hack!!! extract minimal zip also, as addons do not build on their own
+//			doLast {
+//				println 'unzipped from ' + project.srcZip.outputs.files.first() + ' to ' + project.unzipSources.outputs.files.files.first()
+//			}
+		}
+		if(isaddon) {
+			gradle.projectsEvaluated {
+				def minimal	= subprojectmap.get(':distributions:minimal')
+				if(minimal!=null) {
+					project.unzipSources.dependsOn project.tasks.create([name: 'unzipSourcesMinimal', type: Copy]) {
+						dependsOn minimal.srcZip
+						from zipTree(minimal.srcZip.outputs.files.first())
+						into new File(project.buildDir, 'rebuild')
+					}
+				}
+			}
+		}
+
+		// Create checkDist task
+		// https://stackoverflow.com/questions/26459067/how-to-run-gradle-script-from-gradle
+		// https://discuss.gradle.org/t/replacement-for-task-execute/27545
+		task checkDist(type: GradleBuild) {
+			dependsOn unzipSources, jadexDistZip
+			def rebuilddirfile	= new File(project.unzipSources.outputs.files.files.first(), 'sources')
+//			println 'rebuilddirfile: '+rebuilddirfile
+			dir	= rebuilddirfile
+			buildFile = new File(rebuilddirfile, 'build.gradle')
+			buildName = 'rebuild-'+distname	// required to avoid name clashes in newer gradle versions, grrr.
+			tasks = ["clean", "jadexDistZip"]
+			startParameter.projectProperties << ["dist": distname]
+			// Rebuild to same version (otherwise src zip defaults to snapshot build)
+			startParameter.projectProperties << ["jadexversion_patch": version.patch]
+			startParameter.projectProperties << ["jadexversion_timestamp": version.timestamp]
+			
+			doLast {					
+				// Check original and rebuilt dist for equality based on zip contents (<name> only as <size> and <crc> depends on random file order on disk when building zip)
+				def distzip = project.jadexDistZip.outputs.files.first().canonicalPath
+				//def distzip2 = rebuilddirfile.getCanonicalPath() + '/build/distributions' + (commercial? '/commercial' : '/noncommercial') + '/' + 'jadex-'  + distname  + '-' + jadex_build_version + '.zip'
+				def distzip2 = rebuilddirfile.getCanonicalPath() + '/'+project.buildDir.name+'/distributions/zips/' + 'jadex-'  + distname  + '-' + jadex_build_version + '.zip'
+				def diff	= diffZips(distzip, distzip2)
+				if(diff.length()!=0)
+				{
+					throw new RuntimeException("Rebuilt jadex-" + distname + "-" + jadex_build_version + ".zip does not match original: "+diff);
+				}
+//				else
+//					println 'distributions match: '+distzip+', '+distzip2
+			}
+		}
+		}//end if(!isaddon)
+	}
+}
+
+task copyJavadocSources(type: Copy) {
+	destinationDir = new File(getDistsDir(project).getCanonicalPath() + '/javadocworkdir')
+	gradle.ext.maindistartifacts.each { artname ->
+		def sp = project.ext.subprojectmap.get(artname)
+		if (sp == null)
+			println 'SUBPROJECT NOT FOUND:' + ' ' + artname
+		from(sp.projectDir.getCanonicalPath() + '/src/main/java') {
+			exclude '**/org/apache/**'
+			exclude '**/impl/**'
+			include '**/*.java'
+		}
+	}
+	def comment = false
+
+	/* Filter to fix some HTML-entity/Javadoc nonsense */
+	filter { line ->
+		if (line.trim().startsWith('/**'))
+			comment = true
+
+		if (comment) {
+			line = line.replaceAll('(?<!code)>','&gt;')
+			if (line.contains('*/'))
+				comment = false;
+		}
+		return line
+	}
+}
+
+// Javadoc on custom collection of source files for upload to docs
+task publicJavadoc(type: Javadoc, dependsOn: [copyJavadocSources]) {
+	def sourcedir = getDistsDir(project).getCanonicalPath() + '/javadocworkdir'
+	//classpath = configurations.runtimeClasspath
+	//println 'classpath: ' + (gradle.ext.maindistartifacts.collect {project(it).sourceSets.main.compileClasspath})
+	classpath = files(gradle.ext.maindistartifacts.collect {project(it).sourceSets.main.compileClasspath})
+	source(sourcedir)
+	destinationDir = new File(getDistsDir(project).getCanonicalPath() + '/docs/jadex-' + jadex_build_version + '-javadoc')
+
+	options.encoding 'UTF-8'
+	options.docEncoding 'UTF-8'
+	options.charSet 'UTF-8'
+	options.quiet()
+
+	options.addBooleanOption("Xdoclint:none", true);
+	/*options.docTitle("Jadex Active Component Platform ${project.version} API")
+	options.windowTitle("Jadex Active Component Platform ${project.version} API")*/
+	options.docTitle("Jadex Active Component Platform ${jadex_build_version} API")
+	options.windowTitle("Jadex Active Component Platform ${jadex_build_version} API")
+	options.group('Core Packages','jadex.commons*:jadex.bridge*')
+	options.group('Micro Agent Packages','jadex.micro*')
+	options.group('BPMN Process Packages','jadex.bpmn*')
+	options.group('BDI Agent Packages','jadex.bdi*')
+	options.group('Web Service Extension Packages','jadex.extension.ws*:jadex.extension.rs*')
+	options.group('2D/3D Environment Extension Packages','')
+	options.group('Agent-Group-Role (AGR) Extension Packages','jadex.extension.agr*')
+}
+
+task javadocZip(type: Zip) {
+	println 'public javadocs: ' + publicJavadoc.outputs.files
+	from publicJavadoc.outputs.files
+	archiveFileName	= 'jadex-' + jadex_build_version + '-javadoc.zip'
+    destinationDirectory = new File(getDistsDir(project), 'docs')
+}
+
+// Collect and zip outputs of 'schemadoc' tasks
+task schemadocZip(type: Zip) {
+	def schemadoctasks	= subprojects.collect({p -> p.tasks.matching{it.name.equals('schemadoc')}}).flatten()
+	from schemadoctasks.collect({t -> t.outputs})
+	archiveFileName	= 'jadex-' + jadex_build_version + '-schemadoc.zip'
+    destinationDirectory = new File(getDistsDir(project), 'docs')
+}
+
+// Collect and zip processed (i.e. replaced and renamed) XSD schemas
+task schemasZip(type: Zip) {
+	def schematasks	= subprojects.collect({p -> p.tasks.matching{it.name.equals('processSchemas') || it.name.equals('processDevSchemas')}}).flatten()
+	from schematasks.collect({t -> t.outputs})
+	archiveFileName	= 'jadex-' + jadex_build_version + '-schemas.zip'
+    destinationDirectory = new File(getDistsDir(project), 'schemas')
+	preserveFileTimestamps	true
+}
+
+// for shared stable/master jenkinsfile in buildscripts
+task distZips()  {
+	description	= "Build separate zips for all selected distributions. Use '-P dist=<distnames>' to specify distributions (default 'everything'). Available distibutions can be found in the first row of src/main/buildutils/buildconfigs.csv."
+	dependsOn subprojects.collect({p -> p.tasks.matching{it.name.equals('jadexDistZip')}}).flatten()
+}
+
+
+task checkDists()  {
+	description	= "Rebuild from zips of selected distributions. Use '-P dist=<distnames>' to specify distributions (default 'everything'). Available distibutions can be found in the first row of src/main/buildutils/buildconfigs.csv."
+	dependsOn subprojects.collect({p -> p.tasks.matching{it.name.equals('checkDist')}}).flatten()
+}
+
+task performanceTest() {
+	description="Execute performance tests. Be sure to call this with a dist that includes some performance tests, such as 'everything'."
+
+	subprojects.findAll { it.getTasksByName('performanceTest', false) }.each {
+		performanceTest.dependsOn += it.performanceTest
+	}
+}
+
+/* Recursively add subprojects */
+def addSubproject(proj)
+{
+	def pname = proj.getPath()
+	project.ext.subprojectmap.put(pname, proj)
+	proj.subprojects.each { sp ->
+		addSubproject(sp)
+	}
+}
+
+task copyJars(type: Copy) {
+    from subprojects.collect { it.tasks.withType(AbstractArchiveTask) }
+    exclude '**/*.jar', '**/*.aar'
+    into "$buildDir/apps"
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/testreport")
+    // Include the results from the `test` task in all subprojects
+	// Use dir.asFile.get() to avoid dependency to test task being added
+	reportOn subprojects.collect { it.tasks.withType(Test).collect {it.binaryResultsDirectory.asFile.get()} }
+	mustRunAfter subprojects.collect { it.tasks.withType(Test) }
+}
+
+/*task printVersion() {
+	dependsOn compileJava
+	def buildname = fetchNextBuildNameFromGitTag()
+    println "new version is: "+buildname.full
+
+    //currentBuild.displayName = buildname.full
+    //env.BUILD_VERSION_SUFFIX = buildname.suffix // for jenkins
+}*/
+
+task docsDirZip(type: Zip) {
+   from 'docs/'
+   include '*'
+   include '*/*'
+   include '*/*/*'
+   include '*/*/*/*'
+   include '*/*/*/*/*'
+   archiveFileName	= 'docs.zip'
+   destinationDirectory	= project.buildDir
+}
+
+
+task deployJavadocs() {
+	inputs.files project.javadocZip.outputs.files
+	doLast {
+		project.javadocZip.outputs.files.each { zipfile ->
+			uploadAndUnzip(zipfile, '/www/docs/javadoc/jadex-' + jadex_build_version)
+		}
+	}
+}
+
+task deploySchemadocs() {
+	inputs.files project.schemadocZip.outputs.files
+	doLast {
+		project.schemadocZip.outputs.files.each { zipfile ->
+			uploadAndUnzip(zipfile, '/www/docs/schemadoc/jadex-' + jadex_build_version)
+		}
+	}
+}
+
+task deploySchemas() {
+	inputs.files project.schemasZip.outputs.files
+	doLast {
+		project.schemasZip.outputs.files.each { zipfile ->
+			uploadAndUnzip(zipfile, '/www/schemas')
+		}
+	}
+}
+
+task deployZips() {
+	dependsOn distZips
+	doLast {
+		if(!gradle.ext.productionmode)
+			throw new IllegalStateException("Can only deploy zips in production mode.");
+		
+		def acc = getDownloadServerAccess();
+		
+		def dir = "/www/releases/" + project.ext.jadex_build_version;
+		def zipsdir = "" + project.buildDir + File.separator + 'distributions' + File.separator + 'zips';
+		def sourcesdir = "" + project.buildDir + File.separator + 'distributions' + File.separator + 'exampleprojects';
+
+		net.schmizz.sshj.SSHClient ssh = new net.schmizz.sshj.SSHClient();
+		ssh.addHostKeyVerifier(acc.fingerprint);
+		ssh.connect(acc.host, acc.port);
+		try {
+			ssh.authPassword(acc.user, acc.password);
+			
+			createEmptyDirOnSSH(ssh, dir);
+			
+			def children = new net.schmizz.sshj.xfer.FileSystemFile(zipsdir).getChildren();
+			for (def child : children) {
+				ssh.newSCPFileTransfer().upload(child, dir + "/");
+			}
+			children = new net.schmizz.sshj.xfer.FileSystemFile(sourcesdir).getChildren();
+			for (def child : children) {
+				ssh.newSCPFileTransfer().upload(child, dir + "/");
+			}
+        } catch (Exception e) {
+        	throw new RuntimeException(e); 
+        } finally {
+            ssh.disconnect();
+        }
+		println "Zips deployed.";
+	}
+}
+
+// Update the tag and commit it to repository.
+task updateTag() {
+	doLast() {
+		if(!gradle.ext.productionmode)
+			throw new IllegalStateException("Can only update tag in production mode.");
+		
+		def tag_url = getVar('tag_url', project)
+    	def acc = parseURLWithCredentials(tag_url)
+				
+		def git = org.eclipse.jgit.api.Git.open(project.projectDir);
+		//org.eclipse.jgit.lib.Repository repo = new org.eclipse.jgit.storage.file.FileRepositoryBuilder().setMustExist(true).setGitDir(project.projectDir).readEnvironment().findGitDir().build();
+		def tags = git.tagList().call();
+		def cmd = git.tag();
+		cmd.setName(jadex_build_version);
+		cmd.setForceUpdate(true);
+		cmd.call();
+		cmd = git.push();
+		def pushopts = new ArrayList<String>();
+		pushopts.add("ci.skip"); 
+		cmd.setPushOptions(pushopts);
+		cmd.setRemote(acc.url);
+		cmd.setCredentialsProvider(new org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider(acc.user, acc.password))
+		cmd.setPushTags();
+		cmd.call();
+	}
+}
+
+// Fetch download server host/credentials from env.
+def getDownloadServerAccess() {
+	def downloadserver_url = getVar('dl_host', project)
+    return parseURLWithCredentials(downloadserver_url)
+}
+
+// Upload and unzip via ssh.
+project.ext.random	= new java.util.Random()
+def uploadAndUnzip(File zipfile, String targetdir) {
+
+    def acc = getDownloadServerAccess()
+
+	def ssh = new net.schmizz.sshj.SSHClient();
+	ssh.addHostKeyVerifier(acc.fingerprint);
+	println 'Connecting to SSH...'
+	ssh.connect(acc.host, acc.port);
+	
+	try {
+		ssh.authPassword(acc.user, acc.password);
+		
+		def tmpdir	= '/tmp/upload' + random.nextInt();
+		println 'Creating temp dir: ' + tmpdir
+		def session = ssh.startSession();
+		def cmd = session.exec('mkdir -p ' + tmpdir);
+		waitForSSHCmd(cmd);
+		cmd.close();
+		
+		// No delete, just overwrite if exists -> avoids "accidents" when specifying too generic target dir 
+		println 'Creating target dir: ' + targetdir
+		session = ssh.startSession();
+		cmd = session.exec('mkdir -p ' + targetdir);
+		waitForSSHCmd(cmd);
+		cmd.close();
+		
+		println 'Uploading...'
+		ssh.newSCPFileTransfer().upload(new net.schmizz.sshj.xfer.FileSystemFile(zipfile), tmpdir + '/');
+		
+		def unzip = 'unzip -o -d ' + targetdir + ' ' + tmpdir + '/' + zipfile.name
+		println 'Unzipping: ' + unzip
+		session = ssh.startSession();
+		cmd = session.exec(unzip);
+		waitForSSHCmd(cmd);
+		cmd.close();
+		
+		println 'Cleaning up...'
+		session = ssh.startSession();
+		cmd = session.exec('rm -rf ' + tmpdir);
+		waitForSSHCmd(cmd);
+		cmd.close();		
+    } catch (Exception e) {
+    	throw new RuntimeException(e); 
+    } finally {
+        ssh.disconnect();
+    }
+}
+
+
+def createEmptyDirOnSSH(net.schmizz.sshj.SSHClient ssh, String dir) {
+	def session = ssh.startSession();
+	def cmd = session.exec("ls " + dir);
+	waitForSSHCmd(cmd);
+	cmd.close();
+	
+	if (cmd.getExitStatus() == 0) {
+		// Old deployment exist, remove...
+		session = ssh.startSession();
+		cmd = session.exec("rm -rf " + dir);
+		waitForSSHCmd(cmd);
+		cmd.close();
+	}
+	
+	session = ssh.startSession();
+	cmd = session.exec("mkdir " + dir);
+	waitForSSHCmd(cmd);
+	cmd.close();
+}
+
+def waitForSSHCmd(cmd) {
+	// BufferedReader reader = new BufferedReader(new InputStreamReader(cmd.getInputStream()));
+	// reader.lines().collect(java.util.stream.Collectors.joining("\n"));
+	def is = cmd.getInputStream();
+	def data = new byte[4096];
+	int cnt;
+	while((cnt = is.read(data, 0, data.length))!=-1) {
+		//System.out.write(data, 0, cnt);
+		//System.out.flush();
+	}
+}
+
+// Run markdownlint on docs during test phase
+task checkdocs(type: GradleBuild) {
+    dir	= 'docs'
+    buildFile	= 'docs/build.gradle.kts'
+    tasks	= ['markdownlint']
+}
+test.finalizedBy	checkdocs
+
+task signAll {
+	dependsOn subprojects.collect { it.tasks.withType(Sign) }
+}
+
+dependencies {
+	implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

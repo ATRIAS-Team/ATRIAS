@@ -1,0 +1,18 @@
+description 'The Jadex bpmn applications package contains several example applications, benchmarks and testcases using bpmn workflows.'
+
+dependencies
+{
+	api project(':kernels:bpmn')
+	api project(':kernels:application')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+
+	testImplementation project(':platform:base')
+	testImplementation project(':transports:intravm')
+	testImplementation project(':transports:websocket')
+	testImplementation project(':transports:relay')
+
+ 	// Allow starting examples from Main.java without extra dependencies
+ 	runtimeOnly project(':distributions:minimal')
+}

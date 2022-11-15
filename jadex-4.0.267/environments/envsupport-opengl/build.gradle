@@ -1,0 +1,14 @@
+description 'Open GL support for environment space perspectives.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':util:javaparser')
+	api project(':environments:envsupport')
+
+	// Hack!!! Not available in maven central :-(
+	api files('lib/gluegen-rt.jar', 'lib/jogl.jar')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

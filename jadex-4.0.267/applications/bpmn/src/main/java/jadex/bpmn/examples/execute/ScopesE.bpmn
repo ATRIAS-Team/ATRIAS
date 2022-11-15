@@ -1,0 +1,52 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>ScopesE</jadex:modelname>
+    <jadex:package>jadex.bpmn.examples.execute</jadex:package>
+    <jadex:componentflags keepalive="false" monitoring="OFF" suspend="false" synchronous="false"/>
+    <jadex:imports>
+      <jadex:import>jadex.bpmn.runtime.task.*</jadex:import>
+    </jadex:imports>
+  </bpmn:extension>
+  <bpmn:process id="_LQ9oV33pEd6VFdlpWzoevQ" name="Pool">
+    <bpmn:task id="_eqEyEX3pEd6VFdlpWzoevQ" name="Result Task">
+      <bpmn:incoming>_eqOjGH3pEd6VFdlpWzoevQ</bpmn:incoming>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="String"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:subProcess id="_S4-ikX3pEd6VFdlpWzoevQ" name="Outer Task">
+      <bpmn:outgoing>_eqOjGH3pEd6VFdlpWzoevQ</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:parameter direction="inout" name="a" type="String">&quot;a&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="_eqOjGH3pEd6VFdlpWzoevQ" sourceRef="_S4-ikX3pEd6VFdlpWzoevQ" targetRef="_eqEyEX3pEd6VFdlpWzoevQ">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+      <jadex:dataFlow id="EyF3sufYf30KzmZw" sourceParam="a" sourceRef="_S4-ikX3pEd6VFdlpWzoevQ" targetParam="text" targetRef="_eqEyEX3pEd6VFdlpWzoevQ"/>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_LQ9oV33pEd6VFdlpWzoevQ">
+        <dc:Bounds height="600.0" width="3000.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_eqEyEX3pEd6VFdlpWzoevQ">
+        <dc:Bounds height="100.0" width="160.0" x="520.0" y="160.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_S4-ikX3pEd6VFdlpWzoevQ" isExpanded="true">
+        <dc:Bounds height="200.0" width="190.0" x="210.0" y="110.0"/>
+        <dc:Bounds height="40.0" width="110.0" x="200.0" y="100.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_eqOjGH3pEd6VFdlpWzoevQ">
+      </bpmndi:BPMNEdge>
+      <di:Edge jadexElement="EyF3sufYf30KzmZw" type="data">
+      </di:Edge>
+      <bpmndi:BPMNEdge bpmnElement="_bRj-Kn3pEd6VFdlpWzoevQ">
+      </bpmndi:BPMNEdge>
+      <di:Edge jadexElement="BSGeEN5X9EXYHh3f" type="data">
+      </di:Edge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

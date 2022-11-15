@@ -1,0 +1,20 @@
+description 'Provides webservice support via Jetty.'
+
+//def jersey_version	= 2.11
+
+dependencies 
+{
+	api project(':platform:webservice')
+	api project(':platform:webservice-websocket')
+	
+	api 'org.eclipse.jetty:jetty-server:11.0.6'
+	api 'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.6'
+	
+	api 'org.glassfish.jersey.core:jersey-common:3.0.2'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+
+    testImplementation 'org.glassfish.jersey.core:jersey-client:3.0.2'
+	testImplementation 'org.glassfish.jersey.inject:jersey-hk2:3.0.2'
+}

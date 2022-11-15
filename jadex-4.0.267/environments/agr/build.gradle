@@ -1,0 +1,14 @@
+description 'The Jadex kernel extension AGR allows for using the agent group role model.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':platform:bridge')
+	api project(':serialization:xml')
+	api project(':kernels:component')
+	api project(':kernels:micro')
+	api project(':kernels:application')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

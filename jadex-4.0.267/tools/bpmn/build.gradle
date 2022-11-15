@@ -1,0 +1,13 @@
+description 'The Jadex tools bpmn package contains JCC plugins for Jadex BPMN components.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':platform:bridge')
+	api project(':kernels:bpmn')
+	api project(':tools:runtimetools-swing')
+	api project(':editors:bpmn')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

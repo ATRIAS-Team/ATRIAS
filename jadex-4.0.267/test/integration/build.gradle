@@ -1,0 +1,51 @@
+description 'Integration Tests'
+
+dependencies
+{
+	implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+    def launcharts = new HashSet<String> ([
+										   // Core API
+										   ':util:commons',':platform:bridge',':util:javaparser',':serialization:xml',
+										   
+										   // Kernels
+										   ':kernels:base',':kernels:micro',':kernels:bpmn',
+										   ':kernels:application',':kernels:component',':applications:applib-bdi',
+										   ':kernels:bdiv3',
+										   
+										   // Platform
+										   ':platform:base',
+										   ':transports:tcp',
+										   
+										   // Tools
+										   ':tools:runtimetools-swing',':tools:bdi',':tools:bpmn',
+										   ':tools:comanalyzer',':tools:rules',
+										   
+										   // Extensions
+										   ':environments:agr',':environments:envsupport',
+										   ':environments:envsupport-opengl',
+//										   ':platform:jadex-platform-extension-maven',
+										   ':environments:envsupport-jmonkey',':platform:webservice',
+										   ':platform:webservice-desktop',
+										   ':platform:webservice-desktop-jetty',
+										   ':platform:webservice-desktop-grizzly',
+
+										   ':transports:intravm',
+										   ':transports:websocket',
+										   ':transports:relay',
+										   ])
+	
+	launcharts.retainAll(gradle.ext.includeartifacts)
+	
+	launcharts.each { art ->
+		api project(art)
+	}
+	api project(':applications:micro')
+
+//	test {
+//		testLogging {
+//			showStandardStreams = true
+//		}
+//	}
+}

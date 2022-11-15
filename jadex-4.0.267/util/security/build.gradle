@@ -1,0 +1,14 @@
+description 'Common security support classes.'
+
+dependencies
+{
+	api project(':util:commons')
+	api 'org.bouncycastle:bcprov-jdk15on:1.69'
+	api 'org.bouncycastle:bcpkix-jdk15on:1.69'
+	api 'net.java.dev.jna:jna:4.5.2'
+	api 'net.java.dev.jna:jna-platform:4.5.2'
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+//	api 'org.bouncycastle:bcprov-debug-jdk15on:1.57'
+}

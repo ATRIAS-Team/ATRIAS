@@ -4,7 +4,7 @@ package io.github.agentsoz.ees;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -75,7 +75,7 @@ public class Run implements DataClient {
         new Run()
         .withModel(DataServer.getInstance(DATASERVER))
         .withModel(new DiffusionModel(
-                cfg.getModelConfig(Config.eModelDiffusion),
+               cfg.getModelConfig(Config.eModelDiffusion),
                 DataServer.getInstance(DATASERVER),
                 new ArrayList<>(Arrays.asList(Utils.getAsSortedStringArray(bdiMap.keySet())))))
         .start(cfg, bdiMap);
@@ -148,7 +148,7 @@ public class Run implements DataClient {
 
         // initialise the diffusion model and register it as an active data source
         log.info("Starting information diffusion model");
-        if (diffusionModel == null) {
+       if (diffusionModel == null) {
             diffusionModel = new DiffusionModel(
                     cfg.getModelConfig(Config.eModelDiffusion),
                     dataServer,
@@ -281,9 +281,10 @@ public class Run implements DataClient {
                 this.dataServer = (DataServer) model;
 
             } else if (model instanceof DiffusionModel) {
-                this.diffusionModel = (DiffusionModel) model;
+               this.diffusionModel = (DiffusionModel) model;
 
-            } else {
+            }
+        else {
                 throw new RuntimeException(
                         "Not all models can be overriden in this way. " +
                                 " A cleaner mechanism is under development, " +

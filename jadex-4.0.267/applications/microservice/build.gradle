@@ -1,0 +1,13 @@
+description 'The Jadex microservice applications package contains several example applications, benchmarks and testcases using micro services.'
+
+dependencies 
+{
+	api project(':util:commons')
+	api project(':util:gui')
+	api project(':platform:bridge')
+	api project(':tools:base-swing')
+	api project(':kernels:microservice')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

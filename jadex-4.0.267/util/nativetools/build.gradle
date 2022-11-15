@@ -1,0 +1,10 @@
+description 'Jadex natigee tools contains helpers for accessing native and OS functionality.'
+
+dependencies
+{
+	implementation 'net.java.dev.jna:jna:5.8.0'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}
+

@@ -1,0 +1,21 @@
+description 'Provides webservice support via Grizzly.'
+
+//def jersey_version	= 2.11
+
+dependencies 
+{
+	api project(':platform:webservice')
+	api project(':util:bytecode');
+
+	api 'org.glassfish.grizzly:grizzly-http-servlet:3.0.0'
+	api 'org.glassfish.jersey.media:jersey-media-multipart:3.0.2'
+	api 'org.glassfish.grizzly:grizzly-http-server-multipart:3.0.0'
+	api 'org.glassfish.grizzly:grizzly-http-server:3.0.0'
+	api 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:3.0.2'
+	api 'org.glassfish.jersey.core:jersey-client:3.0.2'
+	api 'org.glassfish.jersey.media:jersey-media-moxy:3.0.2'
+	api 'org.glassfish.hk2:hk2-api:3.0.2'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

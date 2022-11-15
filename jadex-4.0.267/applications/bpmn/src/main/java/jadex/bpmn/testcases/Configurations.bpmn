@@ -1,0 +1,66 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>Configurations</jadex:modelname>
+    <jadex:package>jadex.bpmn.testcases</jadex:package>
+    <jadex:componentflags keepalive="true" monitoring="OFF" suspend="false" synchronous="false"/>
+    <jadex:imports>
+      <jadex:import>jadex.commons.*</jadex:import>
+    </jadex:imports>
+    <jadex:arguments>
+      <jadex:argument name="param" type="Object">
+        <jadex:description>description</jadex:description>
+        <jadex:value>&quot;def&quot;</jadex:value>
+      </jadex:argument>
+    </jadex:arguments>
+    <jadex:providedservices>
+      <jadex:providedservice interface="jadex.bpmn.testcases.IAService" name="proser"/>
+    </jadex:providedservices>
+    <jadex:configurations>
+      <jadex:configuration name="a">
+        <jadex:argumentvalues>
+          <jadex:value name="param">&quot;initial a&quot;</jadex:value>
+        </jadex:argumentvalues>
+        <jadex:providedserviceconfigurations>
+          <jadex:providedserviceconfiguration implementation="new AService(&quot;a&quot;)" name="proser" proxytype="decoupled"/>
+        </jadex:providedserviceconfigurations>
+      </jadex:configuration>
+      <jadex:configuration name="b">
+        <jadex:argumentvalues>
+          <jadex:value name="param">&quot;initial b&quot;</jadex:value>
+        </jadex:argumentvalues>
+        <jadex:providedserviceconfigurations>
+          <jadex:providedserviceconfiguration implementation="new AService(&quot;b&quot;)" name="proser" proxytype="decoupled"/>
+        </jadex:providedserviceconfigurations>
+      </jadex:configuration>
+      <jadex:configuration name="c">
+      </jadex:configuration>
+    </jadex:configurations>
+  </bpmn:extension>
+  <bpmn:process id="_xP5y0ZvpEeCjj9yzP5OiyQ" name="Pool">
+    <bpmn:task id="_xP5y05vpEeCjj9yzP5OiyQ" name="Invoke own service">
+      <bpmn:incoming>_mxp5AZvuEeCt9a2MpUzG-A</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:startEvent id="_mZHdMZvuEeCt9a2MpUzG-A">
+      <bpmn:outgoing>_mxp5AZvuEeCt9a2MpUzG-A</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="_mxp5AZvuEeCt9a2MpUzG-A" sourceRef="_mZHdMZvuEeCt9a2MpUzG-A" targetRef="_xP5y05vpEeCjj9yzP5OiyQ">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_xP5y0ZvpEeCjj9yzP5OiyQ">
+        <dc:Bounds height="600.0" width="3000.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_xP5y05vpEeCjj9yzP5OiyQ">
+        <dc:Bounds height="100.0" width="160.0" x="620.0" y="170.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_mZHdMZvuEeCt9a2MpUzG-A">
+        <dc:Bounds height="40.0" width="40.0" x="270.0" y="200.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_mxp5AZvuEeCt9a2MpUzG-A">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

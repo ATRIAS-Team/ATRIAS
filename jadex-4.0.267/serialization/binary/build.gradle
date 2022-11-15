@@ -1,0 +1,16 @@
+description 'Binary serialization support for Jadex.'
+
+dependencies 
+{
+	api project(':serialization:traverser')
+	api project(':util:commons')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+
+    // Correct(?) way: (project dependency correctly interpreted by eclipse import as well as gradle build)
+	// currently broken in newer gradles :( >= 6.7 https://github.com/eclipse/buildship/issues/1035
+	// This now works in 7+
+	//testImplementation project(':serialization:traverser').sourceSets.test.output
+	testImplementation(testFixtures(project(':serialization:traverser')))
+}

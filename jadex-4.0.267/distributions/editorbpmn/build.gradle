@@ -1,0 +1,9 @@
+description 'Jadex BPMN editor.'
+
+dependencies
+{
+	api project(':editors:bpmn')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

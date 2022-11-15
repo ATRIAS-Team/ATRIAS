@@ -1,0 +1,17 @@
+description 'Some web gui functionality.'
+
+dependencies
+{
+	implementation project(':platform:base')
+	implementation project(':platform:webservice')
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+    testImplementation project(':transports:intravm')
+	testImplementation project(':platform:webservice-jetty')
+	
+	implementation 'org.webjars.bowergithub.twbs:bootstrap:3.4.1'
+	
+	implementation 'org.webjars.bowergithub.angular:bower-angular:1.5.11'
+	implementation 'org.webjars.bower:angular-route:1.5.11'
+}

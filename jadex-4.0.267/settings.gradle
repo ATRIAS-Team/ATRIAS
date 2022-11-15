@@ -1,0 +1,368 @@
+apply from: "$rootDir/src/main/buildutils/util.gradle"
+
+/** Standard distributions */
+gradle.ext.publishdists='minimal,standard,addon3d,addonws,editorbpmn' // no editorgpmn until kernel not available
+
+/* Blacklist of ignored projects. */
+def projectblacklist = new HashSet<String>();
+
+//projectblacklist.add(':addons:gradleplugin')
+
+/* Generated dependency config file. */
+def depconfigfile = 'src/main/buildutils/dependencies.conf'
+
+/* Prefix used for distribution meta-packages. */
+def metaprefix = 'distributions:';
+def addonprefix = 'addons:';
+
+
+
+/* Not marked as included for 'everything' in original .csv */
+projectblacklist.add(':applications:bdibpmn')
+projectblacklist.add(':applications:gpmn')
+projectblacklist.add(':kernels:bdibpmn')
+projectblacklist.add(':kernels:gpmn')
+
+/* Not included in original .csv at all. */
+//projectblacklist.add(':platform:jadex-platform-extension-securetransport')
+projectblacklist.add(':platform:relay')
+projectblacklist.add(':applications:dungeonkeeper')
+projectblacklist.add(':platform:relay-standalone')
+projectblacklist.add(':platform:relay-web')
+
+// Do not include until it can be fixed.
+projectblacklist.add(':transports:udp')
+
+// No longer supporting this
+projectblacklist.add(':distributions:pro')
+
+/* Distribution->Artifacts map. */
+gradle.ext.distartmap = new HashMap<String, Set<String>>();
+
+/* Find all projects and add them as 'everything' distribution. */
+def allprojects = new HashSet<String>()
+addProjectDir(allprojects, settingsDir, projectblacklist, null)
+
+long ts = System.currentTimeMillis()
+def projdeps = new HashMap<String, Set<String>>()
+allprojects.parallelStream().forEach({ proj ->
+	def deps = getProjectDeps(proj)
+	synchronized(projdeps) {
+		projdeps.put(proj, deps)
+	}
+})
+println 'Project dependencies evaluated in ' + (System.currentTimeMillis() - ts) + 'ms.'
+
+gradle.ext.distartmap.put('everything', allprojects)
+
+/* Add metapackages */
+allprojects.each { proj ->
+	if (proj.startsWith(':' + metaprefix)) {
+		// For distributions: add project and all transitive project dependencies
+		def metaname = proj.substring(1 + metaprefix.length())
+		HashSet set = new HashSet<String>();
+		addDependency(proj, projdeps, set);
+		List<String> extraarts = getExtraArtifacts(proj)
+		set.addAll(extraarts);
+		gradle.ext.distartmap.put(metaname, set);
+	}
+	else if (proj.startsWith(':' + addonprefix)) {
+		// For addons: add project and direct dependencies only
+		def metaname = 'addon' + proj.substring(1 + addonprefix.length())
+		HashSet set = new HashSet<String>();
+		set.add(proj)
+		set.addAll(projdeps.get(proj))
+		List<String> extraarts = getExtraArtifacts(proj)
+		set.addAll(extraarts);
+		gradle.ext.distartmap.put(metaname, set);
+	}
+}
+
+gradle.rootProject {
+	def secpropfile = new File(settingsDir.getCanonicalPath() + File.separator + 'secret.properties')
+	if (secpropfile.exists()) {
+		def is = new FileInputStream(secpropfile)
+		def secprops = new Properties();
+		secprops.load(is)
+		is.close()
+		secprops.entrySet().each { entry ->
+			gradle.rootProject.ext[entry.getKey()] = entry.getValue()
+		}
+		// convert path to sign key to absolute, so subprojects can find it:
+		gradle.rootProject.ext['signing.secretKeyRingFile'] = file(gradle.rootProject.ext['signing.secretKeyRingFile'])
+	}
+}
+
+def prodstr = gradle.startParameter.getProjectProperties().get('production');
+if (prodstr == null)
+	prodstr = gradle.startParameter.getProjectProperties().get('roduction');
+gradle.ext.productionmode=prodstr != null;
+println "Build Mode: " + (gradle.ext.productionmode ? "production" : "development");
+
+println 'Available Distributions: ' + (new ArrayList<String>(gradle.ext.distartmap.keySet())).sort().join(',')
+
+/* Determine selected distributions */
+gradle.ext.selecteddists = new ArrayList<String>()
+String selectedstr = gradle.startParameter.getProjectProperties().get('dist')
+selectedstr = selectedstr != null? selectedstr : 'everything'
+selectedstr = gradle.ext.properties.containsKey(selectedstr)? gradle.ext.properties.get(selectedstr) : selectedstr 
+
+selectedstr.split(',').each {
+	gradle.ext.selecteddists.add(it.trim())
+}
+System.out.println('Selected distributions: ' + gradle.ext.selecteddists.toString())
+gradle.ext.maindistartifacts = new HashSet() {
+	public boolean add(Object o)
+	{
+		if (o == null)
+			throw new NullPointerException()
+		super.add(o)
+	}
+}
+gradle.ext.selecteddists.each {
+	def arts = gradle.ext.distartmap.get(it)
+	if (arts == null) {
+		throw new Error("No artifacts found for dist: " + it + " (check spelling and existence of this dist)");
+	}
+	gradle.ext.maindistartifacts.addAll(arts)
+}
+
+gradle.ext.includeartifacts = new HashSet<String>()
+
+// Add Dependencies for Addons
+gradle.ext.selecteddists.each { seldist ->
+	if (seldist.startsWith('addon')) {
+		gradle.ext.distartmap.get(seldist).each { art ->
+			addDependency(art, projdeps, gradle.ext.includeartifacts)
+		}
+	}
+}
+
+gradle.ext.webprojects = new HashSet();
+
+// Add Dependencies for Apps and mark web projects
+gradle.ext.maindistartifacts.each { art ->
+	// Subprojects unavailable during initialization, manually loading properties.
+	def propfilepath = settingsDir.getCanonicalPath() + art.replace(':','/') + '/gradle.properties'
+	def propfile = new File(propfilepath)
+	if (propfile.exists()) {
+		def prop = new java.util.Properties()
+  		def propin = new FileInputStream(propfile)
+  		prop.load(propin)
+  		propin.close()
+  		if (prop.getProperty('distasapp') != null && prop.getProperty('distasapp').toLowerCase().equals('true'))
+  		{
+  			addDependency(art, projdeps, gradle.ext.includeartifacts)
+  		}
+  		if ("true".equals(prop.getProperty('webArchiveProject')))
+  		{
+  			gradle.ext.webprojects.add(art);
+  		}
+	}
+}
+gradle.ext.includeartifacts.addAll(gradle.ext.maindistartifacts)
+
+include gradle.ext.includeartifacts.toArray(new String[gradle.ext.includeartifacts.size()])
+
+def addDependency(artifact, projdeps, includeartifacts)
+{
+	if (!includeartifacts.contains(artifact))
+	{
+		includeartifacts.add(artifact)
+		projdeps.get(artifact).each { artdep ->
+			addDependency(artdep, projdeps, includeartifacts)
+		}
+	}
+}
+
+def addProjectDir(projects, dir, blacklist, prefix)
+{
+	def subprojs = new ArrayList<File>();
+	def content = dir.listFiles()
+	boolean isgradle = false
+	for (int i = 0; i < content.length; ++i)
+	{
+		String fullprojname = prefix+dir.getName()+':'+content[i].getName()
+		
+		if (content[i].isDirectory() && !blacklist.contains(fullprojname) && !content[i].getName().startsWith('.'))
+		{
+			def pname = content[i].getName()
+			subprojs.add(content[i])
+		}
+		else if ("build.gradle".equals(content[i].getName().toLowerCase()))
+		{
+			if (prefix != null){
+				projects.add(prefix + dir.getName())
+//				println 'added !!!!! ' + prefix + dir.getName()
+			}
+			isgradle = true
+		}
+	}
+	
+	if (isgradle)
+	{
+		prefix = prefix != null ? prefix + dir.getName() + ':' : ':'
+		subprojs.each { sp ->
+			addProjectDir(projects, sp, blacklist, prefix)
+		}
+	}
+}
+
+def getExtraArtifacts(String projectid)
+{
+	def ret = new ArrayList<String>();
+	def ppath = projectid.replace(':', File.separator)
+	def distprops = new File(settingsDir.getAbsolutePath() + ppath + File.separator + "dist" + File.separator + "dist.properties")
+	if (distprops.exists())
+	{
+		FileInputStream fis = null
+		Properties props = new Properties();
+		try
+		{
+			fis = new FileInputStream(distprops)
+			props.load(fis);
+		}
+		finally 
+		{
+			if (fis != null)
+			try
+			{
+				fis.close();
+			}
+			catch (Exception e)
+			{
+			}
+		}
+		String artstr = props.getProperty('extraartifacts')
+		if (artstr != null)
+		{
+			artstr.split(',').each { art ->
+				ret.add(art.trim())
+			}
+		}
+	}
+	return ret;
+}
+
+def getProjectDeps(String projectid)
+{
+	def ret = new HashSet<String>()
+	def maindelegate = new GroovyInterceptable() {
+		public Object invokeMethod(java.lang.String name, java.lang.Object args) {
+			// println "Called: " + name
+			
+			if ('project'.equals(name)) {
+				return new GroovyInterceptable() {
+					public def getProperty(String pname) {
+						if ('getprojname'.equals(pname))
+						{
+							if (args[0] instanceof String)
+							{
+								if (!args[0].startsWith(':'))
+									println 'WARNING: Missing initial colon in project ' + projectid + ' depname: ' + args[0]
+								return args[0]
+							}
+							else if (args[0] instanceof Map && args[0].get("path") != null)
+							{
+								String tst = args[0].get("path")
+								if (!tst.startsWith(':'))
+									println 'WARNING: Missing initial colon in project ' + projectid + ' depname: ' + tst
+								return tst
+							}
+							return args[0]
+						}
+						return this
+					}
+				};
+			}
+			
+			if (name.equals('compile') ||
+				name.equals('api') ||
+				name.equals('implementation') ||
+				name.equals('testImplementation')) {
+				if (args[0] instanceof GroovyInterceptable) {
+					def depname = args[0].getProperty('getprojname')
+					if (depname instanceof String)
+						ret.add(depname)
+				}
+			}
+			
+			args.each { arg ->
+				if (arg instanceof Closure) {
+					arg.setDelegate(this)
+					try {
+						arg.run()
+					}
+					catch (Exception e) { }
+				}
+			}
+			return this
+		}
+		
+		public void setProperty(String pname, Object value) {
+		}
+		
+		public def getProperty(String pname) {
+			return this
+		}
+	}
+	
+	Binding binding = new Binding() {
+		Object getProperty(String property) {
+			return maindelegate.getProperty(property)
+		}
+
+		Object getVariable(String name) {
+			return maindelegate
+		}
+		
+		Map getVariables() {
+			return new HashMap()
+		}
+		
+		boolean hasVariable(String name) {
+			return true;
+		}
+		
+		void setProperty(String property, Object newValue) {}
+		
+		void setVariable(String name, Object value) {}
+	}
+
+	org.codehaus.groovy.control.CompilerConfiguration cc = new org.codehaus.groovy.control.CompilerConfiguration()
+	cc.setScriptBaseClass(DelegatingScript.class.getName())
+	GroovyShell shell = new GroovyShell(binding, cc)
+	//throw new Exception("LOADING " + projectid)
+	File buildfile = new File(settingsDir.getAbsolutePath() + File.separator + projectid.substring(1).replace(':', File.separator) + File.separator + 'build.gradle')
+	DelegatingScript script = null
+	
+	List<String> lines = java.nio.file.Files.readAllLines(buildfile.toPath(), java.nio.charset.StandardCharsets.UTF_8)
+	int scriptsize = lines.size()
+	boolean reduced = false
+	while (script == null)
+	{
+		StringBuilder builder = new StringBuilder()
+		for (int i = 0; i < scriptsize; ++i) {
+			builder.append(lines.get(i))
+			builder.append("\n")
+		}
+		
+		try {
+			script = (DelegatingScript)shell.parse(builder.toString())
+		}
+		catch (Exception e)
+		{
+			reduced = true
+			--scriptsize;
+		}
+	}
+	
+	if (reduced)
+		println 'Warning: Build script reduced to find dependencies for project ' + projectid
+
+	script.setDelegate(maindelegate)
+	script.run()
+	return ret
+}
+
+

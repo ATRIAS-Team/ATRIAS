@@ -1,0 +1,101 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>NFNonBusyServiceFlow</jadex:modelname>
+    <jadex:providedservices>
+      <jadex:providedservice class="jadex.bpmn.examples.nfprops.AService" interface="jadex.bpmn.examples.nfprops.IAService" name="aser" proxytype="decoupled"/>
+    </jadex:providedservices>
+    <jadex:requiredservices>
+      <jadex:requiredservice create="false" dynamic="true" interface="jadex.bpmn.examples.nfprops.IAService" multi="true" name="aser" scope="platform"/>
+    </jadex:requiredservices>
+  </bpmn:extension>
+  <bpmn:process id="qem4RVqaTvHARCR2" name="Pool">
+    <bpmn:startEvent id="zait5KWxNKxr6m2U">
+      <bpmn:outgoing>KmJy/PwMDTQOJSmG</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="hTVbHWUJszFCG4cS">
+      <bpmn:incoming>EZtVjFUlhql3UeS+</bpmn:incoming>
+      <bpmn:outgoing>HahXfefD1HgdKs55</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration>0</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:extensionElements>
+        <jadex:property name="duration" type="java.lang.Number">0</jadex:property>
+      </bpmn:extensionElements>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="0Iqn/r/XXotuw4WK" name="Invoke non busy\nService">
+      <bpmn:incoming>KmJy/PwMDTQOJSmG</bpmn:incoming>
+      <bpmn:incoming>HahXfefD1HgdKs55</bpmn:incoming>
+      <bpmn:outgoing>EZtVjFUlhql3UeS+</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.ServiceCallTask</jadex:class>
+        <jadex:property name="service" type="java.lang.String">&quot;aser&quot;</jadex:property>
+        <jadex:property name="method" type="java.lang.String">&quot;public abstract jadex.commons.future.IFuture jadex.bpmn.examples.nfprops.IAService.test()&quot;</jadex:property>
+        <jadex:property name="ranking" type="java.lang.String">&quot;jadex.bridge.sensor.service.WaitqueueEvaluator&quot;</jadex:property>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="HGjMMirFE2SvWYY4">
+      <bpmn:incoming>/fDhHVYxbyIVqGxn</bpmn:incoming>
+      <bpmn:outgoing>xCjVHG6NGXjLSNr5</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration>5000</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:extensionElements>
+        <jadex:property name="duration">5000</jadex:property>
+      </bpmn:extensionElements>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="dQhkMy91IcjgPcmI">
+      <bpmn:incoming>xCjVHG6NGXjLSNr5</bpmn:incoming>
+      <bpmn:terminateEventDefinition/>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="E6+99RZyzdN+M1cm">
+      <bpmn:outgoing>/fDhHVYxbyIVqGxn</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="KmJy/PwMDTQOJSmG" sourceRef="zait5KWxNKxr6m2U" targetRef="0Iqn/r/XXotuw4WK">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="HahXfefD1HgdKs55" sourceRef="hTVbHWUJszFCG4cS" targetRef="0Iqn/r/XXotuw4WK">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="EZtVjFUlhql3UeS+" sourceRef="0Iqn/r/XXotuw4WK" targetRef="hTVbHWUJszFCG4cS">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="xCjVHG6NGXjLSNr5" sourceRef="HGjMMirFE2SvWYY4" targetRef="dQhkMy91IcjgPcmI">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="/fDhHVYxbyIVqGxn" sourceRef="E6+99RZyzdN+M1cm" targetRef="HGjMMirFE2SvWYY4">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="qem4RVqaTvHARCR2">
+        <dc:Bounds height="600.0" width="3000.0" x="50.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="zait5KWxNKxr6m2U">
+        <dc:Bounds height="40.0" width="40.0" x="210.0" y="170.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="hTVbHWUJszFCG4cS">
+        <dc:Bounds height="40.0" width="40.0" x="520.0" y="170.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="0Iqn/r/XXotuw4WK">
+        <dc:Bounds height="100.0" width="160.0" x="330.0" y="140.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="HGjMMirFE2SvWYY4">
+        <dc:Bounds height="40.0" width="40.0" x="390.0" y="360.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="dQhkMy91IcjgPcmI">
+        <dc:Bounds height="40.0" width="40.0" x="550.0" y="360.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="E6+99RZyzdN+M1cm">
+        <dc:Bounds height="40.0" width="40.0" x="220.0" y="360.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="KmJy/PwMDTQOJSmG">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="EZtVjFUlhql3UeS+">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="HahXfefD1HgdKs55">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="xCjVHG6NGXjLSNr5">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="/fDhHVYxbyIVqGxn">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

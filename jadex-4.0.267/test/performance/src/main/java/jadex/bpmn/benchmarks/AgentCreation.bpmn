@@ -1,0 +1,259 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>AgentCreation</jadex:modelname>
+    <jadex:package>jadex.bpmn.benchmarks</jadex:package>
+    <jadex:imports>
+      <jadex:import>jadex.commons.*</jadex:import>
+      <jadex:import>jadex.bridge.*</jadex:import>
+      <jadex:import>jadex.bridge.modelinfo.*</jadex:import>
+      <jadex:import>jadex.bpmn.runtime.task.*</jadex:import>
+      <jadex:import>jadex.bpmn.model.*</jadex:import>
+    </jadex:imports>
+    <jadex:arguments>
+      <jadex:argument name="max" type="int">
+        <jadex:description>The maximum numbers of processes to create.</jadex:description>
+        <jadex:value>10000</jadex:value>
+      </jadex:argument>
+      <jadex:argument name="num" type="int">
+        <jadex:description>The current numbers of the process to create.</jadex:description>
+        <jadex:value>1</jadex:value>
+      </jadex:argument>
+      <jadex:argument name="startmem" type="long">
+        <jadex:value>Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()</jadex:value>
+      </jadex:argument>
+      <jadex:argument name="starttime" type="long">
+        <jadex:value>null</jadex:value>
+      </jadex:argument>
+    </jadex:arguments>
+    <jadex:contextvariables>
+      <jadex:contextvariable name="starttime" type="long">
+        <jadex:value>System.currentTimeMillis()</jadex:value>
+      </jadex:contextvariable>
+    </jadex:contextvariables>
+    <jadex:configurations>
+      <jadex:configuration name="Pool">
+      </jadex:configuration>
+    </jadex:configurations>
+  </bpmn:extension>
+  <bpmn:process id="_EA9-sdQbEd6ZgonVFJzeWg" name="Pool">
+    <bpmn:startEvent id="_185DIdQeEd6ZgonVFJzeWg">
+      <bpmn:outgoing>_2jKY8dQeEd6ZgonVFJzeWg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="_nFusgdQcEd6ZgonVFJzeWg" name="Fetch and\nprepare arguments">
+      <bpmn:incoming>_2jKY8dQeEd6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:outgoing>_WJi0AdQjEd6ZgonVFJzeWg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Created peer: &quot;+num</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway default="_PYI8MdQkEd6ZgonVFJzeWg" id="_WJZDAdQjEd6ZgonVFJzeWg">
+      <bpmn:incoming>_WJi0AdQjEd6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:outgoing>_ZB1PwdQjEd6ZgonVFJzeWg</bpmn:outgoing>
+      <bpmn:outgoing>_PYI8MdQkEd6ZgonVFJzeWg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_jQRI0dg4Ed6ZgonVFJzeWg" name="Print Kill\nResults Task">
+      <bpmn:incoming>_jQa50dg4Ed6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:outgoing>_qyK0Adg4Ed6ZgonVFJzeWg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="dur" type="double">dur</jadex:parameter>
+        <jadex:parameter direction="in" name="pera" type="double">pera</jadex:parameter>
+        <jadex:parameter direction="in" name="omem" type="long">omem</jadex:parameter>
+        <jadex:parameter direction="in" name="upera" type="double">upera</jadex:parameter>
+        <jadex:parameter direction="in" name="killdur" type="double">((double)System.currentTimeMillis()-killstarttime)/1000.0</jadex:parameter>
+        <jadex:parameter direction="in" name="killpera" type="double">killdur/(max-1)</jadex:parameter>
+        <jadex:parameter direction="in" name="stillused" type="long">(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/1024</jadex:parameter>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Last peer destroyed. &quot;+(max-1)+&quot; components killed. Cumulated results: Creation needed: &quot;+dur+&quot; secs. Per component: &quot;+pera+&quot; sec. Corresponds to &quot;+(1/pera)+&quot; components per sec. Killing needed: &quot;+killdur+&quot; secs. Per process: &quot;+killpera+&quot; sec. Corresponds to &quot;+(1/killpera)+&quot; components per sec. Overall memory usage: &quot;+omem+&quot;kB. Per component: &quot;+upera+&quot; kB. Still used memory: &quot;+stillused+&quot;kB.&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="_i5aRgdQmEd6ZgonVFJzeWg">
+      <bpmn:incoming>_qyK0Adg4Ed6ZgonVFJzeWg</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="_PX_yQdQkEd6ZgonVFJzeWg" name="Print Creation\nResults Task">
+      <bpmn:incoming>_PYI8MdQkEd6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:outgoing>eiCdDIBBGK8OnKK4</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="used" type="long">Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()</jadex:parameter>
+        <jadex:parameter direction="inout" name="omem" type="long">(used-startmem)/1024</jadex:parameter>
+        <jadex:parameter direction="inout" name="upera" type="double">((long)(1000*(used-startmem)/max/1024))/1000.0</jadex:parameter>
+        <jadex:parameter direction="in" name="end" type="long">System.currentTimeMillis()</jadex:parameter>
+        <jadex:parameter direction="inout" name="dur" type="double">((double)end-starttime)/1000.0</jadex:parameter>
+        <jadex:parameter direction="inout" name="pera" type="double">dur/max</jadex:parameter>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Overall memory usage: &quot;+omem+&quot;kB. Per process: &quot;+upera+&quot; kB. Last peer created. &quot;+max+&quot; processes started. Needed: &quot;+dur+&quot; secs. Per process: &quot;+pera+&quot; sec. Corresponds to &quot;+(1/pera)+&quot; processes per sec.&quot;</jadex:parameter>
+        <jadex:parameter direction="inout" name="killstarttime" type="long">System.currentTimeMillis()</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_D9dzMdQlEd6ZgonVFJzeWg" name="Delete Peers">
+      <bpmn:incoming>_reiwMdYnEd6H3v0lpmo8zA</bpmn:incoming>
+      <bpmn:incoming>eiCdDIBBGK8OnKK4</bpmn:incoming>
+      <bpmn:outgoing>MR5A8HVK32zTXg6l</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>DestroyComponentTask</jadex:class>
+        <jadex:parameter direction="inout" name="dur" type="double"/>
+        <jadex:parameter direction="inout" name="pera" type="double"/>
+        <jadex:parameter direction="inout" name="omem" type="long"/>
+        <jadex:parameter direction="inout" name="upera" type="double"/>
+        <jadex:parameter direction="inout" name="i" type="int">max-1</jadex:parameter>
+        <jadex:parameter direction="inout" name="name" type="java.lang.String">i==1? &quot;AgentCreation&quot;: &quot;AgentCreation_#&quot;+i</jadex:parameter>
+        <jadex:parameter direction="inout" name="killstarttime" type="long"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_ooq7UWJ5Ed-Q9q1HfsZXQw" name="Print Deletion">
+      <bpmn:incoming>MR5A8HVK32zTXg6l</bpmn:incoming>
+      <bpmn:outgoing>HEWFKacUXg73u/jE</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="inout" name="dur" type="double"/>
+        <jadex:parameter direction="inout" name="pera" type="double"/>
+        <jadex:parameter direction="inout" name="omem" type="long"/>
+        <jadex:parameter direction="inout" name="upera" type="double"/>
+        <jadex:parameter direction="inout" name="i" type="int"/>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Successfully destroyed peer &quot;+name</jadex:parameter>
+        <jadex:parameter direction="inout" name="killstarttime" type="long"/>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway default="_jQa50dg4Ed6ZgonVFJzeWg" id="_oIxuQdYnEd6H3v0lpmo8zA">
+      <bpmn:incoming>HEWFKacUXg73u/jE</bpmn:incoming>
+      <bpmn:outgoing>_reiwMdYnEd6H3v0lpmo8zA</bpmn:outgoing>
+      <bpmn:outgoing>_jQa50dg4Ed6ZgonVFJzeWg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_ZBsF0dQjEd6ZgonVFJzeWg" name="Dispatch Subprocess\nand Wait For Result">
+      <bpmn:incoming>_ZB1PwdQjEd6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:outgoing>_jdMVStXtEd6ZgonVFJzeWg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>CreateComponentTask</jadex:class>
+        <jadex:parameter direction="in" name="model" type="java.lang.String">&quot;/jadex/bpmn/benchmarks/AgentCreation.bpmn&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="name" type="java.lang.String">&quot;AgentCreation_#&quot;+(num+1)</jadex:parameter>
+        <jadex:parameter direction="in" name="num" type="java.lang.Integer">new Integer(num +1)</jadex:parameter>
+        <jadex:parameter direction="in" name="startmem" type="java.lang.Long">startmem</jadex:parameter>
+        <jadex:parameter direction="in" name="starttime" type="java.lang.Long">starttime</jadex:parameter>
+        <jadex:parameter direction="in" name="max" type="java.lang.Long">max</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="_jdMVQdXtEd6ZgonVFJzeWg" name="Wait For Ever">
+      <bpmn:incoming>_jdMVStXtEd6ZgonVFJzeWg</bpmn:incoming>
+      <bpmn:signalEventDefinition/>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="_2jKY8dQeEd6ZgonVFJzeWg" sourceRef="_185DIdQeEd6ZgonVFJzeWg" targetRef="_nFusgdQcEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_WJi0AdQjEd6ZgonVFJzeWg" sourceRef="_nFusgdQcEd6ZgonVFJzeWg" targetRef="_WJZDAdQjEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_ZB1PwdQjEd6ZgonVFJzeWg" sourceRef="_WJZDAdQjEd6ZgonVFJzeWg" targetRef="_ZBsF0dQjEd6ZgonVFJzeWg">
+      <bpmn:conditionExpression>num&lt;max</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_PYI8MdQkEd6ZgonVFJzeWg" sourceRef="_WJZDAdQjEd6ZgonVFJzeWg" targetRef="_PX_yQdQkEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_qyK0Adg4Ed6ZgonVFJzeWg" sourceRef="_jQRI0dg4Ed6ZgonVFJzeWg" targetRef="_i5aRgdQmEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="eiCdDIBBGK8OnKK4" sourceRef="_PX_yQdQkEd6ZgonVFJzeWg" targetRef="_D9dzMdQlEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="MR5A8HVK32zTXg6l" sourceRef="_D9dzMdQlEd6ZgonVFJzeWg" targetRef="_ooq7UWJ5Ed-Q9q1HfsZXQw">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="HEWFKacUXg73u/jE" sourceRef="_ooq7UWJ5Ed-Q9q1HfsZXQw" targetRef="_oIxuQdYnEd6H3v0lpmo8zA">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_reiwMdYnEd6H3v0lpmo8zA" sourceRef="_oIxuQdYnEd6H3v0lpmo8zA" targetRef="_D9dzMdQlEd6ZgonVFJzeWg">
+      <bpmn:conditionExpression>i &gt; 1</bpmn:conditionExpression>
+      <bpmn:extensionElements>
+        <jadex:parametermapping name="i">i-1</jadex:parametermapping>
+      </bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_jQa50dg4Ed6ZgonVFJzeWg" sourceRef="_oIxuQdYnEd6H3v0lpmo8zA" targetRef="_jQRI0dg4Ed6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_jdMVStXtEd6ZgonVFJzeWg" sourceRef="_ZBsF0dQjEd6ZgonVFJzeWg" targetRef="_jdMVQdXtEd6ZgonVFJzeWg">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_EA9-sdQbEd6ZgonVFJzeWg">
+        <dc:Bounds height="600.0" width="3000.0" x="58.78107943501846" y="89.01134885874225"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_185DIdQeEd6ZgonVFJzeWg">
+        <dc:Bounds height="40.0" width="40.0" x="70.0" y="150.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_nFusgdQcEd6ZgonVFJzeWg">
+        <dc:Bounds height="100.0" width="160.0" x="220.0" y="120.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>text</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_WJZDAdQjEd6ZgonVFJzeWg">
+        <dc:Bounds height="60.0" width="60.0" x="420.0" y="140.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_jQRI0dg4Ed6ZgonVFJzeWg">
+        <dc:Bounds height="100.0" width="160.0" x="1760.0" y="200.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_i5aRgdQmEd6ZgonVFJzeWg">
+        <dc:Bounds height="40.0" width="40.0" x="2010.0" y="230.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_PX_yQdQkEd6ZgonVFJzeWg">
+        <dc:Bounds height="100.0" width="160.0" x="530.0" y="120.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>omem</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>text</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>dur</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>pera</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>upera</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>killstarttime</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>used</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>end</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_D9dzMdQlEd6ZgonVFJzeWg">
+        <dc:Bounds height="100.0" width="160.0" x="940.0" y="120.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>name</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>i</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_ooq7UWJ5Ed-Q9q1HfsZXQw">
+        <dc:Bounds height="100.0" width="160.0" x="1270.0" y="120.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>text</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_oIxuQdYnEd6H3v0lpmo8zA">
+        <dc:Bounds height="60.0" width="60.0" x="1560.0" y="140.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_ZBsF0dQjEd6ZgonVFJzeWg">
+        <dc:Bounds height="100.0" width="160.0" x="531.0" y="11.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>startmem</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>num</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>model</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>max</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>starttime</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>name</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_jdMVQdXtEd6ZgonVFJzeWg">
+        <dc:Bounds height="40.0" width="40.0" x="791.0" y="41.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_2jKY8dQeEd6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_WJi0AdQjEd6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_ZB1PwdQjEd6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_PYI8MdQkEd6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_jdMVStXtEd6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_reiwMdYnEd6H3v0lpmo8zA">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_jQa50dg4Ed6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_qyK0Adg4Ed6ZgonVFJzeWg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="eiCdDIBBGK8OnKK4">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="MR5A8HVK32zTXg6l">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="HEWFKacUXg73u/jE">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

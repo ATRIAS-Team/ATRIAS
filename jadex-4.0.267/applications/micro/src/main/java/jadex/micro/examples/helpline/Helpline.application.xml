@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	<H3>Helpline scenario application descriptor</H3>
+-->
+<applicationtype xmlns="http://www.activecomponents.org/jadex-application"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.activecomponents.org/jadex-application 
+	                    http://www.activecomponents.org/jadex-application-${jadex_build_version}.xsd"
+	name="Helpline" package="jadex.micro.examples.helpline">
+	
+	<imports>
+		<import>jadex.bridge.service.*</import>
+		<import>jadex.bridge.service.component.*</import>
+		<import>jadex.bridge.service.search.*</import>
+		<import>jadex.bridge.service.types.clock.IClockService</import>
+		<import>jadex.commons.future.*</import>
+	</imports>
+	
+	<componenttypes>
+		<componenttype name="HelplineAgent" filename="jadex/micro/examples/helpline/HelplineAgent.class"/>
+	</componenttypes>
+	
+	<!--<properties>
+		<property name="clock" class="IFuture">
+			 $component.getFeature(jadex.bridge.service.component.IRequiredServicesFeature.class).searchService( new ServiceQuery( IClockService.class, ServiceScope.PLATFORM)) 
+			$component.getFeature(IRequiredServicesFeature.class).getLocalService(new ServiceQuery( IClockService.class, ServiceScope.PLATFORM))
+		</property>
+	</properties>-->
+	
+	<configurations>
+		<configuration name="1 Helpline Agent">
+			<components>
+				<component type="HelplineAgent">
+					<arguments>
+						<argument name="infos">
+							new InformationEntry[]
+							{
+								new InformationEntry("Lennie Lost", "First aid given at Hummel square.", ((IClockService)$component.getFeature(IRequiredServicesFeature.class).getLocalService(new ServiceQuery( IClockService.class, ServiceScope.PLATFORM))).getTime()-2*60*60*1000),
+								new InformationEntry("Lennie Lost", "Brought to collection point.", ((IClockService)$component.getFeature(IRequiredServicesFeature.class).getLocalService(new ServiceQuery( IClockService.class, ServiceScope.PLATFORM))).getTime()-1*60*60*1000),
+								new InformationEntry("Lennie Lost", "Savely reached Mainville Hospital.", ((IClockService)$component.getFeature(IRequiredServicesFeature.class).getLocalService(new ServiceQuery( IClockService.class, ServiceScope.PLATFORM))).getTime())
+							}
+						</argument>
+					</arguments>
+				</component>
+			</components>
+ 		</configuration>
+	</configurations>
+
+</applicationtype>

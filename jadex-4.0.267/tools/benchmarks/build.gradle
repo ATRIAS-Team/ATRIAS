@@ -1,0 +1,9 @@
+description 'The Jadex tools benchmarks package contains a library and tools for building histories of benchmark runs.'
+
+dependencies
+{
+	api 'com.h2database:h2:1.3.171'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}

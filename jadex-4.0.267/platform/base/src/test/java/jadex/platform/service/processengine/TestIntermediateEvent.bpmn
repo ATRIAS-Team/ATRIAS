@@ -1,0 +1,69 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>TestIntermediateEvent</jadex:modelname>
+    <jadex:componentflags keepalive="false" monitoring="OFF" suspend="false" synchronous="false"/>
+  </bpmn:extension>
+  <bpmn:process id="mXGzRdvHUI25sRaq" name="Pool">
+    <bpmn:startEvent id="mLR+eRTFPqwse2ET">
+      <bpmn:outgoing>lVGrbSa5270++aH7</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="j3TO7R2uWjWqewLp" name="Task">
+      <bpmn:incoming>lVGrbSa5270++aH7</bpmn:incoming>
+      <bpmn:outgoing>5YpLb/SmFg/mBVEg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;before event&quot;</jadex:parameter>
+        <jadex:parameter direction="out" name="value" type="int">7</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="z5CP/CF3O5zCvQ2w">
+      <bpmn:incoming>5YpLb/SmFg/mBVEg</bpmn:incoming>
+      <bpmn:outgoing>ntHZacf11GLSZAC8</bpmn:outgoing>
+      <bpmn:conditionalEventDefinition/>
+      <bpmn:extensionElements>
+        <jadex:property name="eventtypes">new java.lang.String[]{&quot;Intermediate&quot;}</jadex:property>
+        <jadex:property name="condition">value==$event.value</jadex:property>
+      </bpmn:extensionElements>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="yAMNau1/DbrnVBzw" name="Task">
+      <bpmn:incoming>ntHZacf11GLSZAC8</bpmn:incoming>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;after event: &quot;+$event</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="lVGrbSa5270++aH7" sourceRef="mLR+eRTFPqwse2ET" targetRef="j3TO7R2uWjWqewLp">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="5YpLb/SmFg/mBVEg" sourceRef="j3TO7R2uWjWqewLp" targetRef="z5CP/CF3O5zCvQ2w">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="ntHZacf11GLSZAC8" sourceRef="z5CP/CF3O5zCvQ2w" targetRef="yAMNau1/DbrnVBzw">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="mXGzRdvHUI25sRaq">
+        <dc:Bounds height="200.0" width="900.0" x="50.0" y="60.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mLR+eRTFPqwse2ET">
+        <dc:Bounds height="40.0" width="40.0" x="80.0" y="70.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="j3TO7R2uWjWqewLp">
+        <dc:Bounds height="100.0" width="160.0" x="190.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="z5CP/CF3O5zCvQ2w">
+        <dc:Bounds height="40.0" width="40.0" x="480.0" y="70.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="yAMNau1/DbrnVBzw">
+        <dc:Bounds height="100.0" width="160.0" x="650.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="lVGrbSa5270++aH7">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="5YpLb/SmFg/mBVEg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="ntHZacf11GLSZAC8">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

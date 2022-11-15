@@ -1,0 +1,55 @@
+description 'The Jadex BDI V3 applications package contains several example applications, benchmarks and testcases using BDI V3 agents.'
+
+// Test ASM with different versions -> add extra compile/test tasks for each desired java version
+// TODO: Java 17, but breaks Java 8 wtf!?
+['8', '11'].each { version ->
+	// Compile main and test classes into combined custom output dir
+	def compileJavaX	= task "compileJava$version"(type: JavaCompile) {
+		sourceCompatibility = version
+		targetCompatibility = version
+		source sourceSets.main.java + sourceSets.test.java
+		classpath = sourceSets.main.compileClasspath
+		destinationDirectory = new File(project.buildDir, "classesJava$version")
+	}
+	// Run tests with custom classes dir
+	def testJavaX	= task "testJava$version"(type: Test) {
+		classpath = sourceSets.test.compileClasspath + project.files(compileJavaX.destinationDirectory) + project.files(processResources.destinationDir) + project.files(processTestResources.destinationDir)
+		maxParallelForks = test.maxParallelForks
+		dependsOn compileJavaX, processResources, processTestResources
+	}
+	test.dependsOn testJavaX
+}
+
+// Skip default test (redundant)
+test.enabled false
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':util:gui')
+	api project(':platform:bridge')
+	api project(':tools:base-swing')
+	api project(':kernels:bdiv3')
+	api project(':environments:envsupport')
+	api project(':serialization:xml')
+	api project(':kernels:application')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+	implementation 'ai.djl.pytorch:pytorch-engine:0.19.0'
+
+
+	testImplementation project(':platform:base')
+	testImplementation project(':transports:websocket')
+	testImplementation project(':transports:relay')
+	testImplementation project(':transports:intravm')
+	testImplementation project(':util:bytecode')
+
+ 	// Allow starting examples from Main.java without extra dependencies
+ 	runtimeOnly project(':distributions:minimal')
+	
+	api 'com.toedter:jcalendar:1.3.2'
+	api 'de.huxhorn.sulky:de.huxhorn.sulky.3rdparty.jlayer:1.0'
+	
+	api 'com.google.code.findbugs:annotations:3.0.0'	// For suppressing warnings for uninitialized fields
+}

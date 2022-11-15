@@ -1,0 +1,241 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>XORTest</jadex:modelname>
+    <jadex:description>Test if xor gateway works.</jadex:description>
+    <jadex:package>jadex.bpmn.testcases</jadex:package>
+    <jadex:imports>
+      <jadex:import>jadex.base.test.*</jadex:import>
+      <jadex:import>jadex.bpmn.runtime.task.*</jadex:import>
+      <jadex:import>java.util.*</jadex:import>
+    </jadex:imports>
+    <jadex:results>
+      <jadex:result name="testresults" type="Testcase">
+        <jadex:description>The test results.</jadex:description>
+      </jadex:result>
+    </jadex:results>
+    <jadex:contextvariables>
+      <jadex:contextvariable name="name" type="Object"/>
+      <jadex:contextvariable name="list" type="List">
+        <jadex:value>new ArrayList()</jadex:value>
+      </jadex:contextvariable>
+    </jadex:contextvariables>
+    <jadex:configurations>
+      <jadex:configuration name="Pool">
+      </jadex:configuration>
+    </jadex:configurations>
+  </bpmn:extension>
+  <bpmn:process id="_aSXq0RVvEd-9a_-KE2TdXg" name="Pool">
+    <bpmn:task id="_vcyvQRVxEd-9a_-KE2TdXg" name="B">
+      <bpmn:incoming>_vc8gSBVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_1OC8MRVxEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.InvokeMethodTask</jadex:class>
+        <jadex:parameter direction="in" name="object" type="List">list</jadex:parameter>
+        <jadex:parameter direction="in" name="methodname" type="String">&quot;add&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="param" type="Object">&quot;B&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_mnmQMRVxEd-9a_-KE2TdXg" name="A">
+      <bpmn:incoming>_mnmQOhVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_0kxVsRVxEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.InvokeMethodTask</jadex:class>
+        <jadex:parameter direction="in" name="object" type="List">list</jadex:parameter>
+        <jadex:parameter direction="in" name="methodname" type="String">&quot;add&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="param" type="Object">&quot;A&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="_0knksRVxEd-9a_-KE2TdXg">
+      <bpmn:incoming>_0kxVsRVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:incoming>_1OC8MRVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_L1GooRVyEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway default="_5ZOjMhVxEd-9a_-KE2TdXg" id="_33eckRVxEd-9a_-KE2TdXg">
+      <bpmn:incoming>_L1GooRVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_5ZOjMhVxEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:outgoing>_6ZJvKBVxEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="_DPPmERVyEd-9a_-KE2TdXg">
+      <bpmn:incoming>_DPPmGhVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:incoming>_EHuGMRVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_QVu7OhVyEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway default="_Xuss2BVyEd-9a_-KE2TdXg" id="_QVu7MRVyEd-9a_-KE2TdXg">
+      <bpmn:incoming>_QVu7OhVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_VC4m2BVyEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:outgoing>_Xuss2BVyEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_6Y_-IRVxEd-9a_-KE2TdXg" name="D">
+      <bpmn:incoming>_6ZJvKBVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_EHuGMRVyEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.InvokeMethodTask</jadex:class>
+        <jadex:parameter direction="in" name="object" type="List">list</jadex:parameter>
+        <jadex:parameter direction="in" name="methodname" type="String">&quot;add&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="param" type="Object">&quot;D&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_5ZEyMRVxEd-9a_-KE2TdXg" name="C">
+      <bpmn:incoming>_5ZOjMhVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_DPPmGhVyEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.InvokeMethodTask</jadex:class>
+        <jadex:parameter direction="in" name="object" type="List">list</jadex:parameter>
+        <jadex:parameter direction="in" name="methodname" type="String">&quot;add&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="param" type="Object">&quot;C&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway default="_vc8gSBVxEd-9a_-KE2TdXg" id="_l7CsMRVxEd-9a_-KE2TdXg">
+      <bpmn:incoming>_l7MdMRVxEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:outgoing>_mnmQOhVxEd-9a_-KE2TdXg</bpmn:outgoing>
+      <bpmn:outgoing>_vc8gSBVxEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:startEvent id="_bdeMARVvEd-9a_-KE2TdXg">
+      <bpmn:outgoing>_l7MdMRVxEd-9a_-KE2TdXg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="_Xui70RVyEd-9a_-KE2TdXg" name="Failure">
+      <bpmn:incoming>_Xuss2BVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:extensionElements>
+        <jadex:class>WriteContextTask</jadex:class>
+        <jadex:parameter direction="in" name="name" type="String">&quot;testresults&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="value1" type="Testcase">new Testcase(1, new TestReport[]{new TestReport(&quot;#1&quot;,  &quot;Test xor execution.&quot;, false, &quot;Wrong task execution&quot;)})</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_VCvc4RVyEd-9a_-KE2TdXg" name="Success">
+      <bpmn:incoming>_VC4m2BVyEd-9a_-KE2TdXg</bpmn:incoming>
+      <bpmn:extensionElements>
+        <jadex:class>WriteContextTask</jadex:class>
+        <jadex:parameter direction="in" name="name" type="String">&quot;testresults&quot;</jadex:parameter>
+        <jadex:parameter direction="in" name="value" type="Testcase">new Testcase(1, new TestReport[]{new TestReport(&quot;#1&quot;,  &quot;Test xor execution.&quot;, true, null)})</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="_1OC8MRVxEd-9a_-KE2TdXg" sourceRef="_vcyvQRVxEd-9a_-KE2TdXg" targetRef="_0knksRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_0kxVsRVxEd-9a_-KE2TdXg" sourceRef="_mnmQMRVxEd-9a_-KE2TdXg" targetRef="_0knksRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_L1GooRVyEd-9a_-KE2TdXg" sourceRef="_0knksRVxEd-9a_-KE2TdXg" targetRef="_33eckRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_5ZOjMhVxEd-9a_-KE2TdXg" sourceRef="_33eckRVxEd-9a_-KE2TdXg" targetRef="_5ZEyMRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_6ZJvKBVxEd-9a_-KE2TdXg" sourceRef="_33eckRVxEd-9a_-KE2TdXg" targetRef="_6Y_-IRVxEd-9a_-KE2TdXg">
+      <bpmn:conditionExpression>true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_QVu7OhVyEd-9a_-KE2TdXg" sourceRef="_DPPmERVyEd-9a_-KE2TdXg" targetRef="_QVu7MRVyEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_VC4m2BVyEd-9a_-KE2TdXg" sourceRef="_QVu7MRVyEd-9a_-KE2TdXg" targetRef="_VCvc4RVyEd-9a_-KE2TdXg">
+      <bpmn:conditionExpression>Arrays.equals(list.toArray(), new String[]{&quot;A&quot;, &quot;D&quot;})</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_Xuss2BVyEd-9a_-KE2TdXg" sourceRef="_QVu7MRVyEd-9a_-KE2TdXg" targetRef="_Xui70RVyEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_EHuGMRVyEd-9a_-KE2TdXg" sourceRef="_6Y_-IRVxEd-9a_-KE2TdXg" targetRef="_DPPmERVyEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_DPPmGhVyEd-9a_-KE2TdXg" sourceRef="_5ZEyMRVxEd-9a_-KE2TdXg" targetRef="_DPPmERVyEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_mnmQOhVxEd-9a_-KE2TdXg" sourceRef="_l7CsMRVxEd-9a_-KE2TdXg" targetRef="_mnmQMRVxEd-9a_-KE2TdXg">
+      <bpmn:conditionExpression>true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_vc8gSBVxEd-9a_-KE2TdXg" sourceRef="_l7CsMRVxEd-9a_-KE2TdXg" targetRef="_vcyvQRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_l7MdMRVxEd-9a_-KE2TdXg" sourceRef="_bdeMARVvEd-9a_-KE2TdXg" targetRef="_l7CsMRVxEd-9a_-KE2TdXg">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_aSXq0RVvEd-9a_-KE2TdXg">
+        <dc:Bounds height="600.0" width="3000.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_vcyvQRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="260.0" y="310.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>methodname</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>param</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>object</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_mnmQMRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="260.0" y="50.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>methodname</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>param</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>object</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_0knksRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="60.0" width="60.0" x="490.0" y="200.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_33eckRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="60.0" width="60.0" x="600.0" y="200.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_DPPmERVyEd-9a_-KE2TdXg">
+        <dc:Bounds height="60.0" width="60.0" x="980.0" y="190.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_QVu7MRVyEd-9a_-KE2TdXg">
+        <dc:Bounds height="60.0" width="60.0" x="1130.0" y="190.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_6Y_-IRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="740.0" y="310.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>methodname</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>param</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>object</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_5ZEyMRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="740.0" y="40.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>methodname</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>param</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>object</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_l7CsMRVxEd-9a_-KE2TdXg">
+        <dc:Bounds height="60.0" width="60.0" x="170.0" y="190.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_bdeMARVvEd-9a_-KE2TdXg">
+        <dc:Bounds height="40.0" width="40.0" x="50.0" y="200.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_Xui70RVyEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="1210.0" y="310.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>name</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>value1</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_VCvc4RVyEd-9a_-KE2TdXg">
+        <dc:Bounds height="100.0" width="160.0" x="1210.0" y="40.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>name</jadexvisual:internalParameter>
+          <jadexvisual:internalParameter>value</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_l7MdMRVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_mnmQOhVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_vc8gSBVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_0kxVsRVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_1OC8MRVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_L1GooRVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_5ZOjMhVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_6ZJvKBVxEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_DPPmGhVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_EHuGMRVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_QVu7OhVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_VC4m2BVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_Xuss2BVyEd-9a_-KE2TdXg">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

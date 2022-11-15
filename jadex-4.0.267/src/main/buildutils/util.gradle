@@ -1,0 +1,443 @@
+import groovy.lang.Closure
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.tasks.compile.GroovyCompile;
+
+def isApp(project) {
+	project.hasProperty('distasapp') && project.property('distasapp').toLowerCase().equals('true')
+}
+
+/* Tests if a project is commercial. */
+def isCommercial(project) {
+	project.hasProperty("commercial") && project.property("commercial").toLowerCase().equals('true')
+}
+
+def isAddon(selecteddists) {
+	def isaddon = true
+	selecteddists.each { dist ->
+		isaddon &= dist.startsWith('addon')
+	}
+	return isaddon
+}
+
+def isWebApplicationProject(project) {
+    project.hasProperty("webArchiveProject") && project.property("webArchiveProject") == 'true'
+}
+
+def isTestParallel(project) {
+    project.hasProperty("testParallel") && project.property("testParallel") == 'true'
+}
+
+/**
+ *  Gets the project depth in the hierarchy.
+ */
+def getProjectDepth(proj) {
+	if (proj.path.equals(':'))
+		return 0;
+	return proj.path.split(':').length - 1
+}
+
+/**
+ * Add scope mapping for parent configurations of given configuration.
+ * Maven pom generation does not include inherited configurations by default:
+ * http://gradle.1045684.n5.nabble.com/pom-generation-and-inherited-dependencies-td1436197.html
+ * @param task
+ * @param configuration
+ * @return
+ */
+//def addParentScopeMappings(Task task, Configuration configuration) {
+//    def repos = task.repositories.asList()
+//    if (!repos.empty) {
+//        def scopeMappings = repos[0].pom.scopeMappings
+//        def scope = scopeMappings.getMapping([configuration]).scope
+//        configuration.extendsFrom.each {parentConfiguration ->
+////            println "add mapping for $parentConfiguration"
+//            scopeMappings.addMapping(300, parentConfiguration, scope)
+//        }
+//    }
+//}
+
+/**
+ * Adds schema processing tasks for generating files to be uploaded
+ * 1. Generate schemadoc using XSLT
+ * 2. Copy and filter release XSDs to build dir, putting the current $jadex_build_version value in content and name
+ * 3. Copy and filter dev XSDs to build dir, puting the '${jadex_build_version}' (literally) in the name
+ */
+def addSchemaTasks(Project project) {
+    project.tasks.create('schemadoc').doLast {
+        ant.xslt(
+                basedir: "${project.projectDir}/src/main/schema/",
+                destdir: "${project.buildDir}/schemadoc/",
+//                extension: "-${project.version}.html",
+                extension: ".html",
+                force: "true",
+                style: "${project.rootProject.projectDir}/src/main/buildutils/xs3p.xsl",
+                includes: "*.xsd"
+        )
+    }
+	project.schemadoc.inputs.files(project.fileTree(dir: "src/main/schema/", include: '*.xsd'))
+	project.schemadoc.outputs.dir("${project.buildDir}/schemadoc/")
+	
+    project.tasks.create('processSchemas').doLast {
+		// rename and filter files to x-3.0-SNAPSHOT
+        ant.copy(todir: file("$project.buildDir/schemas"))
+        {
+            fileset(
+				dir: 'src/main/schema',
+				includes: project.rootProject.ext.filterfiles,
+				erroronmissingdir: false
+			)
+            filterset(begintoken: '${', endtoken: '}')
+            {
+                filter(token: 'jadex_build_version', value: jadex_build_version)
+            }
+			mapper(
+				type: 'regexp',
+				from: '(.+)\\.(.+)',
+				to:	"\\1-$jadex_build_version.\\2"
+			)
+        }
+	}
+	project.processSchemas.inputs.files(project.fileTree(dir: "src/main/schema/", include: '*.xsd'))
+	project.processSchemas.outputs.dir("${project.buildDir}/schemas/")
+	
+    project.tasks.create('processDevSchemas').doLast {
+		// copy original unfiltered file and rename to -${jadex_build_version}
+        ant.copy(todir: file("$project.buildDir/devschemas"))
+        {
+            fileset(
+				dir: 'src/main/schema',
+				includes: project.rootProject.ext.filterfiles,
+				erroronmissingdir: false
+			)
+			mapper(
+				type: 'regexp',
+				from: '(.+)\\.(.+)',
+				to:	'\\1-${jadex_build_version}.\\2'
+			)
+        }
+    }
+	project.processDevSchemas.inputs.files(project.fileTree(dir: "src/main/schema/", include: '*.xsd'))
+	project.processDevSchemas.outputs.dir("${project.buildDir}/devschemas/")
+
+    //project.assemble.dependsOn += project.schemadoc	// outputs only required for publishing
+    //project.assemble.dependsOn += project.processSchemas	// outputs only required for publishing
+    //project.assemble.dependsOn += project.processDevSchemas	// outputs only required for publishing
+}
+
+ext.classPathWarningsShownFor = [:]
+
+/**
+ * Sets the boot classpath according to project.sourceCompatibility.
+ * Needs corresponding JAVA_X_HOME Environment Variable set to the required JDK.
+ * @param project
+ * @return
+ */
+def setBootClassPath(Project project) {
+    def requestedVersion = JavaVersion.toVersion(project.sourceCompatibility)
+    // each JDK should be provided by an environment variable
+    def envHomeVar = "JAVA_${requestedVersion.majorVersion}_HOME"
+    // check if running JDK (which usually is the same Version as in JAVA_HOME) is the requested JDK
+    if (JavaVersion.current() > requestedVersion) {
+        def requestedHome = System.getenv(envHomeVar)
+        if (requestedHome == null || requestedHome.empty || !file(requestedHome).exists()) {
+            if (!classPathWarningsShownFor[project.sourceCompatibility]) {
+                logger.warn("Warning: compiling ${project.sourceCompatibility} source with ${JavaVersion.current()} JDK may lead to problems. " +
+                        "Set $envHomeVar to the corresponding JDK to avoid this.")
+                classPathWarningsShownFor.put(project.sourceCompatibility, true)
+            }
+        } else {
+            // set bootstrap path to correct JDK version
+            // println "Setting bootClasspath for $project.name to JDK $requestedVersion"
+
+            def optionClosure = {
+                // provide same libs that are used in the default boot classpath
+                options.bootstrapClasspath = files(\
+                            ["resources.jar", "rt.jar", "sunrsasign.jar", "jsse.jar", "jce.jar", "charsets.jar", "jfr.jar"]\
+                            .collect {"$requestedHome"+File.separator+"jre"+File.separator+"lib"+File.separator+"$it"}\
+                            << "$requestedHome"+File.separator+"jre"+File.separator+"classes")
+//                        options.fork = true
+            }
+            project.tasks.withType(JavaCompile, optionClosure)
+            project.tasks.withType(GroovyCompile, optionClosure)
+        }
+    }
+}
+
+def getDetachedConfiguration(Project p, Configuration c) {
+    def excludes = []
+    c.allDependencies.findAll {it instanceof ModuleDependency}.each {dep ->
+        dep.getExcludeRules().each {rule ->
+            excludes.add("$rule.group:$rule.module")
+        }
+    }
+    c.getExcludeRules().each {rule ->
+        excludes.add("$rule.group:$rule.module")
+    }
+
+    def detached = p.configurations.detachedConfiguration(c.allDependencies.findAll { !(it instanceof ProjectDependency) && !excludes.contains("$it.group:$it.name") } as Dependency[])
+
+}
+
+//def getSourceDir(project) {
+//        project.sourceSets.main.allJava
+//}
+//
+//// only return java sources
+//// (getSourceDir includes xml, bpmn, aidl, ... which is wrong for javadoc generation)
+//def getOnlyJavaSources(project) {
+//        project.sourceSets.main.allJava
+//}
+//
+//def getResourcesDir(project) {
+//        project.sourceSets.main.resources
+//}
+//
+//def getCompileClassPath(project) {
+//        project.sourceSets.main.compileClasspath
+//}
+
+//def calledWithTask(fulltaskname)
+//{
+//    def result = gradle.startParameter.taskNames.any {taskName -> taskName.contains(fulltaskname)}
+//    return result
+//}
+
+/**
+ * Add a javadoc task to the given project.
+ * The output of the javadoc jar will be included in the project artifacts list.
+ * @param p
+ * @return
+ */
+def addJavadocJarTask(Project p) {
+        def javadocJar = p.tasks.create('javadocJar', Jar) {
+        	archiveBaseName = getArtifactName(p)
+            classifier = 'javadoc'
+            from p.javadoc
+        }
+        p.artifacts {archives javadocJar}
+}
+
+/**
+ * Add a sources jar task to the given project.
+ * The output of the sources jar will be included in the project artifacts list.
+ * @param p
+ * @return
+ */
+def addSourcesJarTask(Project p) {
+        def sourcesJar = p.tasks.create('sourcesJar', Jar) {
+        	archiveBaseName = getArtifactName(p)
+            classifier = 'sources'
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE;
+            from p.sourceSets.main.allSource
+			outputs.cacheIf { true }
+        }
+        p.artifacts {archives sourcesJar}
+}
+
+def addEclipseWorkarounds(project) {
+	// detached configuration, so this workaround config does not get added to default build process
+	def conf = project.configurations.detachedConfiguration()
+	
+	def dep = project.dependencies.create(fileTree(dir: new File(project.projectDir, '/libs') , include: '*.jar'))
+	conf.dependencies.add(dep)
+	
+	project.apply plugin: 'eclipse'
+//	project.apply plugin: 'com.github.ksoichiro.eclipse.aar'
+	
+	project.eclipse {
+		classpath {
+			plusConfigurations += [
+			conf, 
+			project.configurations.compile, 
+			project.configurations.testCompile
+			]
+		}
+	}
+	
+	project.sourceSets {
+		main {
+			java {
+				srcDir 'src/main/java'
+				srcDir 'gen'
+			}
+		}
+		
+		
+		test {
+			java {
+				srcDir 'src/test/java'
+			}
+		}
+	}	
+}
+
+
+def getVar(String key, Project p) {
+    String value = System.getenv(key)
+//    print "key: $key, value: $value \n"
+    if (!value || value.isEmpty()) {
+        if (project.hasProperty(key)) {
+            value = project[key]
+        } else {
+            value = null
+        }
+    }
+    return value
+}
+
+def singularize(name) {
+	if (name.endsWith('s') && !project.ext.keepplural.contains(name))
+		name = name.substring(0, name.length() - 1)
+	return name;
+}
+
+def getArtifactName(project) {
+	def ret = 'jadex'
+    def pathcomps = project.getPath().split(':')
+    for (int i = 1; i < pathcomps.length; ++i) {
+    	def comp = pathcomps[i]
+    	if (i == 1)
+    		comp = singularize(comp)
+    	ret += '-' + comp
+    }
+    return ret
+}
+
+def diffZips(zip1, zip2) {
+	if(!new File(zip1).exists())
+		return zip1 + " does not exist";
+	if(!new File(zip2).exists())
+		return zip2 + " does not exist";
+	def diff	= "";
+	def entries	= new HashMap();
+	
+	// CRC is very fragile
+	/*new java.util.zip.ZipFile(zip1).stream()
+		.forEach {e -> entries.put(e.getName(), e.getCrc()+':'+e.getSize())}
+	new java.util.zip.ZipFile(zip2).stream()
+		.forEach {e ->
+			def e2	= entries.remove(e.getName());
+			if(e2==null)
+				diff	+= "\nUnexpected entry: "+e;
+			else if(!e2.equals(e.getCrc()+':'+e.getSize()))
+			{
+				if (!(e.getName().toLowerCase().endsWith('jar')))
+				{
+					diff += "\nChanged entry (crc:size): "+e+", old="+e2+" new="+e.getCrc()+':'+e.getSize();
+				}
+			}
+	}*/
+	
+	new java.util.zip.ZipFile(zip1).stream()
+		.forEach {e -> entries.put(e.getName(), e.getSize())}
+	new java.util.zip.ZipFile(zip2).stream()
+		.forEach {e ->
+			def e2	= entries.remove(e.getName());
+			if(e2==null)
+				diff	+= "\nUnexpected entry: "+e;
+			else if(!e2.equals(e.getSize()))
+			{
+				if (!(e.getName().toLowerCase().endsWith('jar')))
+				{
+					diff += "\nChanged entry (size): "+e+", old="+e2+" new="+e.getSize();
+				}
+			}
+	}
+	
+	entries.keySet().stream().forEach {e -> diff+="\nMissing entry: "+e}
+	return diff;
+}
+
+// rezip a file after it has been created by a task
+def createRezipTask(task, file) {
+//	println 'Scheduling rezip of file ' + file + ' created by ' + task
+	// Unzip after archive is built.
+	def newname	= 'rebuild/'+task.name+file.name
+	def rebuilddir	= new File(task.project.buildDir, newname)
+	task.doLast {
+//		println 'Unzipping generated ' + file.getCanonicalPath()
+		rebuilddir.mkdirs()
+		ant.unzip(src: file, dest: rebuilddir)
+	}
+	// Rezip after task completed
+	task.finalizedBy task.project.tasks.create([name: newname.replace('/', '_'), type: Zip]) {
+		destinationDirectory	= file.parentFile
+		archiveFileName	= file.name
+		from(rebuilddir) { includes = ['*/**'] }
+//		doLast { println 'Rezipped generated ' + file.getCanonicalPath() }
+	}
+}
+
+/**
+ * Replicates the distsDir removed in Gradle 6.0.
+ */
+def getDistsDir(proj) {
+	return new File(proj.buildDir, proj.distsDirName)
+}
+
+/**
+ * Parse a URI into its components.
+ * see, e.g., https://tools.ietf.org/html/draft-ietf-secsh-scp-sftp-ssh-uri-04
+ * Examples:
+ * https://myserver.com/path -> {host: "myserver.com", port: -1, user: "", password: "", fingerprint: "", url: "https://myserver.com/path"}
+ * https://a@myserver.com/path -> {host: "myserver.com", port: -1, user: "a", password: "", fingerprint: "", url: "https://myserver.com/path"}
+ * ssh://a:b;fingerprint=SHA256-ABC@myserver.com:22000  -> {host: "myserver.com", port: 22000, user: "a", password: "b", fingerprint: "SHA256:ABC", url: "ssh://myserver.com:22000"}
+ */
+def parseURLWithCredentials(urlstring) {
+	def ret = [:];
+	def uri	= new URI(urlstring)
+	ret.host = uri.host;
+	ret.port = uri.port
+    ret.user = ''
+    ret.password = ''
+    ret.fingerprint = ''
+    def String userinfo = uri.userInfo
+    if(userinfo!=null)
+    {
+		def String[] split = userinfo.split(":|;")
+		//println 'userinfo: ' + split
+        ret.user = split.length>0 ? split[0] : ''
+        ret.password = split.length>1 ? split[1] : ''
+        
+        for(int i=2; i<split.length; i++)
+        {
+        	if(split[i].startsWith('fingerprint='))
+        	{
+        		// Fingerprint info according to https://tools.ietf.org/html/draft-ietf-secsh-scp-sftp-ssh-uri-04
+        		ret.fingerprint	= split[i].substring('fingerprint='.length()).replace('-', ':')
+        		//println 'fingerprint: ' + ret.fingerprint
+        	}
+        }
+	}
+
+	// URL without extra info (e.g. no password for security reasons)
+	ret.url	= uri.scheme + '://' + uri.host + (uri.port!=-1 ? ':' + uri.port : '') + (uri.rawPath!=null ? uri.rawPath : '') + (uri.rawQuery!=null ? '?' + uri.rawQuery : '') + (uri.rawFragment!=null ? '#' + uri.rawFragment : '')
+	//println 'url: ' + ret.url
+		
+	return ret;
+}
+
+// make functions externally visible
+
+ext {
+	isApp = this.&isApp
+	isCommercial = this.&isCommercial
+	isAddon = this.&isAddon
+    isWebApplicationProject = this.&isWebApplicationProject
+    getProjectDepth = this.&getProjectDepth
+    isTestParallel = this.&isTestParallel
+    addSchemaTasks = this.&addSchemaTasks
+    setBootClassPath = this.&setBootClassPath
+//    addParentScopeMappings = this.&addParentScopeMappings
+    getDetachedConfiguration = this.&getDetachedConfiguration
+    addJavadocJarTask = this.&addJavadocJarTask
+    addSourcesJarTask = this.&addSourcesJarTask
+    addEclipseWorkarounds = this.&addEclipseWorkarounds
+    getVar = this.&getVar
+    singularize = this.&singularize
+    getArtifactName = this.&getArtifactName
+    diffZips = this.&diffZips
+	createRezipTask	= this.&createRezipTask
+	getDistsDir = this.&getDistsDir
+	parseURLWithCredentials = this.&parseURLWithCredentials
+}

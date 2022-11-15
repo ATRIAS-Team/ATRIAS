@@ -1,0 +1,94 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>ForLoopModern</jadex:modelname>
+    <jadex:package>jadex.bpmn.examples.execute</jadex:package>
+    <jadex:componentflags keepalive="false" monitoring="OFF" persistable="false" suspend="false" synchronous="false"/>
+    <jadex:imports>
+      <jadex:import>jadex.bpmn.runtime.task.*</jadex:import>
+    </jadex:imports>
+  </bpmn:extension>
+  <bpmn:process id="_qGY8AXakEd6l0pFqo-bUbg" name="Pool">
+    <bpmn:task id="_NQFXsXanEd6l0pFqo-bUbg" name="Print">
+      <bpmn:incoming>_Yv5p8XanEd6l0pFqo-bUbg</bpmn:incoming>
+      <bpmn:incoming>_yMFS8XazEd6l0pFqo-bUbg</bpmn:incoming>
+      <bpmn:outgoing>_OLZJananEd6l0pFqo-bUbg</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="inout" name="texts" type="String[]">new String[]{&quot;test1&quot;, &quot;test2&quot;, &quot;test3&quot;}</jadex:parameter>
+        <jadex:parameter direction="inout" name="i" type="int">0</jadex:parameter>
+        <jadex:parameter direction="in" name="text" type="String">texts[i]</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:startEvent id="_x6pksXazEd6l0pFqo-bUbg">
+      <bpmn:outgoing>_yMFS8XazEd6l0pFqo-bUbg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway default="_YViCIXanEd6l0pFqo-bUbg" id="_OLZJYXanEd6l0pFqo-bUbg">
+      <bpmn:incoming>_OLZJananEd6l0pFqo-bUbg</bpmn:incoming>
+      <bpmn:outgoing>_YViCIXanEd6l0pFqo-bUbg</bpmn:outgoing>
+      <bpmn:outgoing>_Yv5p8XanEd6l0pFqo-bUbg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_XJFdIXanEd6l0pFqo-bUbg" name="Finished">
+      <bpmn:incoming>_YViCIXanEd6l0pFqo-bUbg</bpmn:incoming>
+      <bpmn:extensionElements>
+        <jadex:class>PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="String">&quot;Finished&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="_OLZJananEd6l0pFqo-bUbg" sourceRef="_NQFXsXanEd6l0pFqo-bUbg" targetRef="_OLZJYXanEd6l0pFqo-bUbg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_yMFS8XazEd6l0pFqo-bUbg" sourceRef="_x6pksXazEd6l0pFqo-bUbg" targetRef="_NQFXsXanEd6l0pFqo-bUbg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_YViCIXanEd6l0pFqo-bUbg" sourceRef="_OLZJYXanEd6l0pFqo-bUbg" targetRef="_XJFdIXanEd6l0pFqo-bUbg">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_Yv5p8XanEd6l0pFqo-bUbg" sourceRef="_OLZJYXanEd6l0pFqo-bUbg" targetRef="_NQFXsXanEd6l0pFqo-bUbg">
+      <bpmn:conditionExpression>i+1&lt;texts.length</bpmn:conditionExpression>
+      <bpmn:extensionElements>
+        <jadex:parametermapping name="i">i+1</jadex:parametermapping>
+      </bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+      <jadex:dataFlow id="R8uLL1zdujft6d6p" sourceParam="i" sourceRef="_NQFXsXanEd6l0pFqo-bUbg" targetParam="i" targetRef="_NQFXsXanEd6l0pFqo-bUbg">
+        <jadex:dataFlowValueMapping>i+1</jadex:dataFlowValueMapping>
+      </jadex:dataFlow>
+      <jadex:dataFlow id="47YbO9faB1EzOfOs" sourceParam="texts" sourceRef="_NQFXsXanEd6l0pFqo-bUbg" targetParam="texts" targetRef="_NQFXsXanEd6l0pFqo-bUbg"/>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_qGY8AXakEd6l0pFqo-bUbg">
+        <dc:Bounds height="600.0" width="3000.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_NQFXsXanEd6l0pFqo-bUbg">
+        <dc:Bounds height="100.0" width="160.0" x="490.0" y="140.0"/>
+        <di:extension>
+          <jadexvisual:internalParameter>text</jadexvisual:internalParameter>
+        </di:extension>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_x6pksXazEd6l0pFqo-bUbg">
+        <dc:Bounds height="40.0" width="40.0" x="330.0" y="170.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_OLZJYXanEd6l0pFqo-bUbg">
+        <dc:Bounds height="60.0" width="60.0" x="710.0" y="160.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_XJFdIXanEd6l0pFqo-bUbg">
+        <dc:Bounds height="100.0" width="160.0" x="830.0" y="140.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_OLZJananEd6l0pFqo-bUbg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_YViCIXanEd6l0pFqo-bUbg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_Yv5p8XanEd6l0pFqo-bUbg">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_yMFS8XazEd6l0pFqo-bUbg">
+      </bpmndi:BPMNEdge>
+      <di:Edge jadexElement="R8uLL1zdujft6d6p" type="data">
+        <di:waypoint x="660.0" y="260.0"/>
+        <di:waypoint x="480.0" y="260.0"/>
+      </di:Edge>
+      <di:Edge jadexElement="47YbO9faB1EzOfOs" type="data">
+        <di:waypoint x="660.0" y="130.0"/>
+        <di:waypoint x="480.0" y="130.0"/>
+      </di:Edge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,43 @@
+description 'Jadex holepunch server web'
+
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+repositories
+{
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies
+{
+	api project(':platform:holepunch-server')
+	
+	api 'javax.servlet:servlet-api:2.4'
+    implementation 'ai.djl:model-zoo:0.19.0'
+    implementation 'ai.djl:api:0.19.0'
+    implementation 'ai.djl.aws:aws-ai:0.19.0'
+}
+
+/*task copyIncludes(type: Copy) {
+	//baseName = project.name
+	from
+    {
+        configurations.include.collect
+        {
+        	it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    into '${buildDir}/WEB-INF/classes'*/
+//    exclude '**/MANIFEST.MF'
+//}
+
+war
+{
+	manifest
+	{
+		attributes 'Main-Class': 'org.activecomponents.udp.holepunching.server.Server'
+	}
+}
+
+

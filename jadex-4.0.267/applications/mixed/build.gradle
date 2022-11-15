@@ -1,0 +1,13 @@
+description 'The Jadex mixed applications package contains example applications using mixed types of components.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':platform:bridge')
+	api project(':kernels:micro')
+	api project(':applications:bdi')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+}
+

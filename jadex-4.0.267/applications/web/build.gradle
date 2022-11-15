@@ -1,0 +1,27 @@
+description 'Jadex examples that can be deployed as web application.'
+
+dependencies
+{
+	api project(':util:commons')
+	api project(':serialization:xml')
+	api project(':serialization:json')
+	api project(':platform:bridge')
+	api project(':tools:base-swing')
+//	api project(':kernels:bdi')
+	api project(':kernels:bdiv3')
+	api project(':kernels:micro')
+	api project(':kernels:component')
+	api project(':platform:base')
+
+	implementation project(':platform:webservice')
+	implementation project(':applications:micro')
+    implementation 'ai.djl:model-zoo:0.19.0'
+	implementation 'ai.djl:api:0.19.0'
+	implementation 'ai.djl.aws:aws-ai:0.19.0'
+	testImplementation project(':platform:webservice-jetty')
+	testImplementation project(':transports:intravm')
+	
+	//compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+	providedCompile 'javax.servlet:javax.servlet-api:4.0.1'
+	api 'javax.websocket:javax.websocket-api:1.1'
+}

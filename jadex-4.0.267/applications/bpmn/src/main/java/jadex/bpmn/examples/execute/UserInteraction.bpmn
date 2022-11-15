@@ -1,0 +1,141 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>UserInteraction</jadex:modelname>
+    <jadex:package>jadex.bpmn.examples.execute</jadex:package>
+    <jadex:componentflags keepalive="false" monitoring="OFF" suspend="false" synchronous="false"/>
+    <jadex:imports>
+      <jadex:import>jadex.bpmn.runtime.task.UserInteractionTask</jadex:import>
+    </jadex:imports>
+  </bpmn:extension>
+  <bpmn:process id="_Ghqvx21jEd6B3oAuT8wltw" name="Pool">
+    <bpmn:subProcess id="_iOT18W1jEd6B3oAuT8wltw">
+      <bpmn:incoming>_iOT2Cm1jEd6B3oAuT8wltw</bpmn:incoming>
+      <bpmn:outgoing>_JSk7sW1kEd6B3oAuT8wltw</bpmn:outgoing>
+      <bpmn:task id="_iOT1821jEd6B3oAuT8wltw" name="Activity A">
+        <bpmn:extensionElements>
+          <jadex:class>UserInteractionTask</jadex:class>
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="_kXjaYW1jEd6B3oAuT8wltw" name="Activity B">
+        <bpmn:extensionElements>
+          <jadex:class>UserInteractionTask</jadex:class>
+        </bpmn:extensionElements>
+      </bpmn:task>
+    </bpmn:subProcess>
+    <bpmn:subProcess id="_mj6kQW1jEd6B3oAuT8wltw">
+      <bpmn:incoming>_mkEVSG1jEd6B3oAuT8wltw</bpmn:incoming>
+      <bpmn:outgoing>_HkAhGm1kEd6B3oAuT8wltw</bpmn:outgoing>
+      <bpmn:task id="_mj6kQ21jEd6B3oAuT8wltw" name="Activity A">
+        <bpmn:outgoing>_sgDLgW1jEd6B3oAuT8wltw</bpmn:outgoing>
+        <bpmn:extensionElements>
+          <jadex:class>UserInteractionTask</jadex:class>
+          <jadex:parameter direction="out" name="x" type="int">42</jadex:parameter>
+        </bpmn:extensionElements>
+      </bpmn:task>
+      <bpmn:task id="_sf5agW1jEd6B3oAuT8wltw" name="Activity B">
+        <bpmn:incoming>_sgDLgW1jEd6B3oAuT8wltw</bpmn:incoming>
+        <bpmn:extensionElements>
+          <jadex:class>UserInteractionTask</jadex:class>
+          <jadex:parameter direction="in" name="y" type="int"/>
+          <jadex:parameter direction="out" name="bla" type="String">&quot;hallo&quot;</jadex:parameter>
+        </bpmn:extensionElements>
+      </bpmn:task>
+    </bpmn:subProcess>
+    <bpmn:exclusiveGateway default="_mkEVSG1jEd6B3oAuT8wltw" id="_cUaqYW1jEd6B3oAuT8wltw">
+      <bpmn:incoming>_cUkbYW1jEd6B3oAuT8wltw</bpmn:incoming>
+      <bpmn:outgoing>_iOT2Cm1jEd6B3oAuT8wltw</bpmn:outgoing>
+      <bpmn:outgoing>_mkEVSG1jEd6B3oAuT8wltw</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_HkAhEW1kEd6B3oAuT8wltw" name="Final Activity">
+      <bpmn:incoming>_JSk7sW1kEd6B3oAuT8wltw</bpmn:incoming>
+      <bpmn:incoming>_HkAhGm1kEd6B3oAuT8wltw</bpmn:incoming>
+      <bpmn:outgoing>_N5nYQW1kEd6B3oAuT8wltw</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>UserInteractionTask</jadex:class>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="_N5eOUW1kEd6B3oAuT8wltw">
+      <bpmn:incoming>_N5nYQW1kEd6B3oAuT8wltw</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="_GhqvyW1jEd6B3oAuT8wltw" name="ExecutionMode">
+      <bpmn:outgoing>_cUkbYW1jEd6B3oAuT8wltw</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>UserInteractionTask</jadex:class>
+        <jadex:parameter direction="out" name="parallel" type="boolean">true</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="_JSk7sW1kEd6B3oAuT8wltw" sourceRef="_iOT18W1jEd6B3oAuT8wltw" targetRef="_HkAhEW1kEd6B3oAuT8wltw">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_HkAhGm1kEd6B3oAuT8wltw" sourceRef="_mj6kQW1jEd6B3oAuT8wltw" targetRef="_HkAhEW1kEd6B3oAuT8wltw">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_sgDLgW1jEd6B3oAuT8wltw" sourceRef="_mj6kQ21jEd6B3oAuT8wltw" targetRef="_sf5agW1jEd6B3oAuT8wltw">
+      <bpmn:extensionElements>
+        <jadex:parametermapping name="y">x</jadex:parametermapping>
+      </bpmn:extensionElements>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_iOT2Cm1jEd6B3oAuT8wltw" sourceRef="_cUaqYW1jEd6B3oAuT8wltw" targetRef="_iOT18W1jEd6B3oAuT8wltw">
+      <bpmn:conditionExpression>parallel</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_mkEVSG1jEd6B3oAuT8wltw" sourceRef="_cUaqYW1jEd6B3oAuT8wltw" targetRef="_mj6kQW1jEd6B3oAuT8wltw">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_N5nYQW1kEd6B3oAuT8wltw" sourceRef="_HkAhEW1kEd6B3oAuT8wltw" targetRef="_N5eOUW1kEd6B3oAuT8wltw">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_cUkbYW1jEd6B3oAuT8wltw" sourceRef="_GhqvyW1jEd6B3oAuT8wltw" targetRef="_cUaqYW1jEd6B3oAuT8wltw">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_Ghqvx21jEd6B3oAuT8wltw">
+        <dc:Bounds height="600.0" width="3000.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_iOT18W1jEd6B3oAuT8wltw" isExpanded="true">
+        <dc:Bounds height="200.0" width="480.0" x="500.0" y="350.0"/>
+        <dc:Bounds height="100.0" width="160.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_iOT1821jEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="40.0" y="30.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_kXjaYW1jEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="260.0" y="30.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_mj6kQW1jEd6B3oAuT8wltw" isExpanded="true">
+        <dc:Bounds height="200.0" width="480.0" x="500.0" y="70.0"/>
+        <dc:Bounds height="100.0" width="160.0" x="0.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_mj6kQ21jEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="30.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_sf5agW1jEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="250.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_cUaqYW1jEd6B3oAuT8wltw">
+        <dc:Bounds height="60.0" width="60.0" x="310.0" y="210.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_HkAhEW1kEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="1150.0" y="230.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_N5eOUW1kEd6B3oAuT8wltw">
+        <dc:Bounds height="40.0" width="40.0" x="1410.0" y="260.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_GhqvyW1jEd6B3oAuT8wltw">
+        <dc:Bounds height="100.0" width="160.0" x="60.0" y="190.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_cUkbYW1jEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_iOT2Cm1jEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_mkEVSG1jEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_JSk7sW1kEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_HkAhGm1kEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_N5nYQW1kEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_sgDLgW1jEd6B3oAuT8wltw">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

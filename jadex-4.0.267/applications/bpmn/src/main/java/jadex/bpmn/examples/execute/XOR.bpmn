@@ -1,0 +1,93 @@
+<?xml version="1.0" ?><bpmn:definitions targetNamespace="http://www.activecomponents.org/bpmn/" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:jadex="http://www.activecomponents.org/bpmnextensions" xmlns:jadexvisual="http://www.activecomponents.org/bpmnvisualextensions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <bpmn:extension>
+    <jadex:modelname>XOR</jadex:modelname>
+    <jadex:package>jadex.bpmn.examples.execute</jadex:package>
+    <jadex:componentflags keepalive="false" monitoring="OFF" suspend="false" synchronous="false"/>
+  </bpmn:extension>
+  <bpmn:process id="_kGs10WpAEd6JtKkNrnCCNQ" name="Pool">
+    <bpmn:startEvent id="_lYWq8WpAEd6JtKkNrnCCNQ">
+      <bpmn:outgoing>_sCFYAWpAEd6JtKkNrnCCNQ</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="_ki5NIWpBEd6JtKkNrnCCNQ">
+      <bpmn:incoming>_ki5NKmpBEd6JtKkNrnCCNQ</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="_feMkMWpBEd6JtKkNrnCCNQ">
+      <bpmn:incoming>_feMkOmpBEd6JtKkNrnCCNQ</bpmn:incoming>
+      <bpmn:incoming>_gDcmUWpBEd6JtKkNrnCCNQ</bpmn:incoming>
+      <bpmn:outgoing>_ki5NKmpBEd6JtKkNrnCCNQ</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway default="_QugcqGpBEd6JtKkNrnCCNQ" id="_sB7nAWpAEd6JtKkNrnCCNQ" name="Toss a Coin">
+      <bpmn:incoming>_sCFYAWpAEd6JtKkNrnCCNQ</bpmn:incoming>
+      <bpmn:outgoing>_DvxVUWpBEd6JtKkNrnCCNQ</bpmn:outgoing>
+      <bpmn:outgoing>_QugcqGpBEd6JtKkNrnCCNQ</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="_kGs102pAEd6JtKkNrnCCNQ" name="Head">
+      <bpmn:incoming>_DvxVUWpBEd6JtKkNrnCCNQ</bpmn:incoming>
+      <bpmn:outgoing>_feMkOmpBEd6JtKkNrnCCNQ</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Head&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="_QuWroWpBEd6JtKkNrnCCNQ" name="Tail">
+      <bpmn:incoming>_QugcqGpBEd6JtKkNrnCCNQ</bpmn:incoming>
+      <bpmn:outgoing>_gDcmUWpBEd6JtKkNrnCCNQ</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <jadex:class>jadex.bpmn.runtime.task.PrintTask</jadex:class>
+        <jadex:parameter direction="in" name="text" type="java.lang.String">&quot;Tail&quot;</jadex:parameter>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="_sCFYAWpAEd6JtKkNrnCCNQ" sourceRef="_lYWq8WpAEd6JtKkNrnCCNQ" targetRef="_sB7nAWpAEd6JtKkNrnCCNQ">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_ki5NKmpBEd6JtKkNrnCCNQ" sourceRef="_feMkMWpBEd6JtKkNrnCCNQ" targetRef="_ki5NIWpBEd6JtKkNrnCCNQ">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_DvxVUWpBEd6JtKkNrnCCNQ" sourceRef="_sB7nAWpAEd6JtKkNrnCCNQ" targetRef="_kGs102pAEd6JtKkNrnCCNQ">
+      <bpmn:conditionExpression>Math.random()&gt;0.5</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_QugcqGpBEd6JtKkNrnCCNQ" sourceRef="_sB7nAWpAEd6JtKkNrnCCNQ" targetRef="_QuWroWpBEd6JtKkNrnCCNQ">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_feMkOmpBEd6JtKkNrnCCNQ" sourceRef="_kGs102pAEd6JtKkNrnCCNQ" targetRef="_feMkMWpBEd6JtKkNrnCCNQ">
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="_gDcmUWpBEd6JtKkNrnCCNQ" sourceRef="_QuWroWpBEd6JtKkNrnCCNQ" targetRef="_feMkMWpBEd6JtKkNrnCCNQ">
+    </bpmn:sequenceFlow>
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane>
+      <bpmndi:BPMNShape bpmnElement="_kGs10WpAEd6JtKkNrnCCNQ">
+        <dc:Bounds height="600.0" width="3000.0" x="81.33333333333333" y="110.66666666666669"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_lYWq8WpAEd6JtKkNrnCCNQ">
+        <dc:Bounds height="40.0" width="40.0" x="79.0" y="239.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_ki5NIWpBEd6JtKkNrnCCNQ">
+        <dc:Bounds height="40.0" width="40.0" x="949.0" y="249.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_feMkMWpBEd6JtKkNrnCCNQ">
+        <dc:Bounds height="60.0" width="60.0" x="799.0" y="239.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_sB7nAWpAEd6JtKkNrnCCNQ">
+        <dc:Bounds height="60.0" width="60.0" x="239.0" y="229.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_kGs102pAEd6JtKkNrnCCNQ">
+        <dc:Bounds height="100.0" width="160.0" x="419.0" y="299.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_QuWroWpBEd6JtKkNrnCCNQ">
+        <dc:Bounds height="100.0" width="160.0" x="419.0" y="129.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_feMkOmpBEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_sCFYAWpAEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_DvxVUWpBEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_QugcqGpBEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_gDcmUWpBEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_ki5NKmpBEd6JtKkNrnCCNQ">
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
