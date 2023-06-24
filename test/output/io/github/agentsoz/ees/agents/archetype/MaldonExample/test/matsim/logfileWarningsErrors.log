@@ -1,0 +1,67 @@
+2023-06-24T04:33:52,084  WARN PrepareForSimImpl:222 'usePersonIdForMissingVehicleId' is deprecated. It will be removed soon.
+2023-06-24T04:34:04,037  WARN RandomizingTimeDistanceTravelDisutilityFactory:112 There will be no routing randomness. The randomization of the travel disutility requires the monetary distance rate to be different than zero. Continuing anyway.
+2023-06-24T04:34:04,039  WARN RandomizingTimeDistanceTravelDisutilityFactory:117 There will be no routing randomness. The randomization of the travel disutility requires the travel time cost rate to be different than zero. Continuing anyway.
+2023-06-24T04:34:07,682  WARN MGC:176 Assuming that coordinates are in longitude first notation, i.e. (longitude, latitude).
+2023-06-24T04:34:14,696  WARN MGC:176 Assuming that coordinates are in longitude first notation, i.e. (longitude, latitude).
+2023-06-24T04:34:24,365  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:24,365  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,311  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:94 InternalInterface is null. Replanning of pt/transit legs will not work properly and will likely fail.
+2023-06-24T04:34:25,327  WARN EditTrips:111 no TransitStopAgentTracker found in qsim. Replanning of pt/transit legs will not work properly and will likely fail.
