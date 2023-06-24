@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	<H3>The trike world application descriptor</H3>
+
+	It can be started to launch a trike world scenario.
+-->
+<applicationtype xmlns="http://www.activecomponents.org/jadex-application"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.activecomponents.org/jadex-application 
+	                    http://www.activecomponents.org/jadex-application-${jadex_build_version}.xsd"
+				 name="TrikeWorld" package="io.github.agentsoz.ees.jadexextension.masterthesis.Run">
+		<!--name="TrikeWorld" package="jadex.bdiv3.examples.trikeworld">-->
+	<componenttypes>
+
+		<componenttype name="TrikeAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TrikeAgent.class"/>
+		<componenttype name="SimIDMapper" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimIDMapper.class"/>
+		<componenttype name="TripReqControlAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TripRequestControlAgent.class"/>
+		<componenttype name="SimSensoryInputBroker" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimSensoryInputBroker.class"/>
+
+	</componenttypes>
+
+
+		<configuration name="One trike local">
+			<components>
+					<component type="TrikeAgent" number="4"/>
+			</components>
+			<components>
+				<component type="SimIDMapper" number="1"/>
+			</components>
+			<components>
+				<component type="TripReqControlAgent" number="1"/>
+			</components>
+			<components>
+				<component type="SimSensoryInputBroker" number="2"/>
+			</components>
+		</configuration>
+
+
+</applicationtype>
