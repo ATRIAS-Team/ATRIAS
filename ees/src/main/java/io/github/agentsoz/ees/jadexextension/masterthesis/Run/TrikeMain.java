@@ -38,7 +38,7 @@ public class TrikeMain
 	public static void start() {
 		IExternalAccess platform = Starter.createPlatform(PlatformConfigurationHandler.getDefaultNoGui()).get();
 
-		CreationInfo ci = new CreationInfo().setFilename("C:\\Users\\jamie\\code\\ees - Copy\\ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\masterthesis\\Run\\TrikeWorld.application.xml");
+		CreationInfo ci = new CreationInfo().setFilename(Config.pathname);
 		platform.createComponent(ci).get();
 		IPlatformConfiguration config = PlatformConfigurationHandler.getMinimal();
 		Starter.createPlatform(config).get();

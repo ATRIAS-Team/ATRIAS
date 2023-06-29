@@ -213,7 +213,7 @@ public class JadexModel implements BDIServerInterface, ModelInterface, DataClien
 
 
             File file = new File(
-                    "C:\\Users\\jamie\\code\\ees - Copy\\ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\jadexagent\\TrikeWorld.application.xml");
+                    Config.pathname);
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
