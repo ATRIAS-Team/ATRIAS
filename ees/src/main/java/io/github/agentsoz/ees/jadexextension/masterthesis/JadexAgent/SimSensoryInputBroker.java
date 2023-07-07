@@ -6,7 +6,7 @@ import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingInputBrokerService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WrittingBrokerIDService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingBrokerIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.SimInputBrokerService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
@@ -33,7 +33,7 @@ import java.util.*;
 @ProvidedServices({
 		@ProvidedService(type= INotifyService.class, implementation=@Implementation(SimInputBrokerService.class)),
 		@ProvidedService(type= INotifyService2.class, implementation=@Implementation(SimInputBrokerReceiveService.class)),
-		@ProvidedService(type= IMappingInputBrokerService.class, implementation = @Implementation(WrittingBrokerIDService.class)),
+		@ProvidedService(type= IMappingInputBrokerService.class, implementation = @Implementation(WritingBrokerIDService.class)),
 		})
 @RequiredServices({
 		@RequiredService(name="mapbrokerservices", type= IMappingInputBrokerService.class),
@@ -90,7 +90,7 @@ public class SimSensoryInputBroker {
 
 
 	//#######################################################################
-	//Goals and Plans : When data from MATSIM is coming process and assign data to the belief
+	//Goals and Plans : When data from MATSIM is coming, process and assign data to the belief
 	// of Trike Agent. Mark this action as done when this process is done
 	//#######################################################################
 
@@ -105,9 +105,9 @@ public class SimSensoryInputBroker {
 	private void performcheckDatafromMATSIM() {
 
 		if (NewDatafromMATSIM == true) {
-			if (!JadexModel.answeredInputBroker.contains(SensoryInputID)) { // to check if its already answer JADEXModel. if yes, not execute again in the iteration
+			if (!JadexModel.answeredInputBroker.contains(SensoryInputID)) { // to check if its already answer JADEXModel after finishing in this iteration. if yes, not execute again in the iteration
 
-				if (this.WriteinTrikeAgent == false)
+				if (this.WriteinTrikeAgent == false) // to make sure to write once in the trike agent in an iteration
 				//get the list of newly active agent (agent with status success/ drop who are ready to take next trip)
 				//Filter only result that is relevant to the agents that register in this area
 				{
@@ -133,7 +133,7 @@ public class SimSensoryInputBroker {
 												actionState == ActionContent.State.FAILED)
 										{
 											ActiveAgentList.add(agentId); // create a list of potential active agents
-											Activestatus = true;
+											Activestatus = true; // local active status to assign to each trike agent in this iteration via service later
 										}
 									}
 								}
@@ -157,21 +157,21 @@ public class SimSensoryInputBroker {
 							Collection<INotifyService> service = agent.getLocalServices(query);
 							for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
 								INotifyService cs = iteration.next();
-								cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus);
+								cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus); // assign data to vehicle agents via service
 							}
 
 						}
 					}
-					this.WriteinTrikeAgent = true;
+					this.WriteinTrikeAgent = true; // marked as done once
 				}
 
 
-				if (this.WriteinTrikeAgent == true) {// indicate that the processing of writting MATSIM result is finished
+				if (this.WriteinTrikeAgent == true) {// indicate that the processing of writing MATSIM result is finished
 					if (ActiveAgentList.isEmpty()) { // if all newly active agents are done
 
 						// reset for next round and notify JadexModel
 						this.WriteinTrikeAgent = false;
-						JadexModel.answeredInputBroker.add(SensoryInputID);
+						JadexModel.answeredInputBroker.add(SensoryInputID); // indicate that this SimSensoryInputBroker is done with this iteration so that even the variable ResultfromMATSIM is true, the rest of the plan will not be executed
 						JadexModel.flagMessage();
 						//System.out.println(SensoryInputID + "finished with this round");
 					}
@@ -207,7 +207,7 @@ public class SimSensoryInputBroker {
 				executed = true;
 				System.out.println("The ID assigned to this SimSensoryInputBroker is "+ SensoryInputID );
 				IServiceIdentifier sid = ((IService) agent.getProvidedService(INotifyService2.class)).getServiceId();
-				agent.setTags(sid, "user:" + SensoryInputID);
+				agent.setTags(sid, "user:" + SensoryInputID); // setTag for itself so vehicle agents could communciate using INotifyService2 service
 				SimIDMapper.NumberSimInputAssignedID.add(SensoryInputID); // to store the total number of finished SimInputBroker
 
 			}

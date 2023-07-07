@@ -4,8 +4,6 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IDValidateService.IDValidateSevice;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IDValidateService.TripReqControlService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.SendtripService;
 import io.github.agentsoz.util.Location;
@@ -26,12 +24,10 @@ import java.util.*;
 @Agent(type = "bdi")
 
 @ProvidedServices({
-		@ProvidedService(type= IDValidateSevice.class, implementation=@Implementation(TripReqControlService.class)),
 		@ProvidedService(type= IsendTripService.class, implementation=@Implementation( SendtripService.class))
 })
 @RequiredServices({
 		@RequiredService(name="clockservice", type= IClockService.class),
-		@RequiredService(name = "notifyassignedidservices", type = IDValidateSevice.class),
 		@RequiredService(name = "sendtripservices", type = IsendTripService.class),
 })
 

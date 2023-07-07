@@ -1,8 +1,6 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.SimSensoryInputBroker;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TripRequestControlAgent;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
@@ -14,7 +12,7 @@ import java.util.HashMap;
  *  Mapping service implementation.
  */
 @Service
-public class WrittingBrokerIDService implements IMappingInputBrokerService {
+public class WritingBrokerIDService implements IMappingInputBrokerService {
 	//-------- attributes --------
 
 	/**
