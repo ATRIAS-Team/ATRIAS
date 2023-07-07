@@ -41,9 +41,9 @@ import java.util.*;
  * Emergency Evacuation Simulator (EES) main program.
  * @author Dhirendra Singh
  */
-public class RunThesisV2 implements DataClient {
+public class Run implements DataClient {
 
-    private static final Logger log = LoggerFactory.getLogger(RunThesisV2.class);
+    private static final Logger log = LoggerFactory.getLogger(Run.class);
     public static final String DATASERVER = "ees";
     private final Map<String, DataClient> dataListeners = createDataListeners();
     private AgentDataContainer adc_from_bdi = new AgentDataContainer();
@@ -68,10 +68,10 @@ public class RunThesisV2 implements DataClient {
         // Get BDI agents map from the MATSim population file
         log.info("Reading BDI agents from MATSim population file");
         Map<Integer, List<String[]>> bdiMap = Utils.getAgentsFromMATSimPlansFile(cfg.getModelConfig(Config.eModelMatsim).get("configXml"));
-        //    JillBDIModel.removeNonBdiAgentsFrom(bdiMap);
+       
 
         // Run it
-        new RunThesisV2()
+        new Run()
                 .withModel(DataServer.getInstance(DATASERVER))
                 .start(cfg, bdiMap);
     }
@@ -145,10 +145,10 @@ public class RunThesisV2 implements DataClient {
 
             JadexModel.inBDIcycle = false;
             // ABM to take control; the ABM thread should synchronize on adc_from_abm
-            dataServer.publish(io.github.agentsoz.ees.Constants.TAKE_CONTROL_ABM, adc_from_bdi);
+            dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
             // BDI to take control; the BDI thread should synchronize on adc_from_bdi
             JadexModel.inBDIcycle = true;
-            dataServer.publish(io.github.agentsoz.ees.Constants.TAKE_CONTROL_BDI, adc_from_abm);
+            dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
             JadexModel.inBDIcycle = false;
 
         }
@@ -201,7 +201,7 @@ public class RunThesisV2 implements DataClient {
      * @param model the model to override with
      * @return the run object
      */
-    public RunThesisV2 withModel(Object model) {
+    public Run withModel(Object model) {
         if (model != null) {
             if (model instanceof DataServer) {
                 this.dataServer = (DataServer) model;
@@ -223,12 +223,12 @@ public class RunThesisV2 implements DataClient {
         Map<String, DataClient> listeners = new  HashMap<>();
 
         // Saves the incoming agent data container from BDI
-        listeners.put(io.github.agentsoz.ees.Constants.AGENT_DATA_CONTAINER_FROM_BDI, (DataClient<AgentDataContainer>) (time, dataType, data) -> {
+        listeners.put(Constants.AGENT_DATA_CONTAINER_FROM_BDI, (DataClient<AgentDataContainer>) (time, dataType, data) -> {
             adc_from_bdi = data;
         });
 
         // Saves the incoming agent data container from the ABM
-        listeners.put(io.github.agentsoz.ees.Constants.AGENT_DATA_CONTAINER_FROM_ABM, (DataClient<AgentDataContainer>) (time, dataType, data) -> {
+        listeners.put(Constants.AGENT_DATA_CONTAINER_FROM_ABM, (DataClient<AgentDataContainer>) (time, dataType, data) -> {
             adc_from_abm = data;
         });
         return listeners;
@@ -237,7 +237,7 @@ public class RunThesisV2 implements DataClient {
     @Override
     public void receiveData(double time, String dataType, Object data) {
         switch (dataType) {
-            case io.github.agentsoz.ees.Constants.AGENT_DATA_CONTAINER_FROM_BDI:
+            case Constants.AGENT_DATA_CONTAINER_FROM_BDI:
             case Constants.AGENT_DATA_CONTAINER_FROM_ABM:
                 dataListeners.get(dataType).receiveData(time, dataType, data);
                 break;
