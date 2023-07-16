@@ -44,14 +44,6 @@ public interface IsendTripService
         /** The textfield with received messages. */
         protected JTextArea received;
 
-        Location Location3= new Location("", 238654.693529, 5886721.094209);
-
-       public Trip Trip3 = new Trip("Trip1", "CustomerTrip", Location3, "NotStarted");
-
-        Location Location4 = new Location("", 238674.543999, 5901195.908183);
-
-      public  Trip Trip4 = new Trip("Trip2", "CustomerTrip", Location4, "NotStarted");
-
         //-------- constructors --------
 
         /**
@@ -100,18 +92,6 @@ public interface IsendTripService
 
                                 System.out.println( "TripReqControlAgents send trip "+trip+ "to vehicle agent "+agentID);
                                 }
-
-
-
-
-
-
-                        //    IFuture<Collection<IsendTripService>>	sendtripservices	= ia.getFeature(IRequiredServicesFeature.class).getServices("sendtripservices");
-                          //  sendtripservices.addResultListener(new DefaultResultListener<Collection<IsendTripService>>()
-                          //  {
-                         //       public void resultAvailable(Collection<IsendTripService> result)
-                          //      {
-                          //          for(Iterator<IsendTripService> it = result.iterator(); it.hasNext(); )
 
 
 

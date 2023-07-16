@@ -2,7 +2,6 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTri
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
@@ -38,7 +37,12 @@ public class ReceiveTripService implements IsendTripService {
 
 	public  Trip Trip4 = new Trip("Trip4", "CustomerTrip", Location4, "NotStarted");
 
-	//-------- attributes --------	
+	Location Location1 = new Location("", 268674.543999, 5901195.908183);
+	public  Trip Trip1 = new Trip("Trip1", "CustomerTrip", Location1, "NotStarted");
+
+
+
+	//-------- attributes --------
 
 	public void sendTrip(String text)
 	{
@@ -56,9 +60,11 @@ public class ReceiveTripService implements IsendTripService {
 
 		}
 
-			TrikeAgent.AddTripIDTripList(text);
-
+		if (text.equals("1")) {
+			TrikeAgent.AddTriptoTripList(Trip1);
 		}
+
+		TrikeAgent.AddTripIDTripList(text);
+
 	}
-
-
+}
