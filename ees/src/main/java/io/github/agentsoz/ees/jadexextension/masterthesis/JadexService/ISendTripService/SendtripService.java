@@ -1,7 +1,6 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-import io.github.agentsoz.util.Location;
 import jadex.bridge.IExternalAccess;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.service.annotation.OnStart;
@@ -28,7 +27,7 @@ public class SendtripService implements IsendTripService
 	@ServiceComponent
 	protected IInternalAccess agent;
 
-	protected SendtripGui gui;
+	//protected SendtripGui gui;
 
 	/** The required services feature **/
 	@ServiceComponent
@@ -57,8 +56,7 @@ public class SendtripService implements IsendTripService
 			public void customResultAvailable(IClockService result)
 			{
 				clock = result;
-				//@marcel gui entfernt
-				gui = createGui(agent.getExternalAccess());
+				//gui = createGui(agent.getExternalAccess());
 				ret.setResult(null);
 			}
 		});
@@ -66,25 +64,10 @@ public class SendtripService implements IsendTripService
 	}
 
 
-	// @Marcel
 	//public void sendTrip(String text)
-	//{
-	//}
-
-
-
-	public void sendTrip(String trip)
+	public void sendJob(String text)
 	{
 	}
 
-	//public void sendTrip(Trip trip)
-	//{
-	//}
-///*
-	protected SendtripGui createGui(IExternalAccess agent)
-	{
-		return new SendtripGui(agent);
-	}
 
- //*/
 }

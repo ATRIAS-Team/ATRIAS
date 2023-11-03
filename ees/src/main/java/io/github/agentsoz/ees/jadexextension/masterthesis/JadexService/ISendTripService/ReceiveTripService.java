@@ -1,7 +1,9 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService;
 
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Job;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
@@ -26,7 +28,6 @@ public class ReceiveTripService implements IsendTripService {
 
 	public HashMap AgentMap;
 
-	/*
 	Location Location2= new Location("", 288654.693529, 5286721.094209);
 
 	public Trip Trip2 = new Trip("Trip2", "CustomerTrip", Location2, "NotStarted");
@@ -41,21 +42,16 @@ public class ReceiveTripService implements IsendTripService {
 
 	Location Location1 = new Location("", 268674.543999, 5901195.908183);
 	public  Trip Trip1 = new Trip("Trip1", "CustomerTrip", Location1, "NotStarted");
-	*/
+
 
 
 	//-------- attributes --------
 
-
-	//@Marcel
 	//public void sendTrip(String text)
-	//public void sendTrip(Trip trip)
-	public void sendTrip(String trip)
+	public void sendJob(String text)
 	{
-
 		final TrikeAgent TrikeAgent	= (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-		//@Marcel
-		/*
+		/**
 		if (text.equals("3")) {
 			TrikeAgent.AddTriptoTripList(Trip3);
 
@@ -72,24 +68,16 @@ public class ReceiveTripService implements IsendTripService {
 		if (text.equals("1")) {
 			TrikeAgent.AddTriptoTripList(Trip1);
 		}
-
 		*/
-
-
-		//from string trip to trip trip
-		Trip Trip1 = new Trip(trip);
-
-
-		TrikeAgent.AddTriptoTripList(Trip1);
+		//Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
+		Job Job = new Job(text);
+		TrikeAgent.AddJobToJobList(Job);
 
 
 
+		//TrikeAgent.AddTripIDTripList(text);
 
 
-		String text = Trip1.getTripID();
-
-
-		TrikeAgent.AddTripIDTripList(text);
 
 	}
 }

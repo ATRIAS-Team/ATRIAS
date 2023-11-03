@@ -22,6 +22,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
+
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
@@ -48,6 +49,9 @@ import java.util.*;
         @ProvidedService(type= INotifyService2.class, implementation=@Implementation(TrikeAgentSendService.class)),
         @ProvidedService(type= IsendTripService.class, implementation=@Implementation(ReceiveTripService.class)),
 
+
+
+
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
@@ -55,6 +59,7 @@ import java.util.*;
         @RequiredService(name="mapservices", type= IMappingAgentsService.class),
         @RequiredService(name="broadcastingservices", type= INotifyService.class, scope= ServiceScope.PLATFORM),
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
+
         // multiple=true,
 })
 
@@ -95,6 +100,10 @@ public class TrikeAgent implements SendtoMATSIM{
     //to do init from file
     @Belief
     private Location agentLocation; // position of the agent
+
+    @Belief
+    public List<Job> jobList = new ArrayList<>();
+
 
     @Belief    //contains all the trips
     public List<Trip> tripList = new ArrayList<>();
@@ -293,6 +302,7 @@ public class TrikeAgent implements SendtoMATSIM{
             for (PerceptContent perceptContent : SimPerceptList) {
                 System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
 
+
             }
             // reset for the next iteration
             setResultfromMASIM("false");
@@ -382,6 +392,11 @@ public class TrikeAgent implements SendtoMATSIM{
         tripIDList.add(ID);
     }
 
+    public void AddJobToJobList(Job Job)
+    {
+        jobList.add(Job);
+    }
+
     public void setAgentID(String agentid) {
         agentID = agentid;
     }
@@ -394,6 +409,13 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public void setActionContentList(List<ActionContent> actionContentList) {
         SimActionList = actionContentList;
+    }
+
+
+    //just for a test delete after
+    public void setTestList(String TextMessage) {
+        //TestList.add(TextMessage);
+        System.out.println("Service: new Trip received " + TextMessage);
     }
 
     public List<ActionContent> getActionContentList() {
