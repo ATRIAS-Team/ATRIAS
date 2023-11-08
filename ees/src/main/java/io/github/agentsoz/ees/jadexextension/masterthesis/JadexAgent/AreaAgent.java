@@ -2,6 +2,8 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
 
 
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
@@ -11,8 +13,10 @@ import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
+import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
+import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.commons.future.DefaultResultListener;
 import jadex.commons.future.IFuture;
@@ -65,6 +69,7 @@ public class AreaAgent {
     @Belief
     public List<Job> jobList2 = new ArrayList<>(); //JobList for App data
 
+    LocatedAgentList locatedAgentList = new LocatedAgentList();
 
 
     // TODO problably not used anymore, try to delete
@@ -99,6 +104,11 @@ public class AreaAgent {
         jobList1.add(Job1);
         jobList1.add(Job2);
 
+        LocatedAgent newAgent = new LocatedAgent("1", Location3, LocalDateTime.now());
+        locatedAgentList.updateLocatedAgentList(newAgent, "register");
+
+        System.out.println("locatedAgentList size: " + locatedAgentList.size());
+
 
         System.out.println(JadexModel.simulationtime);
 
@@ -126,7 +136,10 @@ public class AreaAgent {
             if (done == false) {
                 done = true;
                 System.out.println("Can start sending trip now to agents");
-                           sendTriptoAgent();
+                           //sendTriptoAgent(); //workign but only a bradcast
+
+                           sendJobToAgent();
+
             }
     }
     /*
@@ -134,6 +147,43 @@ public class AreaAgent {
          //either we send trip here or we use GUI to send. with GUI we could add manually which trip we want which agent to receive
 
 
+     */
+    public void sendJobToAgent(){
+
+        // sending data to specific TrikeAgent by calling its serviceTag
+        //TODO: get time from Matsim and send only when >= bookingTime
+        //TODO: time format of matsim like 43220.0 how to compare?
+        //System.out.println(JadexModel.simulationtime);
+        //TODO: run multiple times till jobList is empty
+        ServiceQuery<IsendTripService> query = new ServiceQuery<>(IsendTripService.class); //# Service Baustein
+        query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL    //# Service Baustein
+        System.out.println("locatedAgentList size: " + locatedAgentList.size());
+
+        Job toHandle = jobList1.get(0);
+
+        //toHandle.getStartPosition();
+        String closestAgent = locatedAgentList.calculateClosestLocatedAgent(toHandle.getStartPosition());
+        String message = toHandle.JobForTransfer();
+        if (closestAgent.equals("NoAgentsLocated")){
+            System.out.println("ERROR: No Agent located at this AreaAgent");
+        }
+        else{
+            query.setServiceTags("user:" + closestAgent); // calling the tag of a trike agent   //# Service Baustein
+            Collection<IsendTripService> service = agent.getLocalServices(query);               //# Service Baustein
+            for (Iterator<IsendTripService> iteration = service.iterator(); iteration.hasNext(); ) { //# Service Baustein
+                IsendTripService cs = iteration.next();                                              //# Service Baustein
+                cs.sendJob(message);                                                                 //# Service Baustein
+            }
+            jobList1.remove(0);
+        }
+
+
+
+    }
+
+
+    /**
+     *  delete, not used anymore
      */
     public void sendTriptoAgent() {
         IFuture<Collection<IsendTripService>> sendservices = requiredServicesFeature.getServices("sendtripservices");
@@ -143,23 +193,22 @@ public class AreaAgent {
                     IsendTripService cs = it.next();
                             //TODO: send Job
 //                            cs.sendJob("1");
-
-
-
-
                     //TODO: servicetag missing only a broadcast?
                     //TODO select closest agent
                     //TODO: run multiple times till jobList is empty
                     //TODO: get time from Matsim and send only when >= bookingTime
                     //TODO: time format of matsim like 43220.0 how to compare?
                     System.out.println(JadexModel.simulationtime);
-
                     String message = jobList1.get(0).JobForTransfer();
                     jobList1.remove(0);
 
                     //String message ="";
                     cs.sendJob(message);
 
+
+
+
+                    //agent.setTags(sid, "user:" + agentID);
 
 
                     		//cs.sendTrip("1");
@@ -170,5 +219,11 @@ public class AreaAgent {
 
 
     }
+    //###
+
+
+
+
+
 
 }

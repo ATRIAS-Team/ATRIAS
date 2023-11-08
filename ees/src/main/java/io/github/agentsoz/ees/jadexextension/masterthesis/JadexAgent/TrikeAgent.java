@@ -24,6 +24,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
 
 import io.github.agentsoz.util.Location;
+import io.github.agentsoz.util.Time;
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -150,6 +151,19 @@ public class TrikeAgent implements SendtoMATSIM{
     //#######################################################################
     //Goals and Plans for Sending data to AgentDataContainer, for the Aktorik
     //#######################################################################
+
+
+    /**
+    @Goal(recur = true, recurdelay = 3000)
+    class MaintainManageJobs{
+
+    }
+
+    @Plan(trigger = @trigger)
+    EvaluateDecisionTask()
+    **/
+
+
 
     @Goal(recur = true, recurdelay = 3000)
     class SendDrivetoTooutAdc {
@@ -477,13 +491,49 @@ public class TrikeAgent implements SendtoMATSIM{
         System.out.println("currentProgress: " + currentProgress);
     }
 
-    boolean customerMiss() {
-        //##########################################
-        //todo: access time information and determine if the customer have alraedy leaved
-        //##########################################
-        boolean customerMiss = true;
+    // why public static?
+    public static boolean customerMiss(Trip trip) {
 
-        return customerMiss;
+        //todo: access simulation time and determine if the customer has already left
+        // SimZeit abfragen, gewünschte VATime vergleichen und wenn mehr als 5 min, dann missed, oder würfel, je länger desto wahrscheinlicher
+        // statt estimated Duration, echte Duration verwenden, die Berechnung soll erfolgen, wenn der Trike Agent beim Kunden ankommt. --> Wichtig für den Reward
+        // drive to customer, check simulation time and start time(vaTime) and define delta
+        // 1. option: if delta > 5 minutes then --> missed else success
+        // 2. option: if delta > 10 probability higher that it is missed
+
+
+        //Trip trip = new Trip("1", tripType, vaTime, startPosition, endPosition, progress);
+
+
+        //  Time difference calculation using Time.java
+        double timeDifferenceSeconds = Time.convertLocalDateTimeToDouble(trip.vaTime, Time.TimestepUnit.SECONDS); // get simulation time hjere?
+
+        // Option 1: If the difference is greater than 300 seconds (5 minutes), then customer missed
+        if (timeDifferenceSeconds > 300) {
+            return true;
+        }
+        else {
+            // Option 2: Probabilistic approach
+            Random random = new Random();
+            double probability = timeDifferenceSeconds * 0.05;
+            double randomValue = random.nextDouble();
+            return randomValue < probability;
+            //System.out.println();
+        }
+
+        //double simulationtime = JadexModel.simulationtime;
+
+    }
+
+    public boolean customerMissProb(Trip trip) {
+        boolean missed = false;
+        double timeDifferenceSeconds = Time.convertLocalDateTimeToDouble(trip.vaTime, Time.TimestepUnit.SECONDS);
+
+        if (timeDifferenceSeconds > 0) {
+            double probability = 0.05 * timeDifferenceSeconds; //Probabilistic value
+            missed = new Random().nextDouble() < probability;
+        }
+        return missed;
     }
 
     public void ExecuteTrips() {
@@ -505,9 +555,9 @@ public class TrikeAgent implements SendtoMATSIM{
             } else if (currentTrip.get(0).getProgress().equals("AtStartLocation")) {
                 // manage CustomerTrips that are AtStartLocation
                 if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                    if (customerMiss() == true) { // customer not there
+                    if (customerMiss(currentTrip.get(0)) == true) { // customer not there
                         updateCurrentTripProgress("Failed");
-                    } else if (customerMiss() == false) { // customer still there
+                    } else if (customerMiss(currentTrip.get(0)) == false) { // customer still there
                         //##########################################
                         sendDriveTotoAdc();
                         //##########################################

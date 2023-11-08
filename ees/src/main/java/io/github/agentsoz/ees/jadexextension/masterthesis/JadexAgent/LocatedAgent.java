@@ -16,10 +16,22 @@ public class LocatedAgent {
         this.timeOfLastUpdate = timeOfLastUpdate;
     }
 
+    public void updateLocatedAgent(Location lastPosition, LocalDateTime timeOfLastUpdate){
+        this.lastPosition = lastPosition;
+        this.timeOfLastUpdate = timeOfLastUpdate;
+    }
+
+
     public String getAgentID() { return this.agentID; }
     public Location getLastPosition() {
         return this.lastPosition;
     }
+
+    public LocalDateTime getTimeOfLastUpdate() {
+        return this.timeOfLastUpdate;
+    }
+
+
 
 
 
