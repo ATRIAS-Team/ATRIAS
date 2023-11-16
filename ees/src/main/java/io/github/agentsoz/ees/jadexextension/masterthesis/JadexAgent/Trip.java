@@ -91,7 +91,7 @@ public class Trip {
         return this.tripType;
     }
 
-    public LocalDateTime getVaTime() {
+    public LocalDateTime getVATime() {
         return this.vaTime;
     }
 

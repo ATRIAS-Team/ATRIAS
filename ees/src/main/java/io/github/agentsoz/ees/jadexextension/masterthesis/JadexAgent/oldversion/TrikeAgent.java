@@ -5,24 +5,24 @@
  *
  *
  */
-package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
+package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.oldversion;
 
 
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.ReceiveTripService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
-
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.util.Location;
 import io.github.agentsoz.util.Time;
 import jadex.bdiv3.BDIAgentFactory;
@@ -76,7 +76,7 @@ import java.util.*;
 
 /*This is the most actual one that is using for Testing the whole Run1 process*/
 
-public class TrikeAgent implements SendtoMATSIM{
+public class TrikeAgent implements SendtoMATSIM {
 
     /**
      * The bdi agent. Automatically injected
@@ -128,7 +128,7 @@ public class TrikeAgent implements SendtoMATSIM{
     public boolean informSimInput = false;
 
     public String currentSimInputBroker;
-    private SimActuator SimActuator;
+    private io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.SimActuator SimActuator;
 
 
 
@@ -146,7 +146,6 @@ public class TrikeAgent implements SendtoMATSIM{
         activestatus = true;
         bdiFeature.dispatchTopLevelGoal(new ReactoAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs()); //evtl löschen
-
 
 
 
@@ -180,12 +179,23 @@ public class TrikeAgent implements SendtoMATSIM{
     {
         System.out.println("EvaluateDecisionTask");
 
+        // Move to first known charging station -> fails when no charging station known.
+        //IChargingstation	chargingstation	= actsense.getChargingstations().iterator().next();
+        //actsense.moveTo(chargingstation.getLocation());
+
+        // Load until 100% (never reached, but plan is aborted when goal succeeds).
+        //actsense.recharge(chargingstation, 1.0);
+        Location Location3= new Location("", 238654.693529, 5886721.094209);
+
         Job jobToTrip = jobList.get(0);
+
         Trip newTrip = new Trip("Trip1", "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
 
+        //Trip newTrip = new Trip("Trip1", "CustomerTrip", jobToTrip.getStartPosition(), "NotStarted");
         tripList.add(newTrip);
         //TODO: zwischenschritte (visio) fehlen
         tripIDList.add("1");
+
         jobList.remove(0);
         //hier job entfernen dann testen ob nur einmalig nach hinzufügen ausgeführt und dann nicht mehr
     }
@@ -220,6 +230,8 @@ public class TrikeAgent implements SendtoMATSIM{
      }
      }
     **/
+
+
 
     @Goal(recur = true, recurdelay = 3000)
     class SendDrivetoTooutAdc {
@@ -298,7 +310,7 @@ public class TrikeAgent implements SendtoMATSIM{
                     TrikeMain.TrikeAgentNumber = TrikeMain.TrikeAgentNumber+1;
                     JadexModel.flagMessage2();
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
-                    SendPerceivetoAdc(); //erstes perceive vor erstem teiltrip
+                    SendPerceivetoAdc();
 
 
                 }
@@ -406,6 +418,8 @@ public class TrikeAgent implements SendtoMATSIM{
         System.out.println("inside SensoryUpdate");
         updateBeliefAfterAction();
 
+
+
     }
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
@@ -414,15 +428,14 @@ public class TrikeAgent implements SendtoMATSIM{
         Trip CurrentTripUpdate = currentTrip.get(0);
          if (CurrentTripUpdate.getProgress().equals("DriveToStart")) {
              updateCurrentTripProgress("AtStartLocation");
-             //SendPerceivetoAdc(); //TODO: only for tests delete if unsure
              agentLocation = CurrentTripUpdate.getStartPosition();
-             //tripIDList.add("0"); //TODO: find better solution for example a goal trigger
+             tripIDList.add("0"); //TODO: find better solution for example a goal trigger
          }
 
         if (CurrentTripUpdate.getProgress().equals("DriveToEnd")){
             updateCurrentTripProgress("AtEndLocation");
             agentLocation = CurrentTripUpdate.getEndPosition();
-            //tripIDList.add("0"); //TODO: find better solution for example a goal trigger
+            tripIDList.add("0"); //TODO: find better solution for example a goal trigger
         }
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         SimActionList.remove(0);
@@ -679,7 +692,6 @@ public class TrikeAgent implements SendtoMATSIM{
         }
         if (currentTrip.get(0).getProgress().equals("AtStartLocation"))
         {
-
             Endparams[0] = Constants.DRIVETO;
             Endparams[1] = currentTrip.get(0).getEndPosition().getCoordinates();
         }
@@ -687,7 +699,6 @@ public class TrikeAgent implements SendtoMATSIM{
         Endparams[3] = Constants.EvacRoutingMode.carFreespeed;
         Endparams[4] = "EvacPlace";
         Endparams[5] = currentTrip.get(0).getTripID();
-
         SimActuator.getEnvironmentActionInterface().packageAction(agentID, "drive_to", Endparams, null);
         activestatus = false; // to mark that this trike agent is not available to take new trip
 
