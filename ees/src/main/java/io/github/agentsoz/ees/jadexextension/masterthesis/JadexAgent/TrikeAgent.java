@@ -12,11 +12,13 @@ import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IJobDistributionService.IJobDistributionService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.ReceiveTripService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IJobDistributionService.ReceiveJobDistributionService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
@@ -65,14 +67,6 @@ import java.util.*;
 })
 
 
-/*@Arguments({
-		@Argument(name="keyword", clazz=String.class, defaultvalue="\"nerd\"", description="The keyword to react to."),
-		@Argument(name="reply", clazz=String.class, defaultvalue="\"Watch your language\"", description="The reply message."),
-		@Argument(name="thread", clazz=Thread.class, description="The reply message.")
-
-})
-
- */
 
 /*This is the most actual one that is using for Testing the whole Run1 process*/
 
@@ -105,7 +99,6 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public List<Job> jobList = new ArrayList<>();
 
-
     @Belief    //contains all the trips
     public List<Trip> tripList = new ArrayList<>();
     @Belief
@@ -131,6 +124,9 @@ public class TrikeAgent implements SendtoMATSIM{
     private SimActuator SimActuator;
 
 
+    public boolean TestSent = false;
+
+
 
 
 
@@ -146,9 +142,8 @@ public class TrikeAgent implements SendtoMATSIM{
         activestatus = true;
         bdiFeature.dispatchTopLevelGoal(new ReactoAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs()); //evtl löschen
-
-
-
+        //bdiFeature.dispatchTopLevelGoal(new TimeTest());
+        //bdiFeature.dispatchTopLevelGoal(new TimeTrigger());
 
     }
 
@@ -156,71 +151,63 @@ public class TrikeAgent implements SendtoMATSIM{
     //Goals and Plans for Sending data to AgentDataContainer, for the Aktorik
     //#######################################################################
 
-    @Goal(recur=true, recurdelay=3000)
-            //deliberation=@Deliberation(inhibits=PerformPatrol.class))	// Pause patrol goal while loading battery
+    @Goal(recur=true, recurdelay=1000)
+           class TimeTest {
+    }
+
+    @Plan(trigger=@Trigger(goals=TimeTest.class))
+    private void TimeTestPrint()
+    {
+        System.out.println("simtime" + JadexModel.simulationtime);
+    }
+
+    @Goal(recur=true, recurdelay=10000)
+    class TimeTrigger {
+    }
+
+    @Plan(trigger=@Trigger(goals=TimeTest.class))
+    private void TimeTriggerAusloesen()
+    {
+        SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
+    }
+
+    @Goal(recur=true, recurdelay=1000)
     class MaintainManageJobs
     {
         @GoalMaintainCondition	// The cleaner aims to maintain the following expression, i.e. act to restore the condition, whenever it changes to false.
-        boolean isBatteryLoaded()
+        boolean jobListEmpty()
         {
             return jobList.size()==0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
-
         }
 
-        //@GoalTargetCondition	// Only stop charging, when this condition is true
-        //boolean isBatteryFullyLoaded()
-        //{
-        //    return self.getChargestate()>=0.9; // Charge until 90%
+        //@GoalTargetCondition
+        //boolean AllAgent() {
+        //    return (TestSent == true);
         //}
-    }
 
+    }
 
     @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
     private void EvaluateDecisionTask()
     {
+        if (jobList.size()>0) {
         System.out.println("EvaluateDecisionTask");
 
         Job jobToTrip = jobList.get(0);
-        Trip newTrip = new Trip("Trip1", "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
+        Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
+        //TODO: create a unique tripID
+
 
         tripList.add(newTrip);
         //TODO: zwischenschritte (visio) fehlen
         tripIDList.add("1");
         jobList.remove(0);
         //hier job entfernen dann testen ob nur einmalig nach hinzufügen ausgeführt und dann nicht mehr
+        //TestSent = true;
+    }
     }
 
-    /** OLD version: Thu
-     @Goal(recur = true, recurdelay = 3000)
-     class SendDrivetoTooutAdc {
-     // Goal should be triggered when tripIDlist is not empty and activestatus = true. use tripIDlist
-     //instead of TripList because there is both removal and addition happens inside the tripList
-     //--> not stable for the triggering of factadded.
-     @GoalCreationCondition(factadded = "tripIDList") //
-     public SendDrivetoTooutAdc() {
-     }
-
-     @GoalTargetCondition
-     boolean senttoMATSIM() {
-     return !(activestatus == false);
-     }
-     }
-
-     @Plan(trigger = @Trigger(goalfinisheds = SendDrivetoTooutAdc.class))
-     public void PlansendDriveTotoOutAdc() {
-     System.out.println( "New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
-     if (activestatus == true)
-     // to control that the plan is not triggered because the Trip is removed from TripList
-     //New trip should only be executed when the vehicle is available
-     {
-     System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is available to execute it");
-     ExecuteTrips();
-     } else {
-     System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
-     }
-     }
-    **/
-
+    ///** OLD version: Thu
     @Goal(recur = true, recurdelay = 3000)
     class SendDrivetoTooutAdc {
         // Goal should be triggered when tripIDlist is not empty and activestatus = true. use tripIDlist
@@ -238,10 +225,10 @@ public class TrikeAgent implements SendtoMATSIM{
 
     @Plan(trigger = @Trigger(goalfinisheds = SendDrivetoTooutAdc.class))
     public void PlansendDriveTotoOutAdc() {
-        System.out.println( "PlansendDriveTotoOutAdc: New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
+        System.out.println( "New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
         if (activestatus == true)
-            // to control that the plan is not triggered because the Trip is removed from TripList
-            //New trip should only be executed when the vehicle is available
+        // to control that the plan is not triggered because the Trip is removed from TripList
+        //New trip should only be executed when the vehicle is available
         {
             System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is available to execute it");
             ExecuteTrips();
@@ -249,6 +236,95 @@ public class TrikeAgent implements SendtoMATSIM{
             System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
         }
     }
+    //**/
+
+    /**
+     *  MaintainTripService former SendDrivetoTooutAdc
+     *
+     *  desired behavior:
+     *  start: when new trip is generated
+     *
+     *  try: to execute trip (activestatus == true)
+     *
+     *  finish: when tripList is empty
+     */
+
+    /**
+    @Goal(recur = true, recurdelay = 3000)
+    class MaintainTripService {
+        // Goal should be triggered when tripIDlist is not empty and activestatus = true. use tripIDlist
+        //instead of TripList because there is both removal and addition happens inside the tripList
+        //--> not stable for the triggering of factadded.
+        @GoalCreationCondition(factadded = "tripIDList")
+        public MaintainTripService() {
+        }
+       //@GoalMaintainCondition
+        //boolean jobListNotEmpty(){
+        //    return (tripList.size()==0);
+        //}
+        @GoalTargetCondition
+        boolean senttoMATSIM() {
+            return (activestatus == true);
+        }
+    }
+*/
+    /**
+     * DoNextTrip() former PlansendDriveTotoOutAdc()
+     */
+    /**
+    @Plan(trigger = @Trigger(goalfinisheds = MaintainTripService.class))
+    public void DoNextTrip() {
+        System.out.println( "PlansendDriveTotoOutAdc: New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
+        if (activestatus == true)
+            // to control that the plan is not triggered because the Trip is removed from TripList
+            //New trip should only be executed when the vehicle is available
+        {
+            System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is available to execute it");
+            ExecuteTripsNew();
+        } else {
+            System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
+        }
+    }
+*/
+    public void ExecuteTripsNew() {
+        newCurrentTrip(); // creates new current Trip if necessary and possible
+        if (currentTrip.size() == 1) { //if there is a currentTrip
+            //currentTripStatus();
+            if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
+                updateCurrentTripProgress("Finished");
+            } else if (currentTrip.get(0).getProgress().equals("NotStarted")) {
+                sendDriveTotoAdc();
+                updateCurrentTripProgress("DriveToStart");
+            } else if (currentTrip.get(0).getProgress().equals("AtStartLocation")) { // manage CustomerTrips that are AtStartLocation
+                if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
+                    if (customerMiss(currentTrip.get(0)) == true) { // customer not there
+                        updateCurrentTripProgress("Failed");
+                    } else if (customerMiss(currentTrip.get(0)) == false) { // customer still there
+                        sendDriveTotoAdc();
+                        updateCurrentTripProgress("DriveToEnd");
+                    }
+                }
+                //add cases for other TripTypes here
+                //else if(currentTrip.get(0).getTripType().equals("")) {
+                //}
+                // manage all other Trips that are AtStartLocation
+                else {
+                    updateCurrentTripProgress("Finished");
+                }
+            }
+            // If the CurrentTrip is finished or failed > remove it
+            if (currentTrip.get(0).getProgress().equals("Finished") || currentTrip.get(0).getProgress().equals("Failed")) {
+                currentTrip.remove(0);
+                //tripList.remove(0); //delete this line. is now isode of newCurrentTrip()
+                if (tripList.size() > 0) { // if the tripList is not empty, depatch the next trip and send to data container
+                    newCurrentTrip();
+                    sendDriveTotoAdc();
+                    //currentTripStatus();
+                }
+            }
+        }
+    }
+
 
 
     //#######################################################################
@@ -273,7 +349,7 @@ public class TrikeAgent implements SendtoMATSIM{
                     sent = true;
                     System.out.println("The agentid assigned for this vehicle agent is " + this.agentID);
                     // setTag for itself to receive direct communication from SimSensoryInputBroker when service INotifyService is used.
-                   IServiceIdentifier sid = ((IService) agent.getProvidedService(INotifyService.class)).getServiceId();
+                    IServiceIdentifier sid = ((IService) agent.getProvidedService(INotifyService.class)).getServiceId();
                     agent.setTags(sid, "user:" + agentID);
                     //choosing one SimSensoryInputBroker to receive data from MATSIM
                     currentSimInputBroker = getRandomSimInputBroker();
@@ -298,7 +374,7 @@ public class TrikeAgent implements SendtoMATSIM{
                     TrikeMain.TrikeAgentNumber = TrikeMain.TrikeAgentNumber+1;
                     JadexModel.flagMessage2();
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
-                    SendPerceivetoAdc(); //erstes perceive vor erstem teiltrip
+                    SendPerceivetoAdc();
 
 
                 }
@@ -310,7 +386,7 @@ public class TrikeAgent implements SendtoMATSIM{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 //@Marcel Thus old code
-/*
+/**
     @Goal(recur = true,recurdelay = 3000)
     class PerformSIMReceive {
         // Goal should be triggered when the simPerceptList or simActionList are triggered
@@ -374,7 +450,6 @@ public class TrikeAgent implements SendtoMATSIM{
         }
     }
 
-
     @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
     public void UpdateSensory() {
         if (resultfromMATSIM.contains("true")) {
@@ -382,14 +457,10 @@ public class TrikeAgent implements SendtoMATSIM{
             for (ActionContent actionContent : SimActionList) {
                 System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
                 //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
-                //System.out.println("example parameter 0 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
-                //System.out.println("example parameter 1 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[1]);
-                //System.out.println("example parameter 2 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[2]);
             }
 
             for (PerceptContent perceptContent : SimPerceptList) {
                 System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
-
 
             }
             // reset for the next iteration
@@ -404,7 +475,8 @@ public class TrikeAgent implements SendtoMATSIM{
         }
 
         System.out.println("inside SensoryUpdate");
-        updateBeliefAfterAction();
+        currentTripStatus();
+        //updateBeliefAfterAction();
 
     }
 
@@ -425,9 +497,10 @@ public class TrikeAgent implements SendtoMATSIM{
             //tripIDList.add("0"); //TODO: find better solution for example a goal trigger
         }
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
-        SimActionList.remove(0);
+        SimActionList.remove(0); //TODO: hier genau drauf achten war beu Thu nicht so!
         //TODO: Send Updates to AreaAgent
         currentTripStatus();
+        //System.out.println("simtime" + JadexModel.simulationtime); //
     }
 
 
@@ -436,7 +509,6 @@ public class TrikeAgent implements SendtoMATSIM{
     @Plan(trigger = @Trigger(goalfinisheds =  PerformSIMReceive.class))
     public void ExecuteTripandInform()
     {
-        System.out.println("ExecuteTripandInform");
         if (informSimInput == false) //make sure it only sent once per iteration
         {   informSimInput = true;
             if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
@@ -541,6 +613,7 @@ public class TrikeAgent implements SendtoMATSIM{
             System.out.println("no currentTrip available");
             System.out.println("getting nextTrip from TripList");
             currentTrip.add(tripList.get(0));
+            //tripList.remove(0);
      //       currentTrip.get(0).setProgress("NotStarted"); //because when SImSensoryInput sends back the result, it sets the progress to finished.
         }
     }
@@ -557,12 +630,15 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     void currentTripStatus() {
+        String currentTripID = currentTrip.get(0).getTripID();
         String currentTripType = currentTrip.get(0).getTripType();
         LocalDateTime currentVaTime = currentTrip.get(0).getVATime();
         Location currentStartPosition = currentTrip.get(0).getStartPosition();
         Location currentEndPosition = currentTrip.get(0).getEndPosition();
         String currentProgress = currentTrip.get(0).getProgress();
         System.out.println("\n currentTripStatus:");
+        System.out.println("agentID: " + agentID);
+        System.out.println("currentTripID: " + currentTripID);
         System.out.println("currentTripType: " + currentTripType);
         System.out.println("currentVaTime: " + currentVaTime);
         System.out.println("currentStartPosition: " + currentStartPosition);
@@ -615,6 +691,10 @@ public class TrikeAgent implements SendtoMATSIM{
         return missed;
     }
 
+
+    /**
+     *  old version will be deprecated ater reorganisation
+     */
     public void ExecuteTrips() {
         System.out.println("DoNextTrip running");
         System.out.println("tripList of agent" +agentID+ " :"+ tripList.size());
@@ -663,7 +743,6 @@ public class TrikeAgent implements SendtoMATSIM{
                 }
             }
         }
-
     }
 
     public void sendDriveTotoAdc()

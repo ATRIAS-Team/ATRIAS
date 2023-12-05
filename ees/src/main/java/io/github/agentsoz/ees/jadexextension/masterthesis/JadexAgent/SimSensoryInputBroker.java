@@ -34,7 +34,7 @@ import java.util.*;
 		@ProvidedService(type= INotifyService.class, implementation=@Implementation(SimInputBrokerService.class)),
 		@ProvidedService(type= INotifyService2.class, implementation=@Implementation(SimInputBrokerReceiveService.class)),
 		@ProvidedService(type= IMappingInputBrokerService.class, implementation = @Implementation(WritingBrokerIDService.class)),
-		})
+})
 @RequiredServices({
 		@RequiredService(name="mapbrokerservices", type= IMappingInputBrokerService.class),
 		@RequiredService(name="clockservice", type= IClockService.class),
@@ -178,7 +178,7 @@ public class SimSensoryInputBroker {
 				}
 			}
 		}
-			}
+	}
 
 
 	//#######################################################################

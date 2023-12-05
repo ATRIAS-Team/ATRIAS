@@ -1,23 +1,21 @@
-package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService;
+package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IJobDistributionService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Job;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 
 /**
  *  Mapping service implementation.
  */
 @Service
-public class ReceiveTripService implements IsendTripService {
+public class ReceiveJobDistributionService implements IJobDistributionService {
 	//-------- attributes --------
 
 	/**
@@ -52,23 +50,23 @@ public class ReceiveTripService implements IsendTripService {
 	{
 		final TrikeAgent TrikeAgent	= (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		/**
-		 if (text.equals("3")) {
-		 TrikeAgent.AddTriptoTripList(Trip3);
+		if (text.equals("3")) {
+			TrikeAgent.AddTriptoTripList(Trip3);
 
-		 }
-		 if (text.equals("4")) {
-		 TrikeAgent.AddTriptoTripList(Trip4);
-		 }
+		}
+		if (text.equals("4")) {
+			TrikeAgent.AddTriptoTripList(Trip4);
+		}
 
-		 if (text.equals("2")) {
-		 TrikeAgent.AddTriptoTripList(Trip2);
+		if (text.equals("2")) {
+			TrikeAgent.AddTriptoTripList(Trip2);
 
-		 }
+		}
 
-		 if (text.equals("1")) {
-		 TrikeAgent.AddTriptoTripList(Trip1);
-		 }
-		 */
+		if (text.equals("1")) {
+			TrikeAgent.AddTriptoTripList(Trip1);
+		}
+		*/
 		//Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
 		Job Job = new Job(text);
 		TrikeAgent.AddJobToJobList(Job);

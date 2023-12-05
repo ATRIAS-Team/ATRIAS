@@ -15,6 +15,7 @@
 		<componenttype name="TrikeAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TrikeAgent.class"/>
 		<componenttype name="SimIDMapper" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimIDMapper.class"/>
 		<componenttype name="AreaAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/AreaAgent.class"/>
+		<componenttype name="TripReqControlAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TripRequestControlAgent.class"/>
 		<componenttype name="SimSensoryInputBroker" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimSensoryInputBroker.class"/>
 
 
@@ -23,7 +24,7 @@
 
 		<configuration name="One trike local">
 			<components>
-					<component type="TrikeAgent" number="1"/>
+					<component type="TrikeAgent" number="4"/>
 			</components>
 			<components>
 				<component type="SimIDMapper" number="1"/>
@@ -32,7 +33,10 @@
 				<component type="AreaAgent" number="1"/>
 			</components>
 			<components>
-				<component type="SimSensoryInputBroker" number="1"/>
+				<component type="TripReqControlAgent" number="0"/>
+			</components>
+			<components>
+				<component type="SimSensoryInputBroker" number="2"/>
 			</components>
 		</configuration>
 

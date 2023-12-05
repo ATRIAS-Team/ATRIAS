@@ -13,8 +13,8 @@ import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.ReceiveTripService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IJobDistributionService.IJobDistributionService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.IJobDistributionService.ReceiveJobDistributionService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
@@ -48,7 +48,7 @@ import java.util.*;
         @ProvidedService(type= IMappingAgentsService.class, implementation=@Implementation(WritingIDService.class)),
         @ProvidedService(type= INotifyService.class, implementation=@Implementation(TrikeAgentReceiveService.class)),
         @ProvidedService(type= INotifyService2.class, implementation=@Implementation(TrikeAgentSendService.class)),
-        @ProvidedService(type= IsendTripService.class, implementation=@Implementation(ReceiveTripService.class)),
+        @ProvidedService(type= IJobDistributionService.class, implementation=@Implementation(ReceiveJobDistributionService.class)),
 
 
 
@@ -56,7 +56,7 @@ import java.util.*;
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name="sendtripservices", type= IsendTripService.class),
+        @RequiredService(name="sendtripservices", type= IJobDistributionService.class),
         @RequiredService(name="mapservices", type= IMappingAgentsService.class),
         @RequiredService(name="broadcastingservices", type= INotifyService.class, scope= ServiceScope.PLATFORM),
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
@@ -289,8 +289,8 @@ public class TrikeAgent implements SendtoMATSIM {
                     agent.setTags(sid, "user:" + agentID);
                     //choosing one SimSensoryInputBroker to receive data from MATSIM
                     currentSimInputBroker = getRandomSimInputBroker();
-                    // setTag for itself to receive direct communication from TripRequestControlAgent when service IsendTripService is used.
-                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IsendTripService.class)).getServiceId();
+                    // setTag for itself to receive direct communication from TripRequestControlAgent when service IJobDistributionService is used.
+                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IJobDistributionService.class)).getServiceId();
                     agent.setTags(sid2, "user:" + agentID);
 
                     //communicate with SimSensoryInputBroker when knowing the serviceTag of the SimSensoryInputBroker.

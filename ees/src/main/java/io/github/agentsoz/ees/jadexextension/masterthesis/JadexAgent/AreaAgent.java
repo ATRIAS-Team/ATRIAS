@@ -25,8 +25,14 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.commons.future.DefaultResultListener;
 import jadex.commons.future.IFuture;
 import jadex.micro.annotation.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 
@@ -81,8 +87,10 @@ public class AreaAgent {
         initJobs();
 
         /** example code delete after testing */
-        //Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
-        //Job Job2 = new Job("2", "2", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238674.543999, 5901195.908183), new Location("", 238654.693529, 5886721.094209));
+
+
+        Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
+        Job Job2 = new Job("2", "2", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238674.543999, 5901195.908183), new Location("", 238654.693529, 5886721.094209));
         //jobList1.add(Job1);
         //jobList1.add(Job2);
 
@@ -108,18 +116,27 @@ public class AreaAgent {
         if (TrikeMain.TrikeAgentNumber== JadexModel.TrikeAgentnumber)
             if (done == false) {
                 done = true;
+                ///**
+                try {
+                    Thread.sleep(20000); // pause for 1 second
+                    // do something
+                } catch (InterruptedException e) {
+                    // handle exception
+                }
+                 //*/
+                System.out.println("SLEEPING FINISHED");
                 bdiFeature.dispatchTopLevelGoal(new MaintainDistributeJobs());
             }
     }
 
-    @Goal(recur = true, recurdelay = 100 )
+    @Goal(recur = true, recurdelay = 5000 )
     class MaintainDistributeJobs
     {
         //Compare time with matsim and send only if simulationtiem > booking time
         //bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
         @GoalMaintainCondition
         boolean jobListNotEmpty(){
-            return jobList1.size()==0;
+            return (jobList1.size()==0);
         }
     }
 
@@ -153,7 +170,7 @@ public class AreaAgent {
             Collection<IsendTripService> service = agent.getLocalServices(query);               //# Service Baustein
             for (Iterator<IsendTripService> iteration = service.iterator(); iteration.hasNext(); ) { //# Service Baustein
                 IsendTripService cs = iteration.next();                                              //# Service Baustein
-                cs.sendJob(message);                                                                 //# Service Baustein
+                cs.sendJob(message);                                                               //# Service Baustein
             }
             jobList1.remove(0);
         }
