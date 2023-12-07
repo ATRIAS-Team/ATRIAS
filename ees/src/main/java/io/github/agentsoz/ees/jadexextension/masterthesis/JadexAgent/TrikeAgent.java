@@ -144,6 +144,23 @@ public class TrikeAgent implements SendtoMATSIM{
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs()); //evtl löschen
         //bdiFeature.dispatchTopLevelGoal(new TimeTest());
         //bdiFeature.dispatchTopLevelGoal(new TimeTrigger());
+        Location Location1 = new Location("", 268674.543999, 5901195.908183);
+        Trip Trip1 = new Trip("Trip1", "CustomerTrip", Location1, "NotStarted");
+        Location Location2= new Location("", 288654.693529, 5286721.094209);
+
+        Trip Trip2 = new Trip("Trip2", "CustomerTrip", Location2, "NotStarted");
+
+        Location Location3= new Location("", 238654.693529, 5886721.094209);
+
+        Trip Trip3 = new Trip("Trip3", "CustomerTrip", Location3, "NotStarted");
+
+        Location Location4 = new Location("", 238674.543999, 5901195.908183);
+
+        Trip Trip4 = new Trip("Trip4", "CustomerTrip", Location4, "NotStarted");
+        //tripList.add(Trip1);
+        //tripList.add(Trip2);
+        //tripList.add(Trip3);
+        //tripList.add(Trip4);
 
     }
 
@@ -207,7 +224,7 @@ public class TrikeAgent implements SendtoMATSIM{
     }
     }
 
-    ///** OLD version: Thu
+    /** OLD version: Thu
     @Goal(recur = true, recurdelay = 3000)
     class SendDrivetoTooutAdc {
         // Goal should be triggered when tripIDlist is not empty and activestatus = true. use tripIDlist
@@ -236,7 +253,7 @@ public class TrikeAgent implements SendtoMATSIM{
             System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
         }
     }
-    //**/
+    **/
 
     /**
      *  MaintainTripService former SendDrivetoTooutAdc
@@ -249,43 +266,42 @@ public class TrikeAgent implements SendtoMATSIM{
      *  finish: when tripList is empty
      */
 
-    /**
-    @Goal(recur = true, recurdelay = 3000)
-    class MaintainTripService {
-        // Goal should be triggered when tripIDlist is not empty and activestatus = true. use tripIDlist
-        //instead of TripList because there is both removal and addition happens inside the tripList
-        //--> not stable for the triggering of factadded.
-        @GoalCreationCondition(factadded = "tripIDList")
-        public MaintainTripService() {
-        }
-       //@GoalMaintainCondition
-        //boolean jobListNotEmpty(){
-        //    return (tripList.size()==0);
-        //}
-        @GoalTargetCondition
-        boolean senttoMATSIM() {
-            return (activestatus == true);
-        }
-    }
-*/
+    ///**
+     @Goal(recur = true, recurdelay = 300)
+     class MaintainTripService {
+     @GoalCreationCondition(factadded = "tripIDList") //
+     public MaintainTripService() {
+     }
+
+     @GoalTargetCondition
+     boolean senttoMATSIM() {
+     return !(activestatus == false);
+     }
+     }
+//*/
     /**
      * DoNextTrip() former PlansendDriveTotoOutAdc()
      */
-    /**
-    @Plan(trigger = @Trigger(goalfinisheds = MaintainTripService.class))
-    public void DoNextTrip() {
-        System.out.println( "PlansendDriveTotoOutAdc: New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
-        if (activestatus == true)
-            // to control that the plan is not triggered because the Trip is removed from TripList
-            //New trip should only be executed when the vehicle is available
-        {
-            System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is available to execute it");
-            ExecuteTripsNew();
-        } else {
-            System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
-        }
-    }
-*/
+    ///**
+     @Plan(trigger = @Trigger(goalfinisheds = MaintainTripService.class))
+     public void DoNextTrip() {
+     System.out.println( "New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
+     if (activestatus == true){
+
+     ExecuteTrips();
+     activestatus = false;
+
+     //todo: if vorschieben nur ausführen wenn vorher keien fahroperation laufen!
+     //TODO: in extra methode schieben
+     //remove its agentID from the ActiveList of its SimSensoryInputBroker
+
+         //updateAtInputBroker();
+
+     } else {
+     //System.out.println("New trip is assigned by TripReqControlAgent. Agent " + agentID + " is busy and will execute later");
+     }
+     }
+//*/
     public void ExecuteTripsNew() {
         newCurrentTrip(); // creates new current Trip if necessary and possible
         if (currentTrip.size() == 1) { //if there is a currentTrip
@@ -386,58 +402,8 @@ public class TrikeAgent implements SendtoMATSIM{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 //@Marcel Thus old code
-/**
-    @Goal(recur = true,recurdelay = 3000)
-    class PerformSIMReceive {
-        // Goal should be triggered when the simPerceptList or simActionList are triggered
-        @GoalCreationCondition(beliefs = "resultfromMATSIM") //
-        public PerformSIMReceive() {
-        }
-        @GoalTargetCondition
-        boolean	PerceptorContentnotEmpty()
-        {
-            return ( !(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty())|| (!(SimPerceptList.isEmpty()) && !(SimActionList.isEmpty())));
-        }
-    }
 
-
-    @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
-    public void UpdateSensory() {
-        if (resultfromMATSIM.contains("true")) {
-            System.out.println(agentID +" receives information from MATSIM");
-            for (ActionContent actionContent : SimActionList) {
-                System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
-                //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
-                //System.out.println("example parameter 0 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
-                //System.out.println("example parameter 1 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[1]);
-                //System.out.println("example parameter 2 in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[2]);
-            }
-
-            for (PerceptContent perceptContent : SimPerceptList) {
-                System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
-
-
-            }
-            // reset for the next iteration
-            setResultfromMASIM("false");
-
-            //@Marcel new code  added
-
-            //actionContent.getAction_type()
-            //actionContent.getState()
-            //actionContent.getParameters()
-
-        }
-
-        System.out.println("inside SensoryUpdate");
-        updateBeliefAfterAction();
-
-
-
-    }
-*/
-
-    @Goal(recur = true,recurdelay = 3000)
+    @Goal(recur = true,recurdelay = 300)
     class PerformSIMReceive {
         // Goal should be triggered when the simPerceptList or simActionList are triggered
         @GoalCreationCondition(beliefs = "resultfromMATSIM") //
@@ -451,26 +417,18 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
-    public void UpdateSensory() {
+    public void SensoryUpdate() {
         if (resultfromMATSIM.contains("true")) {
             System.out.println(agentID +" receives information from MATSIM");
             for (ActionContent actionContent : SimActionList) {
                 System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
                 //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
             }
-
             for (PerceptContent perceptContent : SimPerceptList) {
                 System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
-
             }
             // reset for the next iteration
             setResultfromMASIM("false");
-
-            //@Marcel new code  added
-
-            //actionContent.getAction_type()
-            //actionContent.getState()
-            //actionContent.getParameters()
 
         }
 
@@ -478,7 +436,80 @@ public class TrikeAgent implements SendtoMATSIM{
         currentTripStatus();
         //updateBeliefAfterAction();
 
+        if (informSimInput == false) //make sure it only sent once per iteration
+        {   informSimInput = true;
+            if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
+                for (ActionContent actionContent : SimActionList) {
+                    if (actionContent.getAction_type().equals("drive_to")) {
+                        System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
+                        ExecuteTrips(); // can execute as soon as active status = true
+                        //tripIDList.add("0");
+                        //remove its agentID from the ActiveList of its SimSensoryInputBroker
+                        updateAtInputBroker();
+                        //bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
+                    }
+                }
+            }
+            currentTripStatus();
+        }
+
+
+         /**
+         if (resultfromMATSIM.contains("true")) {
+            System.out.println(agentID +" receives information from MATSIM");
+            for (ActionContent actionContent : SimActionList) {
+                System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
+                //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
+            }
+
+            for (PerceptContent perceptContent : SimPerceptList) {
+                System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
+
+            }
+            // reset for the next iteration
+            setResultfromMASIM("false");
+
+            //@Marcel new code  added
+
+            //actionContent.getAction_type()
+            //actionContent.getState()
+            //actionContent.getParameters()
+
+            if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
+                for (ActionContent actionContent : SimActionList) {
+                    if (actionContent.getAction_type().equals("drive_to")) {
+                        System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
+                        //ExecuteTrips(); // can execute as soon as active status = true
+                        tripIDList.add("0");
+                    }
+                }
+                //tripIDList.add("0");
+            }
+          }
+            */
+
+
+        // currentTripStatus();
+
+
+
+        //updateBeliefAfterAction();
+
     }
+
+
+    void updateAtInputBroker(){
+        ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
+        query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
+        query.setServiceTags("user:" + currentSimInputBroker);
+        Collection<INotifyService2> service = agent.getLocalServices(query);
+        for (Iterator<INotifyService2> iteration = service.iterator(); iteration.hasNext(); ) {
+            INotifyService2 cs = iteration.next();
+            cs.removeTrikeAgentfromActiveList(agentID);
+            System.out.println(" Newly active Agent " + agentID + "notifies" + currentSimInputBroker + " that it finished deliberating");
+        }
+    }
+
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
     //todo: better get the location from MATSim
@@ -505,37 +536,112 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
 
-    //should take the first trip from the trip list
-    @Plan(trigger = @Trigger(goalfinisheds =  PerformSIMReceive.class))
-    public void ExecuteTripandInform()
-    {
-        if (informSimInput == false) //make sure it only sent once per iteration
-        {   informSimInput = true;
-            if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
-                for (ActionContent actionContent : SimActionList) {
-                    if (actionContent.getAction_type().equals("drive_to")) {
-                        System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
-                        ExecuteTrips(); // can execute as soon as active status = true
 
 
-                        //remove its agentID from the ActiveList of its SimSensoryInputBroker
-                        ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
-                        query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
-                        query.setServiceTags("user:" + currentSimInputBroker);
-                        Collection<INotifyService2> service = agent.getLocalServices(query);
-                        for (Iterator<INotifyService2> iteration = service.iterator(); iteration.hasNext(); ) {
-                            INotifyService2 cs = iteration.next();
-                            cs.removeTrikeAgentfromActiveList(agentID);
-                            System.out.println(" Newly active Agent " + agentID + "notifies" + currentSimInputBroker + " that it finished deliberating");
-                        }
-                    }
-                }
-            }
 
-        }
-    }
+    /**
+     //Thu alter code
+
+     @Goal(recur = true,recurdelay = 3000)
+     class PerformSIMReceive {
+     // Goal should be triggered when the simPerceptList or simActionList are triggered
+     @GoalCreationCondition(beliefs = "resultfromMATSIM") //
+     public PerformSIMReceive() {
+     }
+     @GoalTargetCondition
+     boolean	PerceptorContentnotEmpty()
+     {
+     return ( !(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty())|| (!(SimPerceptList.isEmpty()) && !(SimActionList.isEmpty())));
+     }
+     }
+
+     @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
+     public void UpdateSensory() {
+     if (resultfromMATSIM.contains("true")) {
+     System.out.println(agentID +" receives information from MATSIM");
+     for (ActionContent actionContent : SimActionList) {
+     System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
+     //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
+     }
+
+     for (PerceptContent perceptContent : SimPerceptList) {
+     System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
+
+     }
+     // reset for the next iteration
+     setResultfromMASIM("false");
+
+     //@Marcel new code  added
+
+     //actionContent.getAction_type()
+     //actionContent.getState()
+     //actionContent.getParameters()
+
+     }
+
+     System.out.println("inside SensoryUpdate");
+     currentTripStatus();
+     //updateBeliefAfterAction();
+
+     }
+
+     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
+     //todo: better get the location from MATSim
+     void updateBeliefAfterAction() {
+     Trip CurrentTripUpdate = currentTrip.get(0);
+     if (CurrentTripUpdate.getProgress().equals("DriveToStart")) {
+     updateCurrentTripProgress("AtStartLocation");
+     //SendPerceivetoAdc(); //TODO: only for tests delete if unsure
+     agentLocation = CurrentTripUpdate.getStartPosition();
+     //tripIDList.add("0"); //TODO: find better solution for example a goal trigger
+     }
+
+     if (CurrentTripUpdate.getProgress().equals("DriveToEnd")){
+     updateCurrentTripProgress("AtEndLocation");
+     agentLocation = CurrentTripUpdate.getEndPosition();
+     //tripIDList.add("0"); //TODO: find better solution for example a goal trigger
+     }
+     //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
+     SimActionList.remove(0); //TODO: hier genau drauf achten war beu Thu nicht so!
+     //TODO: Send Updates to AreaAgent
+     currentTripStatus();
+     //System.out.println("simtime" + JadexModel.simulationtime); //
+     }
 
 
+
+     //should take the first trip from the trip list
+     @Plan(trigger = @Trigger(goalfinisheds =  PerformSIMReceive.class))
+     public void ExecuteTripandInform()
+     {
+     if (informSimInput == false) //make sure it only sent once per iteration
+     {   informSimInput = true;
+     if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
+     for (ActionContent actionContent : SimActionList) {
+     if (actionContent.getAction_type().equals("drive_to")) {
+     System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
+     ExecuteTrips(); // can execute as soon as active status = true
+
+
+     //remove its agentID from the ActiveList of its SimSensoryInputBroker
+     ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
+     query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
+     query.setServiceTags("user:" + currentSimInputBroker);
+     Collection<INotifyService2> service = agent.getLocalServices(query);
+     for (Iterator<INotifyService2> iteration = service.iterator(); iteration.hasNext(); ) {
+     INotifyService2 cs = iteration.next();
+     cs.removeTrikeAgentfromActiveList(agentID);
+     System.out.println(" Newly active Agent " + agentID + "notifies" + currentSimInputBroker + " that it finished deliberating");
+     }
+     }
+     }
+     }
+
+     }
+     }
+
+
+     */
 
     public void setResultfromMASIM(String Result) {
         this.resultfromMATSIM = Result;
