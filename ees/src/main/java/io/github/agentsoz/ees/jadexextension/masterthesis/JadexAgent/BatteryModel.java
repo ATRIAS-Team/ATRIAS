@@ -1,5 +1,6 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.matsim.EvacAgentTracker;
 import io.github.agentsoz.ees.matsim.EvacAgentTracker.VehicleTrackingData;
 import io.github.agentsoz.util.Location;
@@ -53,16 +54,16 @@ public class BatteryModel {
     Trike Agent.java: z. 713 Atchargingstation
     */
 
-    public void get() {}
+
+    private static void updateChargingProgress(TrikeAgent agent) {
+
+        double chargingRate = 0.001;
+        double newChargeState = agent.getMyChargestate() + chargingRate * JadexModel.simulationtime;
+        agent.setMyChargestate(Math.min(newChargeState, 1.0));
+    }
 
 
-// import jadex sim time
-        // for each time change reduce accordingly the battery consumptio nrate
-
-
-
-
-    public static void loadBattery(TrikeAgent agentapi, IPlan planapi)
+    public static void loadBattery(TrikeAgent agentapi, IPlan planapi, double simulationTime)
     {
         //Hier sucht sich der Trike Agent eine Station raus und fährt mit AchieveMoveTo zur Station
         //Das soll als Fahrauftrag erledigt werden in ATRIAS
@@ -71,14 +72,7 @@ public class BatteryModel {
         //   Chargingstation station = ((io.github.agentsoz.ees.jadexextension.masterthesis.trike.TrikeAgent.QueryChargingStation)planapi.dispatchSubgoal(agentapi.new QueryChargingStation()).get()).getStation();
         //   planapi.dispatchSubgoal(agentapi.new AchieveMoveTo(station.getLocation())).get();
 
-            /**
-             *
-             *  ..................................................
-             *  If it is at night, the battery is charged more
-             *  slowly in order to maintain the battery health
-             *  longer. Therefore, the number of charges also
-             *  increases more slowly at night.
-             */
+
             double charge = agentapi.getMyChargestate();
             double batteryhealth = agentapi.getMyBatteryHealth();
             double numberofcharges = agentapi.getMyNumberOfCharges();
@@ -113,6 +107,9 @@ public class BatteryModel {
                     }
                 }
 
+                simulationTime = JadexModel.simulationtime;
+                updateChargingProgress(agentapi);
+
                 agentapi.setMyChargestate(charge);
                 planapi.waitFor(100).get();
                 agentapi.setMyNumberOfCharges(numberofcharges);
@@ -122,7 +119,6 @@ public class BatteryModel {
                 //create a new charging trip -oemer Frage : Soll diser Ladetrip bevor dem Aufladevorgang oder danach erstellt werden?
                 Location LocationCh= new Location("", 288654.693529, 5286721.094209);
                 Trip chargingTrip = new Trip("CH01", "ChargingTrip", LocationCh, "NotStarted");
-
 
             }
 
@@ -156,25 +152,14 @@ public class BatteryModel {
         Location target = goal.getLocation();
         Location myloc = agentLocation;
 
-        /**
-         *  Author: Gürbüz, Ekin Kafkas
-         *  ..................................................
-         *  Adding the new attributes of the battery model.
-         */
+
         double speed = capa.getMySpeed();
         boolean autopilot = capa.getMyAutopilot();
         double charge = capa.getMyChargestate();
         double batteryhealth = capa.getMyBatteryHealth();
         int carriedcustomer = capa.getCarriedCustomer();
 
-        /**
-         *  Author: Gürbüz, Ekin Kafkas
-         *  ..................................................
-         *  The charge state is decreased depending on
-         *  a variety of conditions. However, in any case,
-         *  the battery loses charge faster when the
-         *  battery health is low.
-         */
+
         if (autopilot) {
             // In autopilot the speed is low.
             speed = 2.0;
@@ -263,4 +248,3 @@ public class BatteryModel {
     }
 
 }
-

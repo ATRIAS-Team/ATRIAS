@@ -239,7 +239,8 @@ public class TrikeAgent implements SendtoMATSIM{
         @PlanBody
         public void body(TrikeAgent agentapi, IPlan planapi)
         {
-            BatteryModel.loadBattery(agentapi, planapi);
+            double simulationTime = JadexModel.simulationtime;
+            BatteryModel.loadBattery(agentapi, planapi, simulationTime);
         }
     }
 
