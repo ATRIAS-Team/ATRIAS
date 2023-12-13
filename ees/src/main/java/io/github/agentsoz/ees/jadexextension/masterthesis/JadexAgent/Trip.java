@@ -12,6 +12,8 @@ public class Trip {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     public String tripID;
+
+    private Job job;
     public String tripType; //charging trip, customer trip, ...
     public LocalDateTime vaTime; // vehicle arriving time
     public Location startPosition; // use this for trips with just one Geolocation
@@ -38,6 +40,17 @@ public class Trip {
         this.endPosition = endPosition;
         this.progress = progress;
     }
+
+    public Trip(String tripID, Job job, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress){
+        this.tripID = tripID;
+        this.job = job;
+        this.tripType = tripType;
+        this.vaTime = vaTime;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.progress = progress;
+    }
+
 
     //short Trip
     public Trip(String messageTrip){

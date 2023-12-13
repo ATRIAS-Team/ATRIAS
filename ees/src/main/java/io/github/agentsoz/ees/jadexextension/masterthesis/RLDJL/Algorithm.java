@@ -29,13 +29,24 @@ public class Algorithm implements RlAgent{
 
     private Algorithm() {};
 
+    @Override
+    public NDList chooseAction(RlEnv rlEnv, boolean b) {
+        return null;
+    }
 
+    @Override
+    public void trainBatch(RlEnv.Step[] steps) {
+
+    }
+
+
+/*
     public static TrainingResult runExample(String[] args) throws IOException {
         Arguments arguments = new Arguments().parseArgs(args);
         if (arguments == null) {
             return null;
         }
-
+*/
 
 
 }

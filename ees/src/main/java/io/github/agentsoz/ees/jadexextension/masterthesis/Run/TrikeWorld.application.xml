@@ -15,7 +15,6 @@
 		<componenttype name="TrikeAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TrikeAgent.class"/>
 		<componenttype name="SimIDMapper" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimIDMapper.class"/>
 		<componenttype name="AreaAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/AreaAgent.class"/>
-		<componenttype name="TripReqControlAgent" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/TripRequestControlAgent.class"/>
 		<componenttype name="SimSensoryInputBroker" filename="io/github/agentsoz/ees/jadexextension/masterthesis/JadexAgent/SimSensoryInputBroker.class"/>
 
 
@@ -33,41 +32,9 @@
 				<component type="AreaAgent" number="1"/>
 			</components>
 			<components>
-				<component type="TripReqControlAgent" number="0"/>
-			</components>
-			<components>
 				<component type="SimSensoryInputBroker" number="2"/>
 			</components>
 		</configuration>
 
 
 </applicationtype>
-
-
-
-
-<!--<componenttypes>
-<componenttype name="EnvironmentLocal" filename="jadex/bdiv3/examples/trikeworld/environment/EnvironmentLocalAgent.class"/>
-<componenttype name="TrikeLocal" filename="jadex/bdiv3/examples/trikeworld/trike/TrikeAgent.class"/>
-</componenttypes>
-
-<configurations>
-<configuration name="One trike local">
-	<components>
-		<component type="EnvironmentLocal"/>
-		<component type="TrikeLocal" number="1"/>
-	</components>
-</configuration>
-<!-	<configuration name="Two trikes local">
-        <components>
-            <component type="EnvironmentLocal"/>
-            <component type="TrikeLocal" number="2"/>
-        </components>
-    </configuration>
-    <configuration name="Ten trikes local">
-        <components>
-            <component type="EnvironmentLocal"/>
-            <component type="TrikeLocal" number="10"/>
-        </components>
-    </configuration>
-</configurations>-->

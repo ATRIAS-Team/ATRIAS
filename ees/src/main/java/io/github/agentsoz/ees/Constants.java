@@ -34,6 +34,9 @@ public class Constants {
     public static final String ACTIVITY_STARTED = io.github.agentsoz.util.PerceptList.ACTIVITY_STARTED;
     public static final String ACTIVITY_ENDED = io.github.agentsoz.util.PerceptList.ACTIVITY_ENDED;
     public static final String BLOCKED = io.github.agentsoz.util.PerceptList.BLOCKED;
+
+    //oemer added
+    public static final String SUM_LINK_LENGTH = io.github.agentsoz.util.PerceptList.SUM_LINK_LENGTH;
     public static final String BROADCAST = io.github.agentsoz.util.PerceptList.BROADCAST;
     public static final String CONGESTION = io.github.agentsoz.util.PerceptList.CONGESTION;
     public static final String DEPARTED = io.github.agentsoz.util.PerceptList.DEPARTED;

@@ -45,17 +45,14 @@
             <attribute name="WillGoHomeBeforeLeaving" class="java.lang.String" >true</attribute>
             <attribute name="WillStay" class="java.lang.String" >false</attribute>
         </attributes>-->
-
-
         <plan selected="yes">
-            <activity type="home" x="965891.5365" y="6468319.213" end_time="12:40:00" >
+            <activity type="home" x="476411.90963429067" y="5552419.709277404" end_time="23:59:59" >
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="965891.5365" y="6468319.213" >
+            <activity type="home" x="476411.90963429067" y="5552419.709277404" >
             </activity>
         </plan>
-
 
     </person>
 
@@ -102,11 +99,11 @@
             <attribute name="WillStay" class="java.lang.String" >false</attribute>
         </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="966203.1086" y="6468165.073" end_time="12:55:00" >
+            <activity type="home" x="476593.32115363394" y="5553317.19412722" end_time="23:59:59" >
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="966203.1086" y="6468165.073" >
+            <activity type="home" x="476593.32115363394" y="5553317.19412722" >
             </activity>
         </plan>
 
@@ -155,11 +152,11 @@
           <attribute name="WillStay" class="java.lang.String" >false</attribute>
       </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="964883.7277" y="6468214.942" end_time="11:45:00" >
+            <activity type="home" x="476438.79189037136" y="5552124.30651799" end_time="23:59:59" >
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="964883.7277" y="6468214.942" >
+            <activity type="home" x="476438.79189037136" y="5552124.30651799" >
             </activity>
         </plan>
 
@@ -207,17 +204,14 @@
           <attribute name="WillGoHomeBeforeLeaving" class="java.lang.String" >true</attribute>
           <attribute name="WillStay" class="java.lang.String" >false</attribute>
       </attributes>-->
-
         <plan selected="yes">
-            <activity type="home" x="965369.1586" y="6468203.395" end_time="10:30:00" >
+            <activity type="home" x="476500.76932398824" y="5552798.971484745" end_time="23:59:59" >
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="965369.1586" y="6468203.395" >
+            <activity type="home" x="476500.76932398824" y="5552798.971484745" >
             </activity>
         </plan>
-
-
     </person>
 
     <!-- ====================================================================== -->
@@ -262,14 +256,12 @@
            <attribute name="WillGoHomeBeforeLeaving" class="java.lang.String" >true</attribute>
            <attribute name="WillStay" class="java.lang.String" >false</attribute>
        </attributes>-->
-
-
             <plan selected="yes">
-                <activity type="home" x="965194.3202" y="6468197.474" end_time="15:00:00" >
+                <activity type="home" x="476538.9427888916" y="5553324.827033389" end_time="23:59:59" >
                 </activity>
                 <leg mode="car">
                 </leg>
-                <activity type="home" x="965194.3202" y="6468197.474" >
+                <activity type="home" x="476538.9427888916" y="5553324.827033389" >
                 </activity>
             </plan>
 
@@ -322,16 +314,15 @@
           <attribute name="WillStay" class="java.lang.String" >false</attribute>
       </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="964978.3493" y="6468254.984" end_time="06:45:00" >
+            <activity type="home" x="476619.6161561999" y="5552925.794018047" end_time="23:59:59" >
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="964978.3493" y="6468254.984" >
+            <activity type="home" x="476619.6161561999" y="5552925.794018047" >
             </activity>
         </plan>
 
     </person>
-
 
     <!-- ====================================================================== -->
 

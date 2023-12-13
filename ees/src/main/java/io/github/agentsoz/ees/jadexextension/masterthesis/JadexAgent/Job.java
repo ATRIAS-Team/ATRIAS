@@ -38,54 +38,43 @@ public class Job {
     }
 
 
-    public Job(String messageJob) {
+    public Job(ArrayList<String> values) {
 
         //String str = "1986-04-08 12:30";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         //LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
 
+        Double startPosX = Double.parseDouble(values.get(5));
+        Double startPosY = Double.parseDouble(values.get(6));
+        Double endPosX = Double.parseDouble(values.get(8));
+        Double endPosY = Double.parseDouble(values.get(9));
 
-        String segments[] = messageJob.split("#");
-        String customerID = segments[0];
-        String jobID = segments[1];
-        //LocalDateTime bookingTime = LocalDateTime.parse(segments[2], formatter); //Error
-        //LocalDateTime vaTime = LocalDateTime.parse(segments[3], formatter); //Error
-        LocalDateTime bookingTime = LocalDateTime.now(); //Error
-        LocalDateTime vaTime = LocalDateTime.now(); //Error
-
-
-        Double startPosX = Double.parseDouble(segments[4]);
-        Double startPosY = Double.parseDouble(segments[5]);
-        Double endPosX = Double.parseDouble(segments[6]);
-        Double endPosY = Double.parseDouble(segments[7]);
-
-        this.customerID = customerID;
-        this.jobID = jobID;
-        this.bookingTime = bookingTime;
-        this.vaTime = vaTime;
-        this.startPosition = new Location("", startPosX, startPosY);
-        this.endPosition = new Location("", endPosX, endPosY);
-
+        this.customerID = values.get(0);
+        this.jobID = values.get(1);
+        this.bookingTime = LocalDateTime.parse(values.get(2), formatter);
+        this.vaTime = LocalDateTime.parse(values.get(3), formatter);
+        this.startPosition = new Location(values.get(4), startPosX, startPosY);
+        this.endPosition = new Location(values.get(7), endPosX, endPosY);
     }
 
     //####################################################################################
     // method
     //####################################################################################
 
-    public String JobForTransfer(){
-        //TODO: find better format for all kind of messages like in Visio extra class
-
-        String messageJob = customerID + "#" + jobID + "#" + bookingTime + "#" + vaTime + "#" + Double.toString(startPosition.getX()) + "#" + Double.toString(startPosition.getY()) + "#" + Double.toString(endPosition.getX()) + "#" + Double.toString(endPosition.getY());
-
-        return messageJob;
-    }
-    //Serialization and Deserialization
-
-
-
-
-
-
+    public ArrayList<String> toArrayList(){
+        ArrayList<String> arrayList = new ArrayList<>(10);
+        arrayList.add(customerID);
+        arrayList.add(jobID);
+        arrayList.add(bookingTime.toString());
+        arrayList.add(vaTime.toString());
+        arrayList.add(startPosition.getName());
+        arrayList.add(Double.toString(startPosition.getX()));
+        arrayList.add(Double.toString(startPosition.getY()));
+        arrayList.add(endPosition.getName());
+        arrayList.add(Double.toString(endPosition.getX()));
+        arrayList.add(Double.toString(endPosition.getY()));
+        return arrayList;
+    };
     public String getCustomerID() {
         return this.customerID;
     }
@@ -165,6 +154,4 @@ public class Job {
         // return json objects
         return gson.fromJson(JSONParser.readJSONFile(jsonPath), jobsType);
     }
-
-
 }

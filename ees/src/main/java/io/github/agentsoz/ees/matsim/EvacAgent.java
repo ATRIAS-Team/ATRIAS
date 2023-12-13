@@ -40,9 +40,12 @@ package io.github.agentsoz.ees.matsim;
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
+ *
+ * oemer: added totalLinkLengthTraveled, which sums the distance of each drive_to resulting to a trip
  */
 
 import io.github.agentsoz.bdimatsim.NextLinkBlockedEvent;
+import io.github.agentsoz.bdimatsim.TotalLinkLengthTraveledEvent;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -79,16 +82,16 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 
 	private final BasicPlanAgentImpl basicAgentDelegate ;
 	private final PlanBasedDriverAgentImpl driverAgentDelegate ;
-
 	private final TripRouter tripRouter  ;
 	private final EditTrips editTrips ;
 	private final Network network;
 	private final MobsimTimer simTimer;
 	private final EventsManager eventsManager;
-	
 	private boolean planWasModified = false ;
 	private double expectedLinkLeaveTime;
-	
+
+	private static double totalLinkLengthTraveled = 0.0;
+
 	EvacAgent(final Plan selectedPlan, final Netsim simulation, TripRouter tripRouter) {
 		this.tripRouter = tripRouter;
 		this.basicAgentDelegate = new BasicPlanAgentImpl(selectedPlan, simulation.getScenario(), simulation.getEventsManager(),
@@ -121,10 +124,8 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 	public final void endActivityAndComputeNextState(double now) {
 		// yyyyyy planWasModified does not work all the way through; possibly confusion between static method calls and polymorphic
 		// programming???
-
 		//		final PlanElement nextPlanElement = basicAgentDelegate.getNextPlanElement();
 		// yyyyyy this seems to be getting the unmodified plan but I don't know why. kai, nov'17
-		
 		Plan plan = WithinDayAgentUtils.getModifiablePlan(this) ;
 		Integer index = WithinDayAgentUtils.getCurrentPlanElementIndex(this) ;
 		if ( index+1 < plan.getPlanElements().size() ) {
@@ -134,7 +135,7 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 			log.trace( "next plan element=" + nextPlanElement );
 			if ( nextPlanElement instanceof Leg ) {
 				if ( 
-						//planWasModified || 
+						//planWasModified ||
 						((Leg)nextPlanElement).getRoute()==null ) {
 					log.trace("leg has no route; recomputing next trip") ;
 					Activity act = (Activity) basicAgentDelegate.getCurrentPlanElement() ;
@@ -248,10 +249,33 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 	@Override
 	public final void notifyMoveOverNode(Id<Link> newLinkId) {
 		driverAgentDelegate.notifyMoveOverNode(newLinkId);
-		Link link = network.getLinks().get( newLinkId ) ;
-		double now = simTimer.getTimeOfDay() ;
-		this.expectedLinkLeaveTime = link.getLength()/link.getFreespeed(now) ;
+		Link link = network.getLinks().get(newLinkId);
+		double now = simTimer.getTimeOfDay();
+		//added oemer
+		if(link != null){
+			totalLinkLengthTraveled += link.getLength();
+		}
+		this.expectedLinkLeaveTime = link.getLength()/link.getFreespeed(now);
 	}
+
+	public static double getTotalLinkLengthTraveled() {
+		return totalLinkLengthTraveled;
+	}
+
+	//added oemer
+
+	private void resetTotalLinkLengthTraveled() {
+		final double now = this.simTimer.getTimeOfDay();
+		double tot = getTotalLinkLengthTraveled();
+
+		TotalLinkLengthTraveledEvent TotalLinkLengthTraveledEvent = new TotalLinkLengthTraveledEvent(
+				now, this.getPerson().getId(), this.getCurrentLinkId(), totalLinkLengthTraveled);
+		log.debug(Double.toString(totalLinkLengthTraveled));
+		eventsManager.processEvent(TotalLinkLengthTraveledEvent);
+
+		totalLinkLengthTraveled = 0.0;
+	}
+
 	@Override
 	public final Id<Link> chooseNextLinkId() {
 		return driverAgentDelegate.chooseNextLinkId();
@@ -260,12 +284,12 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 	@Override
 	public final boolean isWantingToArriveOnCurrentLink() {
 		boolean retVal = driverAgentDelegate.isWantingToArriveOnCurrentLink();
-		
+
 		if (retVal==false) {
 			Link nextLink = this.network.getLinks().get( this.chooseNextLinkId() ) ;
 			final double now = this.simTimer.getTimeOfDay();
 			if (nextLink.getFreespeed(now) < 0.1) {
-			    NextLinkBlockedEvent nextLinkBlockedEvent = new NextLinkBlockedEvent(
+				NextLinkBlockedEvent nextLinkBlockedEvent = new NextLinkBlockedEvent(
                         now, this.getVehicle().getId(), this.getId(), this.getCurrentLinkId(),
                         nextLink.getId() );
 				log.debug(nextLinkBlockedEvent.toString());
@@ -274,10 +298,15 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 				// it should be triggered here, giving the bdi time to compute.  However, the
 				// closure may happen between here and arriving at the node ...  kai, dec'17
 			}
+			//added oemer
+		} else if(retVal ==true){
+
+			resetTotalLinkLengthTraveled();
 		}
-		
+
 		return retVal ;
 	}
+
 	@Override public final Plan getModifiablePlan() {
 		this.planWasModified=true ;
 		return basicAgentDelegate.getModifiablePlan() ;

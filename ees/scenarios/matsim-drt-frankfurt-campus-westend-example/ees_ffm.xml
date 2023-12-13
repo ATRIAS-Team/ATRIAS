@@ -36,10 +36,13 @@
     <opt id="crs">EPSG:25832</opt>
     <!--<opt id="crs">EPSG:4326</opt>-->
     <!-- simulation start time in HH:MM format -->
-    <opt id="startHHMM">12:00</opt>
+    <opt id="startHHMM">07:00</opt>
     <!-- Output file for trips written in DeckGL format -->
     <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/trips.deckgl.json</opt>
    <!-- <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/trips.deckgl.json</opt>-->
+    <opt id="metricsOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/metrics.json</opt>
+    <!-- Time bin size in seconds for collected evacuation metrics -->
+    <opt id="metricsBinSizeInSecs">3600</opt>
   </global>
 
   <!-- model specific configuration -->

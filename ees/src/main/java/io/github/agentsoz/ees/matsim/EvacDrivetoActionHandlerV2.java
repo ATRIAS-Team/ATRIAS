@@ -50,7 +50,7 @@ public final class EvacDrivetoActionHandlerV2 implements BDIActionHandler {
 	private static final Logger log = LoggerFactory.getLogger(EvacDrivetoActionHandlerV2.class ) ;
 
 	private final MATSimModel model;
-	public EvacDrivetoActionHandlerV2(MATSimModel model ) {
+	public EvacDrivetoActionHandlerV2(MATSimModel model) {
 //		log.setLevel(Level.DEBUG);
 		this.model = model;
 	}
@@ -87,6 +87,7 @@ public final class EvacDrivetoActionHandlerV2 implements BDIActionHandler {
 		final Link nearestLink = NetworkUtils.getNearestLink(model.getScenario().getNetwork(), coord );
 		Gbl.assertNotNull(nearestLink);
 		Id<Link> newLinkId = nearestLink.getId();
+		//double newLinkLength = nearestLink.getLength();
 		//  could give just coordinates to matsim, but for time being need the linkId in the percept anyways
 		
 		// new departure time:
@@ -122,7 +123,7 @@ public final class EvacDrivetoActionHandlerV2 implements BDIActionHandler {
 		Activity rnewAct = null;
 		if (addReplanActivity) {
 			String ractivity = "Replan";
-			final Link link = model.getScenario().getNetwork().getLinks().get( mobsimAgent.getCurrentLinkId() );
+			final Link link = model.getScenario().getNetwork().getLinks().get(mobsimAgent.getCurrentLinkId());
 			rnewAct = model.getReplanner().editPlans().createFinalActivity(ractivity, link.getId());
 			rnewAct.setStartTime(model.getTime());
 			rnewAct.setEndTime(model.getTime() + replanTime);
@@ -149,7 +150,7 @@ public final class EvacDrivetoActionHandlerV2 implements BDIActionHandler {
 		log.debug("------------------------------------------------------------------------------------------"); ;
 		return ActionContent.State.RUNNING;
 	}
-	
+
 	private void printPlan(String str ,MobsimAgent agent1) {
 		Plan plan = WithinDayAgentUtils.getModifiablePlan(agent1) ;
 		log.debug(str + plan ); ;

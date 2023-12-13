@@ -39,7 +39,6 @@
     <!-- Output file for trips written in DeckGL format -->
     <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/trips.deckgl.json</opt>
   </global>
-
   <!-- model specific configuration -->
   <models>
 

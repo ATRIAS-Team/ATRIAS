@@ -153,7 +153,7 @@ public class SimSensoryInputBroker {
 							System.out.println(SensoryInputID + " start delivering data from MATSIM to "+agentId);
 							ServiceQuery<INotifyService> query = new ServiceQuery<>(INotifyService.class);
 							query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
-							query.setServiceTags("user:" + agentId); // calling the tag of a trike agent
+							query.setServiceTags("" + agentId); // calling the tag of a trike agent
 							Collection<INotifyService> service = agent.getLocalServices(query);
 							for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
 								INotifyService cs = iteration.next();
@@ -207,7 +207,7 @@ public class SimSensoryInputBroker {
 				executed = true;
 				System.out.println("The ID assigned to this SimSensoryInputBroker is "+ SensoryInputID );
 				IServiceIdentifier sid = ((IService) agent.getProvidedService(INotifyService2.class)).getServiceId();
-				agent.setTags(sid, "user:" + SensoryInputID); // setTag for itself so vehicle agents could communciate using INotifyService2 service
+				agent.setTags(sid, "" + SensoryInputID); // setTag for itself so vehicle agents could communciate using INotifyService2 service
 				SimIDMapper.NumberSimInputAssignedID.add(SensoryInputID); // to store the total number of finished SimInputBroker
 
 			}

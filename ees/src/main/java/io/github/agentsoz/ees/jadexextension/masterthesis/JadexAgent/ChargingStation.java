@@ -4,13 +4,13 @@ import io.github.agentsoz.util.Location;
 
 public class ChargingStation {
 
+    protected String id;
     protected static int instancecnt = 0;
-    private Location location;
-
+    protected Location location;
     /**
      *  Get an instance number.
      */
-    protected static synchronized int	getNumber()
+    protected static synchronized int getNumber()
     {
         return ++instancecnt;
     }
@@ -29,7 +29,6 @@ public class ChargingStation {
     {
         // Empty constructor required for JavaBeans (do not remove).
     }
-
     /**
      *  Create a new charging station.
      */
@@ -43,11 +42,19 @@ public class ChargingStation {
      */
     public ChargingStation(String name, Location location)
     {
-       // commented out -oemer
-        // setId(name);
+
+        setId(name);
         setName(name);
-        //commented out -oemer
-     //   setLocation(location);
+        setLocation(location);
+    }
+
+public void setLocation(Location location){
+        this.location = location;
+
+}
+
+    public void setId(String id){
+        this.id = id;
     }
 
     /**
@@ -73,7 +80,7 @@ public class ChargingStation {
      */
     public void update(ChargingStation st)
     {
-        //-commented out -oemer
+
      //   assert this.getId().equals(st.getId());
     }
 
@@ -85,9 +92,12 @@ public class ChargingStation {
      */
     public String toString()
     {
-        // commented out-oemer
-     //   return "Chargingstation(" + "id=" + getId() + ", location=" + getLocation() + ", name=" + getName() + ")";
-     return "";
+        return "Chargingstation(" + "id=" + getId() + ", location=" + getLocation() + ", name=" + getName() + ")";
+    }
+
+    public String getId()
+    {
+        return this.id;
     }
 
     public Location getLocation()

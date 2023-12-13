@@ -20,25 +20,26 @@ public class RewardModel {
         }
     }
 
-    private double calculateDistance(Location point1, Location point2) {
+    private double calculateDistance(int point1, Location point2) {
         // Implement a distance calculation method (e.g., Haversine formula).
         // This method calculates the distance between two geographic points.
         // The distance can be used to determine the reward for accepting a trip.
+    return 0;
     }
 
     private double calculateRewardForAcceptance(double pickupDistance) {
         // Calculate a reward based on the pickup distance.
         // You might want to reward shorter pickup distances and penalize longer ones.
-        if (pickupDistance < someThreshold) {
-            return positiveReward;
+        if (pickupDistance < 5) {
+            return 20;
         } else {
-            return negativeReward;
+            return -100;
         }
     }
 
     private double calculatePenaltyForRejection() {
         // Assign a negative reward for rejecting a trip request.
-        return rejectionPenalty;
+        return -10;
     }
 
 
@@ -47,12 +48,14 @@ public class RewardModel {
         private Location destination;
         private String passengerName;
         private int numPassengers;
+        private int driverLocation;
 
         public RideRequest(Location passengerLocation, Location destination, String passengerName, int numPassengers) {
             this.passengerLocation = passengerLocation;
             this.destination = destination;
             this.passengerName = passengerName;
             this.numPassengers = numPassengers;
+            this.driverLocation = driverLocation;
         }
 
         public Location getPassengerLocation() {
@@ -70,6 +73,8 @@ public class RewardModel {
         public int getNumPassengers() {
             return numPassengers;
         }
+
+        public int getDriverLocation() { return driverLocation;}
     }
 
 

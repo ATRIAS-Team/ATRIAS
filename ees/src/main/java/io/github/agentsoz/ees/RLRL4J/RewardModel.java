@@ -4,6 +4,7 @@ package io.github.agentsoz.ees.RLRL4J;
 import io.github.agentsoz.util.Location;
 
 public class RewardModel {
+  /* copied to RL-DJL -oemer
     public double calculateReward(RideRequest request, boolean accepted) {
         // Define the reward logic for the ride-hailing decision.
         // The reward depends on factors like passenger distance, driver location, and acceptance/rejection.
@@ -29,10 +30,10 @@ public class RewardModel {
     private double calculateRewardForAcceptance(double pickupDistance) {
         // Calculate a reward based on the pickup distance.
         // You might want to reward shorter pickup distances and penalize longer ones.
-        if (pickupDistance < someThreshold) {
-            return positiveReward;
+        if (pickupDistance < 5) {
+            return +100;
         } else {
-            return negativeReward;
+            return -20;
         }
     }
 
@@ -71,6 +72,6 @@ public class RewardModel {
             return numPassengers;
         }
     }
-
+*/
 
 }
