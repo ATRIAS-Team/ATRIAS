@@ -39,7 +39,7 @@ public class TrikeAgentReceiveService implements INotifyService {
 		{
 			TrikeAgent.activestatus = activestatus;
 			//todo: !!!
-			TrikeAgent.currentTrip.get(0).setProgress("Finished"); //was ist das? angleichen mit meinem plan!
+			//TrikeAgent.currentTrip.get(0).setProgress("Finished"); //was ist das? angleichen mit meinem plan!
 			//TrikeAgent.tripIDList.add("0");
 		}
 
