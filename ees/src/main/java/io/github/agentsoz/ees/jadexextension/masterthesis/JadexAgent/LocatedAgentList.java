@@ -22,7 +22,7 @@ public class LocatedAgentList {
         return LocatedAgentList.size();
     }
 
-    public void updateLocatedAgentList(LocatedAgent newAgent, String action){
+    public void updateLocatedAgentList(LocatedAgent newAgent, Double simTime, String action){
 
         if (action.equals("register")){
             LocatedAgentList.add(newAgent);
@@ -30,7 +30,8 @@ public class LocatedAgentList {
         else if (action.equals("update")){
             for (int i= 0; i<LocatedAgentList.size(); i++){
                 if(newAgent.getAgentID().equals(LocatedAgentList.get(i).getAgentID())){
-                    LocatedAgentList.get(i).updateLocatedAgent(newAgent.getLastPosition(), newAgent.getTimeOfLastUpdate());
+                    LocatedAgentList.get(i).updateLocatedAgent(newAgent.getLastPosition(),
+                            LocatedAgentList.get(i).getTimeOfLastUpdate() + simTime);
                 }
             }
         }
@@ -42,7 +43,7 @@ public class LocatedAgentList {
             }
         }
         else {
-        //TODO: ERROR handling
+            //TODO: ERROR handling
         }
     }
 

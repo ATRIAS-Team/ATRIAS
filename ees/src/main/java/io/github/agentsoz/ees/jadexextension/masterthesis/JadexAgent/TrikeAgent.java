@@ -1,6 +1,6 @@
 /* TrikeAgnet.java
- * Version: v0.7 (15.12.2023)
- * changelog: Job cycle closed, code cleaned
+ * Version: v0.8 (19.01.2024)
+ * changelog: working with decision tasks now
  * @Author Marcel (agent logic), Thu (BDI-ABM sync), Oemer (customer miss)
  *
  *
@@ -10,11 +10,11 @@ import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.IAreaAgentService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.ReceiveAreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.ReceiveTripService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
@@ -42,11 +42,11 @@ import java.util.*;
         @ProvidedService(type= IMappingAgentsService.class, implementation=@Implementation(WritingIDService.class)),
         @ProvidedService(type= INotifyService.class, implementation=@Implementation(TrikeAgentReceiveService.class)),
         @ProvidedService(type= INotifyService2.class, implementation=@Implementation(TrikeAgentSendService.class)),
-        @ProvidedService(type= IsendTripService.class, implementation=@Implementation(ReceiveTripService.class)),
+        @ProvidedService(type= IAreaAgentService.class, implementation=@Implementation( ReceiveAreaAgentService.class)),
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name="sendtripservices", type= IsendTripService.class),
+        @RequiredService(name = "sendareaagendservice", type = IAreaAgentService.class),
         @RequiredService(name="mapservices", type= IMappingAgentsService.class),
         @RequiredService(name="broadcastingservices", type= INotifyService.class, scope= ServiceScope.PLATFORM),
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
@@ -78,8 +78,15 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     private Location agentLocation; // position of the agent TODO: init location with start location from matsim
 
+
+    //todo: delete when replaced with decisionTaskList
     @Belief
     public List<Job> jobList = new ArrayList<>();
+    @Belief
+    public List<DecisionTask> decisionTaskList = new ArrayList<>();
+
+    @Belief
+    public List<DecisionTask> FinishedDecisionTaskList = new ArrayList<>();
 
     @Belief    //contains all the trips
     public List<Trip> tripList = new ArrayList<>();
@@ -100,6 +107,13 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public boolean sent = false;
     public String write = null;
+
+    /**
+     * Every DecisionTask with a score equal or higher will be commited
+     * todo: should be initialized from a configFile()
+     */
+    public Double commitThreshold = 50.0;
+
     public boolean informSimInput = false;
 
     public String currentSimInputBroker;
@@ -157,32 +171,153 @@ public class TrikeAgent implements SendtoMATSIM{
         @GoalMaintainCondition	// The cleaner aims to maintain the following expression, i.e. act to restore the condition, whenever it changes to false.
         boolean jobListEmpty()
         {
-            return jobList.size()==0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
+            return decisionTaskList.size()==0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
         }
     }
 
     @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
     private void EvaluateDecisionTask()
     {
-        if (jobList.size()>0) {
-        System.out.println("EvaluateDecisionTask");
+        /**
+         * todo: remove this case when decisionTask is working
+         */
 
-        Job jobToTrip = jobList.get(0);
-        Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
+        //if (jobList.size()>0) {
+        //System.out.println("EvaluateDecisionTask: old Version Job");
+
+        //Job jobToTrip = jobList.get(0);
+        //Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
         //TODO: create a unique tripID
+        //tripList.add(newTrip);
 
-        tripList.add(newTrip);
-
+        // TEST MESSAGE DELETE LATER
+            //sendTestAreaAgentUpdate();
+        //
             /**
              * agentID
              * TODO: @Mariam Trike will commit a Trip here. write into firebase
              */
 
             //TODO: zwischenschritte (visio) fehlen utilliy usw.
-        tripIDList.add("1");
-        jobList.remove(0);
+        //tripIDList.add("1");
+        //jobList.remove(0);
+    //}
+
+        /**
+         * todo: will replace solution above
+         */
+        if (decisionTaskList.size()>0) {
+            System.out.println("EvaluateDecisionTask: new Version");
+            boolean finishedForNow = false;
+            while (finishedForNow == false) {
+                Integer changes = 0;
+                for (int i = 0; i < decisionTaskList.size(); i++) {
+                    Integer currentChanges = selectNextAction(i);
+
+
+
+                    //progress abgreifen
+                    // funktion aufrufen
+                    //finished decisiontask List anlegen?
+                    //wenn durchlauf ohen Änderungen finishedForNow = true
+                    changes += currentChanges;
+                }
+                if(changes==0){
+                    finishedForNow = true;
+                }
+            }
+
+            /**
+            Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
+            //TODO: create a unique tripID
+            tripList.add(newTrip);
+
+            // TEST MESSAGE DELETE LATER
+            sendTestAreaAgentUpdate();
+            //
+            /**
+             * agentID
+             * TODO: @Mariam Trike will commit a Trip here. write into firebase
+             */
+
+            /**
+
+            //TODO: zwischenschritte (visio) fehlen utilliy usw.
+            tripIDList.add("1");
+            jobList.remove(0);
+            */
+        }
+
     }
+
+    public Integer selectNextAction(Integer position){
+        Integer changes = 0;
+        if (decisionTaskList.get(position).getStatus().equals("new")){
+            /**
+             *  Execute Utillity here > "commit"|"delegate"
+             */
+            Double ownScore = calculateUtillity();
+            decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
+            if (ownScore < commitThreshold){
+                decisionTaskList.get(position).setStatus("delegate");
+            }
+            else{ decisionTaskList.get(position).setStatus("commit");}
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("commit")){
+            /**
+             *  create trip here
+             */
+            DecisionTask dTaToTrip = decisionTaskList.get(position);
+            Trip newTrip = new Trip(dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
+            //TODO: create a unique tripID
+            tripList.add(newTrip);
+            tripIDList.add("1");
+            FinishedDecisionTaskList.add(dTaToTrip);
+            decisionTaskList.remove(0);
+
+            // TEST MESSAGE DELETE LATER //TODO: unsed Code from Mahkam
+            //sendTestAreaAgentUpdate();
+            //
+            /**
+             * agentID
+             * TODO: @Mariam Trike will commit a Trip here. write into firebase
+             */
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("delegate")){
+            /**
+             *  start cnp here > "waitingForProposals"
+             */
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("readyForDecision")){
+            /**
+             *  send agree/cancel > "waitingForConfirmations"
+             */
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("proposed")){
+            /**
+             *  send bid > "waitingForManager"
+             */
+            changes += 1;
+        }
+        else {
+            System.out.println("invalid status: " + decisionTaskList.get(position).getStatus());
+        }
+        return changes;
     }
+
+    /** Utillity Function
+     * should be switchable between a regular and a learning attempt
+     *
+     * @return
+     */
+    Double calculateUtillity(){
+        return 100.0;
+    }
+
 
     /**
      *  MaintainTripService former SendDrivetoTooutAdc
@@ -245,16 +380,17 @@ public class TrikeAgent implements SendtoMATSIM{
                     agent.setTags(sid, "user:" + agentID);
                     //choosing one SimSensoryInputBroker to receive data from MATSIM
                     currentSimInputBroker = getRandomSimInputBroker();
+
                     // setTag for itself to receive direct communication from TripRequestControlAgent when service IsendTripService is used.
-                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IsendTripService.class)).getServiceId();
+                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IAreaAgentService.class)).getServiceId();
                     agent.setTags(sid2, "user:" + agentID);
+
                     //communicate with SimSensoryInputBroker when knowing the serviceTag of the SimSensoryInputBroker.
                     ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
                     query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
                     query.setServiceTags("user:" + currentSimInputBroker); // choose to communicate with the SimSensoryInputBroker that it registered befre
                     Collection<INotifyService2> service = agent.getLocalServices(query);
-                    for (Iterator<INotifyService2> iteration = service.iterator(); iteration.hasNext(); ) {
-                        INotifyService2 cs = iteration.next();
+                    for (INotifyService2 cs : service) {
                         cs.NotifyotherAgent(agentID); // write the agentID into the list of the SimSensoryInputBroker that it chose before
                     }
                     System.out.println("agent "+ this.agentID +"  registers at " + currentSimInputBroker);
@@ -357,6 +493,7 @@ public class TrikeAgent implements SendtoMATSIM{
         /**
          * TODO: @Mariam update firebase after every MATSim action: location of the agent
          */
+        System.out.println("Neue Position: " + agentLocation);
 
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent
@@ -382,9 +519,15 @@ public class TrikeAgent implements SendtoMATSIM{
         tripIDList.add(ID);
     }
 
+    //todo: remove for AddDecisionTask
     public void AddJobToJobList(Job Job)
     {
         jobList.add(Job);
+    }
+
+    public void AddDecisionTask(DecisionTask decisionTask)
+    {
+        decisionTaskList.add(decisionTask);
     }
 
     public void setAgentID(String agentid) {
@@ -626,6 +769,29 @@ public class TrikeAgent implements SendtoMATSIM{
       Location CurrentLocation = (Location) SimActuator.getQueryPerceptInterface().queryPercept(String.valueOf(agentID), Constants.REQUEST_LOCATION, null);
 
         return CurrentLocation;
+    }
+
+    void sendTestAreaAgentUpdate(){
+        System.out.println(jobList.isEmpty());
+        ArrayList<String> values = new ArrayList<>();
+        values.add("");
+        values.add("12.2");
+        values.add("12.3");
+        MessageContent messageContent = new MessageContent("update", values);
+        Message testMessage = new Message("0", agentID,"area:0", "PROVIDE", JadexModel.simulationtime,  messageContent);
+        //System.out.println(agent.getId().getName());
+        ServiceQuery<IAreaAgentService> query = new ServiceQuery<>(IAreaAgentService.class);
+        query.setScope(ServiceScope.PLATFORM);
+        String areaAgentTag = testMessage.getReceiverId();
+        query.setServiceTags(areaAgentTag); // calling the tag of a trike agent   //# Service Baustein
+        Collection<IAreaAgentService> service = agent.getLocalServices(query);               //# Service Baustein
+
+        //# Service Baustein
+        for (IAreaAgentService cs : service) { //# Service Baustein
+            cs.sendAreaAgentUpdate(testMessage.serialize());
+        }
+
+        jobList.remove(0);
     }
 }
 

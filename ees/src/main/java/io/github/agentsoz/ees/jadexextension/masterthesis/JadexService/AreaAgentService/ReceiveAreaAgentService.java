@@ -1,14 +1,15 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService;
 
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Job;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
+import org.apache.xpath.operations.Bool;
 
+import java.nio.DoubleBuffer;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 /**
@@ -31,19 +32,15 @@ public class ReceiveAreaAgentService implements IAreaAgentService {
 	//-------- attributes --------
 
 	//public void sendTrip(String text)
-	public void sendAreaAgentUpdate(String text)
+	public void sendAreaAgentUpdate(String messageStr)
 	{
-		final TrikeAgent TrikeAgent	= (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-
-		//TODO: anpassen an AreaAgent
-		Job Job = new Job(text);
-		TrikeAgent.AddJobToJobList(Job);
-
-
-
-		//TrikeAgent.AddTripIDTripList(text);
-
-
-
+	}
+	public void sendJob(String messageStr){
+		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
+		Message messageObj = Message.deserialize(messageStr);
+		Job job = new Job(messageObj.getContent().getValues());
+		//trikeAgent.AddJobToJobList(job); //todo: remove
+		DecisionTask decisionTask = new DecisionTask(job, messageObj.getSenderId(), "new");
+		trikeAgent.AddDecisionTask(decisionTask);
 	}
 }

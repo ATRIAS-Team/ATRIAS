@@ -1,35 +1,30 @@
 /** AreaAgent
- *  Version: v0.3 (15.12.2023)
- *  changelog: able to send multiple Jobs from its JobList1 and compare with simulationTime
+ *  Version: v0.4 (19.01.2024)
+ *  changelog: universal message service
  *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.IAreaAgentService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.SendAreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.IsendTripService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.ISendTripService.SendtripService;
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
+import jadex.bridge.service.IService;
+import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
-import jadex.commons.future.DefaultResultListener;
-import jadex.commons.future.IFuture;
 import jadex.micro.annotation.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -37,11 +32,11 @@ import java.util.*;
 @Agent(type = "bdi")
 
 @ProvidedServices({
-        @ProvidedService(type= IsendTripService.class, implementation=@Implementation( SendtripService.class))
+        @ProvidedService(type= IAreaAgentService.class, implementation=@Implementation( SendAreaAgentService.class)),
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name = "sendtripservices", type = IsendTripService.class),
+        @RequiredService(name = "sendareaagendservice", type = IAreaAgentService.class),
 })
 
 public class AreaAgent {
@@ -66,7 +61,7 @@ public class AreaAgent {
     @Belief
     public List<Job> jobList2 = new ArrayList<>(); //JobList for App data
 
-    LocatedAgentList locatedAgentList = new LocatedAgentList();
+    public LocatedAgentList locatedAgentList = new LocatedAgentList();
 
     // TODO problably not used anymore, try to delete
     // to check the number of agents that are assigned ID, when all of the agents receive their IDs, then they could start sending trips
@@ -79,12 +74,19 @@ public class AreaAgent {
     long offset;
     long milli;
 
+    @Belief
+    private String areaAgentId = "area:0";
+
     /** The agent body. */
     @OnStart
     public void body() throws ParserConfigurationException, IOException, SAXException {
 
         System.out.println("AreaAgent sucessfully started;");
         initJobs();
+
+        IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaAgentService.class)).getServiceId();
+        //agent.getId().getName() instead of 0
+        agent.setTags(sid, areaAgentId);
 
         /** example code delete after testing */
         //Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
@@ -93,28 +95,14 @@ public class AreaAgent {
         //jobList1.add(Job2);
 
         // add hardcoded agents for the locatedAgentList like this!
-        LocatedAgent newAgent = new LocatedAgent("0", new Location("", 238654.693529, 5886721.094209), LocalDateTime.now());
-        locatedAgentList.updateLocatedAgentList(newAgent, "register");
+        LocatedAgent newAgent = new LocatedAgent("0", new Location("", 238654.693529, 5886721.094209), JadexModel.simulationtime);
+        locatedAgentList.updateLocatedAgentList(newAgent, JadexModel.simulationtime, "register");
         System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
         /** ########*/
         bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
         //bdiFeature.dispatchTopLevelGoal(new PrintTime1());
     }
-
-    @Goal (recur = true, recurdelay = 1000)
-    class PrintTime1 {
-        public PrintTime1() {
-        }
-    }
-
-    @Plan(trigger = @Trigger(goals = PrintTime1.class))
-    public void PrintTime() {
-        // when receive result from other agents, the plan somehow
-        //TODO need time from MATSim
-        System.out.println(JadexModel.simulationtime);
-    }
-
 
     @Goal (recur = true, recurdelay = 3000)
     class CheckNumberAgentAssignedID {
@@ -162,11 +150,9 @@ public class AreaAgent {
             boolean isReady = milli - offset <= JadexModel.simulationtime * 1000;
             //System.out.println("job time: " + (milli - offset) / 1000);
             //System.out.println("sim time: " + JadexModel.simulationtime);
-            if(!isReady){
-                break;
-            }
+            if(!isReady) break;
 
-            ServiceQuery<IsendTripService> query = new ServiceQuery<>(IsendTripService.class); //# Service Baustein
+            ServiceQuery<IAreaAgentService> query = new ServiceQuery<>(IAreaAgentService.class); //# Service Baustein
             query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL    //# Service Baustein
             //System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
@@ -174,17 +160,17 @@ public class AreaAgent {
 
             //toHandle.getStartPosition();
             String closestAgent = locatedAgentList.calculateClosestLocatedAgent(toHandle.getStartPosition());
-            String message = toHandle.JobForTransfer();
+
             if (closestAgent.equals("NoAgentsLocated")){
                 System.out.println("ERROR: No Agent located at this AreaAgent");
             }
             else{
-                query.setServiceTags("user:" + closestAgent); // calling the tag of a trike agent   //# Service Baustein
-                Collection<IsendTripService> service = agent.getLocalServices(query);               //# Service Baustein
-                for (Iterator<IsendTripService> iteration = service.iterator(); iteration.hasNext(); ) { //# Service Baustein
-                    IsendTripService cs = iteration.next();                                              //# Service Baustein
-                    cs.sendJob(message);                                                                 //# Service Baustein
-                }
+                String trikeTag = "user:" + closestAgent;
+                MessageContent messageContent = new MessageContent("", toHandle.toArrayList());
+                Message message = new Message("0", areaAgentId, trikeTag, "PROVIDE", JadexModel.simulationtime, messageContent);
+                query.setServiceTags(trikeTag); // calling the tag of a trike agent   //# Service Baustein
+                IAreaAgentService service = agent.getLocalService(query);               //# Service Baustein
+                service.sendJob(message.serialize());
                 jobList1.remove(0);
 
                 System.out.println("AREA AGENT: JOB was SENT");
@@ -192,10 +178,8 @@ public class AreaAgent {
         }
     }
 
-
-
     public void initJobs() throws ParserConfigurationException, IOException, SAXException {
-        String csvFilePath =  "C:\\Users\\Marcel\\Desktop\\data.csv";
+        String csvFilePath = "C:\\Users\\Marcel\\Desktop\\data.csv";
         String jsonFilePath = "output.json";
         char delimiter = ';';
 
