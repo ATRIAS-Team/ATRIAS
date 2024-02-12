@@ -11,6 +11,12 @@ public class MessageContent {
         this.values = values;
     }
 
+    public MessageContent(String action){
+        this.action = action;
+        this.values = new ArrayList();
+
+    }
+
     public String getAction(){
         return this.action;
     }

@@ -1,11 +1,11 @@
 /** AreaAgent
- *  Version: v0.4 (19.01.2024)
- *  changelog: universal message service
+ *  Version: v0.3 (15.12.2023)
+ *  changelog: able to send multiple Jobs from its JobList1 and compare with simulationTime
  *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.IAreaAgentService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.SendAreaAgentService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.util.Location;
@@ -15,10 +15,8 @@ import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
 import jadex.bridge.service.IService;
 import jadex.bridge.service.IServiceIdentifier;
-import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
-import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import org.xml.sax.SAXException;
@@ -32,11 +30,11 @@ import java.util.*;
 @Agent(type = "bdi")
 
 @ProvidedServices({
-        @ProvidedService(type= IAreaAgentService.class, implementation=@Implementation( SendAreaAgentService.class)),
+        @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( AreaAgentService.class)),
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name = "sendareaagendservice", type = IAreaAgentService.class),
+        @RequiredService(name = "sendareaagendservice", type = IAreaTrikeService.class),
 })
 
 public class AreaAgent {
@@ -76,6 +74,7 @@ public class AreaAgent {
 
     @Belief
     private String areaAgentId = "area:0";
+    public String myTag = "area:0";
 
     /** The agent body. */
     @OnStart
@@ -84,7 +83,7 @@ public class AreaAgent {
         System.out.println("AreaAgent sucessfully started;");
         initJobs();
 
-        IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaAgentService.class)).getServiceId();
+        IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
         //agent.getId().getName() instead of 0
         agent.setTags(sid, areaAgentId);
 
@@ -95,14 +94,36 @@ public class AreaAgent {
         //jobList1.add(Job2);
 
         // add hardcoded agents for the locatedAgentList like this!
-        LocatedAgent newAgent = new LocatedAgent("0", new Location("", 238654.693529, 5886721.094209), JadexModel.simulationtime);
-        locatedAgentList.updateLocatedAgentList(newAgent, JadexModel.simulationtime, "register");
+        LocatedAgent agent0 = new LocatedAgent("0", new Location("", 238654.693529, 5886721.094209), JadexModel.simulationtime);
+        LocatedAgent agent1 = new LocatedAgent("1", new Location("", 4323654.693529, 5886721.094209), JadexModel.simulationtime);
+        LocatedAgent agent2 = new LocatedAgent("2", new Location("", 537654.693529, 5886721.094209), JadexModel.simulationtime);
+        LocatedAgent agent3 = new LocatedAgent("3", new Location("", 328654.693529, 5886721.094209), JadexModel.simulationtime);
+
+        //locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
+        //locatedAgentList.updateLocatedAgentList(agent1, JadexModel.simulationtime, "register");
+        //locatedAgentList.updateLocatedAgentList(agent2, JadexModel.simulationtime, "register");
+        //locatedAgentList.updateLocatedAgentList(agent3, JadexModel.simulationtime, "register");
+
         System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
         /** ########*/
         bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
         //bdiFeature.dispatchTopLevelGoal(new PrintTime1());
     }
+
+    @Goal (recur = true, recurdelay = 1000)
+    class PrintTime1 {
+        public PrintTime1() {
+        }
+    }
+
+    @Plan(trigger = @Trigger(goals = PrintTime1.class))
+    public void PrintTime() {
+        // when receive result from other agents, the plan somehow
+        //TODO need time from MATSim
+        System.out.println(JadexModel.simulationtime);
+    }
+
 
     @Goal (recur = true, recurdelay = 3000)
     class CheckNumberAgentAssignedID {
@@ -152,34 +173,35 @@ public class AreaAgent {
             //System.out.println("sim time: " + JadexModel.simulationtime);
             if(!isReady) break;
 
-            ServiceQuery<IAreaAgentService> query = new ServiceQuery<>(IAreaAgentService.class); //# Service Baustein
-            query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL    //# Service Baustein
+            // local platform, for remote use GLOBAL    //# Service Baustein
             //System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
             Job toHandle = jobList1.get(0);
 
-            //toHandle.getStartPosition();
             String closestAgent = locatedAgentList.calculateClosestLocatedAgent(toHandle.getStartPosition());
 
             if (closestAgent.equals("NoAgentsLocated")){
                 System.out.println("ERROR: No Agent located at this AreaAgent");
             }
             else{
-                String trikeTag = "user:" + closestAgent;
+                //message creation
                 MessageContent messageContent = new MessageContent("", toHandle.toArrayList());
-                Message message = new Message("0", areaAgentId, trikeTag, "PROVIDE", JadexModel.simulationtime, messageContent);
-                query.setServiceTags(trikeTag); // calling the tag of a trike agent   //# Service Baustein
-                IAreaAgentService service = agent.getLocalService(query);               //# Service Baustein
-                service.sendJob(message.serialize());
-                jobList1.remove(0);
+                Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
 
+                IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
+                service.trikeReceiveJob(message.serialize());
+
+                //remove job from list
+                jobList1.remove(0);
                 System.out.println("AREA AGENT: JOB was SENT");
             }
         }
     }
 
+
+
     public void initJobs() throws ParserConfigurationException, IOException, SAXException {
-        String csvFilePath = "C:\\Users\\Marcel\\Desktop\\data.csv";
+        String csvFilePath = "data.csv";
         String jsonFilePath = "output.json";
         char delimiter = ';';
 

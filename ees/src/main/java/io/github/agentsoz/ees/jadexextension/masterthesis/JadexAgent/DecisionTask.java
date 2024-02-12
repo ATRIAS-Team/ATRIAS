@@ -28,9 +28,11 @@ public class DecisionTask {
 
     private String origin;
 
-    private List<UTScore> UTScoreList = new ArrayList<>();
+    private ArrayList<UTScore> UTScoreList = new ArrayList<>();
 
     private String status;
+
+    private ArrayList<String> neighbourIDs = new ArrayList<>();
 
     private String associatedTrip;
 
@@ -46,6 +48,36 @@ public class DecisionTask {
 
     }
 
+    //todo: maybe find a better way to ensure
+    public boolean testAllProposalsReceived(){
+        boolean complete = false;
+        if (neighbourIDs.size() == UTScoreList.size()-1){
+            complete = true;
+        }
+        return complete;
+    }
+
+    public void tagBestScore(String ownAgentID){
+        Integer positionBestScore = 0;
+        Double highestScore = 0.0;
+        for (int i=0; i<UTScoreList.size(); i++){
+            if(UTScoreList.get(i).getScore() > highestScore){
+                highestScore = UTScoreList.get(i).getScore();
+                positionBestScore = i;
+            }
+        }
+        for (int i=0; i<UTScoreList.size(); i++) {
+            UTScoreList.get(i).setTag("RejectProposal");
+        }
+        if(UTScoreList.get(positionBestScore).getBidderID().equals(ownAgentID)){
+            UTScoreList.get(positionBestScore).setTag("AcceptSelf");
+        }
+        else{
+            UTScoreList.get(positionBestScore).setTag("AcceptProposal");
+        }
+    }
+
+
     public void setUtillityScore(String agentID, Double UTScore){
 
         UTScore agentScore = new UTScore(agentID, UTScore);
@@ -54,11 +86,29 @@ public class DecisionTask {
 
     public void setStatus(String newStatus){ this.status = newStatus;}
 
+    public void setNeighbourIDs(ArrayList<String> neighbourIDs){this.neighbourIDs = neighbourIDs;}
+
+    public Job getJob(){return job;}
+
+
+
+    public ArrayList<UTScore> getUTScoreList(){return UTScoreList;}
+
+    public ArrayList<String> getNeighbourIDs(){return neighbourIDs;}
+
     public String getStatus(){
         return status;
     }
 
-    public String getIDFromJob(){
+    public String getOrigin(){
+        return origin;
+    }
+
+    public String getIDFromJob(){ //todo:redundant replace it by method below
+        return job.getID();
+    }
+
+    public String getJobID(){
         return job.getID();
     }
 

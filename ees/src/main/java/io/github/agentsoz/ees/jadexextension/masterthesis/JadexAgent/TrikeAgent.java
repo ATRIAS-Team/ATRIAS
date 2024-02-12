@@ -10,8 +10,8 @@ import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.IAreaAgentService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService.ReceiveAreaAgentService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.TrikeAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
@@ -37,16 +37,18 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import java.util.*;
 
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
+
 @Agent(type= BDIAgentFactory.TYPE)
 @ProvidedServices({
         @ProvidedService(type= IMappingAgentsService.class, implementation=@Implementation(WritingIDService.class)),
         @ProvidedService(type= INotifyService.class, implementation=@Implementation(TrikeAgentReceiveService.class)),
         @ProvidedService(type= INotifyService2.class, implementation=@Implementation(TrikeAgentSendService.class)),
-        @ProvidedService(type= IAreaAgentService.class, implementation=@Implementation( ReceiveAreaAgentService.class)),
+        @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( TrikeAgentService.class)),
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name = "sendareaagendservice", type = IAreaAgentService.class),
+        @RequiredService(name ="sendareaagendservice", type = IAreaTrikeService.class),
         @RequiredService(name="mapservices", type= IMappingAgentsService.class),
         @RequiredService(name="broadcastingservices", type= INotifyService.class, scope= ServiceScope.PLATFORM),
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
@@ -108,6 +110,10 @@ public class TrikeAgent implements SendtoMATSIM{
     public boolean sent = false;
     public String write = null;
 
+    @Belief
+    Double drivingSpeed = 6.0;
+
+
     /**
      * Every DecisionTask with a score equal or higher will be commited
      * todo: should be initialized from a configFile()
@@ -118,6 +124,12 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public String currentSimInputBroker;
     private SimActuator SimActuator;
+
+    //test variables
+    //test variables
+    public boolean isModified = false;
+    boolean bool = true;
+
 
     /**
      * The agent body.
@@ -132,6 +144,9 @@ public class TrikeAgent implements SendtoMATSIM{
         bdiFeature.dispatchTopLevelGoal(new ReactoAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs()); //evtl löschen
         bdiFeature.dispatchTopLevelGoal(new TimeTest());
+
+
+        //sendMessage("area:0", "request", "");
     }
 
     @Goal(recur=true, recurdelay=1000) //in ms
@@ -203,6 +218,9 @@ public class TrikeAgent implements SendtoMATSIM{
         //jobList.remove(0);
     //}
 
+
+
+
         /**
          * todo: will replace solution above
          */
@@ -246,6 +264,8 @@ public class TrikeAgent implements SendtoMATSIM{
             tripIDList.add("1");
             jobList.remove(0);
             */
+
+
         }
 
     }
@@ -256,7 +276,8 @@ public class TrikeAgent implements SendtoMATSIM{
             /**
              *  Execute Utillity here > "commit"|"delegate"
              */
-            Double ownScore = calculateUtillity();
+            Double ownScore = calculateUtillity(decisionTaskList.get(position));
+            ownScore = 0.0; //todo: delete this line after the implementation of the cnp
             decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
             if (ownScore < commitThreshold){
                 decisionTaskList.get(position).setStatus("delegate");
@@ -273,8 +294,14 @@ public class TrikeAgent implements SendtoMATSIM{
             //TODO: create a unique tripID
             tripList.add(newTrip);
             tripIDList.add("1");
+
+            decisionTaskList.get(position).setStatus("committed");
             FinishedDecisionTaskList.add(dTaToTrip);
-            decisionTaskList.remove(0);
+            //decisionTaskList.remove(position); //geht nicht! warum? extra methode testen
+            decisionTaskList.remove(position.intValue()); //geht nicht! warum? extra methode testen
+
+
+            //decisionTaskList.remove(0);
 
             // TEST MESSAGE DELETE LATER //TODO: unsed Code from Mahkam
             //sendTestAreaAgentUpdate();
@@ -287,13 +314,88 @@ public class TrikeAgent implements SendtoMATSIM{
         }
         else if (decisionTaskList.get(position).getStatus().equals("delegate")){
             /**
-             *  start cnp here > "waitingForProposals"
+             *  start cnp here > "waitingForNeighbourlist"
              */
+            //TODO: neighbour request here
+            //TODO: adapt
+            // TEST MESSAGE DELETE LATER
+            //bool makes sure that the methods below are called only once
+
+            ArrayList<String> values = new ArrayList<>();
+            values.add(decisionTaskList.get(position).getJobID()); //todo move into a method
+            decisionTaskList.get(position).setStatus("waitingForNeighbours");
+            sendMessage("area:0", "request", "callForNeighbours", values);
+
+                //sendTestAreaAgentUpdate();
+                //testTrikeToTrikeService();
+                //testAskForNeighbours();
             changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("readyForCFP")){
+            /**
+             *  send cfp> "waitingForProposals"
+             */
+            Job JobForCFP = decisionTaskList.get(position).getJob();
+            ArrayList<String> neighbourIDs = decisionTaskList.get(position).getNeighbourIDs();
+            for( int i=0; i<neighbourIDs.size(); i++){
+                //todo: klären message pro nachbar evtl mit user:
+                //todo: action values definieren
+                // values: gesammterJob evtl. bereits in area zu triek so vorhanden?
+                //sendMessageToTrike(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
+            testTrikeToTrikeService(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
+            }
+
+
+            decisionTaskList.get(position).setStatus("waitingForProposals");
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("waitingForProposals")){
+            //todo: überprüfen ob bereits alle gebote erhalten
+            // falls ja ("readyForDecision")
+            //todo:
+            if (decisionTaskList.get(position).testAllProposalsReceived() == true){
+                //System.out.println("");
+                decisionTaskList.get(position).setStatus("readyForDecision");
+            }
         }
         else if (decisionTaskList.get(position).getStatus().equals("readyForDecision")){
             /**
              *  send agree/cancel > "waitingForConfirmations"
+             */
+            decisionTaskList.get(position).tagBestScore(agentID);
+            for (int i=0; i<decisionTaskList.get(position).getUTScoreList().size(); i++){
+                String bidderID = decisionTaskList.get(position).getUTScoreList().get(i).getBidderID();
+                String tag = decisionTaskList.get(position).getUTScoreList().get(i).getTag();
+                if(tag.equals("AcceptProposal")){
+                    //todo ablehnugn schicken
+                    ArrayList<String> values = new ArrayList<>();
+                    values.add(decisionTaskList.get(position).getJobID());
+                    testTrikeToTrikeService(bidderID, tag, tag, values);
+                    decisionTaskList.get(position).setStatus("waitingForConfirmations");
+                }
+                else if(tag.equals("RejectProposal")){
+                    //todo: zusage schicken
+                    ArrayList<String> values = new ArrayList<>();
+                    values.add(decisionTaskList.get(position).getJobID());
+                    testTrikeToTrikeService(bidderID, tag, tag, values);
+                }
+                else if(tag.equals("AcceptSelf")){
+                    //todo: selbst zusagen
+                    decisionTaskList.get(position).setStatus("commit");
+                }
+                else{
+                    //todo: print ungültiger tag
+                    System.out.println(agentID + ": invalid UTScoretag");
+                }
+                decisionTaskList.get(position).getUTScoreList();
+
+            }
+            //decisionTaskList.get(position).setStatus("waitingForConfirmations");
+            changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("readyForConfirmation")){
+            /**
+             *  send bid > "commit"
              */
             changes += 1;
         }
@@ -301,7 +403,37 @@ public class TrikeAgent implements SendtoMATSIM{
             /**
              *  send bid > "waitingForManager"
              */
+            Double ownScore = calculateUtillity(decisionTaskList.get(position));
+            //todo: eigene utillity speichern
+            // send bid
+            // ursprung des proposed job bestimmen
+            ArrayList<String> values = new ArrayList<>();
+
+            values.add(decisionTaskList.get(position).getJobID());
+            values.add("#");
+            values.add(String.valueOf(ownScore));
+
+            //zb. values = jobid # score
+            testTrikeToTrikeService(decisionTaskList.get(position).getOrigin(), "Propose", "Propose", values);
+            decisionTaskList.get(position).setStatus("waitingForManager");
+
             changes += 1;
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("notAssigned")){
+            //todo in erledigt verschieben
+            FinishedDecisionTaskList.add(decisionTaskList.get(position));
+            decisionTaskList.remove(position.intValue());
+
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("waitingForConfirmations")){
+            //todo: test timeout here
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("waitingForManager")){
+            //todo: test timeout here
+        }
+        else if (decisionTaskList.get(position).getStatus().equals("committed")){
+            System.out.println("should not exist: " + decisionTaskList.get(position).getStatus());
+            //decisionTaskList.remove(0);
         }
         else {
             System.out.println("invalid status: " + decisionTaskList.get(position).getStatus());
@@ -314,8 +446,128 @@ public class TrikeAgent implements SendtoMATSIM{
      *
      * @return
      */
-    Double calculateUtillity(){
-        return 100.0;
+    Double calculateUtillity(DecisionTask newTask){
+        Double utillityScore = 100.0;
+        /**
+
+        newTask.getStartPositionFromJob();
+        newTask.getEndPositionFromJob();
+        newTask.getVATimeFromJob();
+
+
+        Double a = 1.0/3.0;
+        Double b = 1.0/3.0;
+        Double c = 1.0/3.0;
+
+        //todo get vaTime and simulation time in same format
+
+        Integer lastEntry = Math.max(tripList.size(), 0);
+
+
+        //todo: falls kunden fahrt
+
+        String LastTripType = tripList.get(lastEntry).getTripType();
+
+
+
+        tripList.get(lastEntry).getEndPosition();
+        //falls andere
+        tripList.get(lastEntry).getEndPosition();
+
+        //distanz zu evaluierenden trip
+
+
+        // punctuallity
+        double VaTimeSeconds = Time.convertLocalDateTimeToDouble(newTask.getVATimeFromJob(), Time.TimestepUnit.SECONDS);
+
+
+        drivingSpeed
+        //todo: get start from last trip in triplist
+        //todo: calculate arriving time at end location
+
+        //todo: calculate distance
+        //todo: estimate driving time in seconds by a speed of 6kmh
+        //todo: estimate arriving time
+        //todo: calculate a score 0.0 to 100.0 based of the delay
+
+
+
+        //todo: global variable theta
+
+        Double uPunctuallity = 100.0;
+
+
+
+
+
+        // Battery
+        Double uBattery = 100.0;
+        Double curentBatteryLevel = 100.0;
+        Double batteryLevelAfterTrips;
+        Double estimatedEnergyConsumtion;
+        Double negativeInfinity = Double.NEGATIVE_INFINITY;
+        //todo ennergieverbrauch für zu evuluierenden job bestimmen
+        //
+
+
+        //todo: battery from Ömer needed
+        // differ between trips with and without customer???
+        if (currentTrip.size()>0){
+            //currentTrip.get(0).getStartPosition();
+            //currentTrip.get(0).getEndPosition();
+            //batteryLevelAfterTrips =
+        }
+        for (int i=0; i<tripList.size(); i++){
+            //tripList.get(i).getStartPosition();
+            //tripList.get(i).getEndPosition();
+            //batteryLevelAfterTrips =
+        }
+        if (batteryLevelAfterTrips<estimatedEnergyConsumtion){
+            uBattery = negativeInfinity;
+        }
+        else {
+            Double bFactor;
+            if (curentBatteryLevel > 0.8){
+                bFactor = 1.0;
+            }
+            else if (curentBatteryLevel >= 0.3){
+                bFactor = 0.75;
+            }
+            else if (curentBatteryLevel < 0.3){
+                bFactor = 0.1;
+            }
+            // ???? batteryLevelAfterTrips or 100?
+            uBattery = bFactor * ((batteryLevelAfterTrips - estimatedEnergyConsumtion)/ batteryLevelAfterTrips);
+        }
+
+        //Distance
+        //falls kunden fahrt
+        tripList.get(Math.max(tripList.size(), 0)).getEndPosition();
+        //falls andere
+        tripList.get(Math.max(tripList.size(), 0)).getEndPosition();
+
+        //distanz zu evaluierenden trip
+        Integer lastEntry = Math.max(tripList.size(), 0);
+
+
+        Double uDistance = 100.0;
+
+        // endpos von letzten trip in triplist bestimmen
+        // distence zu aktuellen zu evuluerenden berechnen
+        Double distanceToStart;
+        Double dmax;
+        uDistance = (dmax - distanceToStart/dmax);
+
+
+
+        utillityScore = a * uPunctuallity + b * uBattery + c * uDistance;
+
+        if (utillityScore<0){
+            utillityScore = 0.0;
+        }
+         **/
+
+        return utillityScore;
     }
 
 
@@ -377,18 +629,18 @@ public class TrikeAgent implements SendtoMATSIM{
                     System.out.println("The agentid assigned for this vehicle agent is " + this.agentID);
                     // setTag for itself to receive direct communication from SimSensoryInputBroker when service INotifyService is used.
                     IServiceIdentifier sid = ((IService) agent.getProvidedService(INotifyService.class)).getServiceId();
-                    agent.setTags(sid, "user:" + agentID);
+                    agent.setTags(sid, "" + agentID);
                     //choosing one SimSensoryInputBroker to receive data from MATSIM
                     currentSimInputBroker = getRandomSimInputBroker();
 
                     // setTag for itself to receive direct communication from TripRequestControlAgent when service IsendTripService is used.
-                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IAreaAgentService.class)).getServiceId();
-                    agent.setTags(sid2, "user:" + agentID);
+                    IServiceIdentifier sid2 = ((IService) agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
+                    agent.setTags(sid2, "" + agentID);
 
                     //communicate with SimSensoryInputBroker when knowing the serviceTag of the SimSensoryInputBroker.
                     ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
                     query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
-                    query.setServiceTags("user:" + currentSimInputBroker); // choose to communicate with the SimSensoryInputBroker that it registered befre
+                    query.setServiceTags("" + currentSimInputBroker); // choose to communicate with the SimSensoryInputBroker that it registered befre
                     Collection<INotifyService2> service = agent.getLocalServices(query);
                     for (INotifyService2 cs : service) {
                         cs.NotifyotherAgent(agentID); // write the agentID into the list of the SimSensoryInputBroker that it chose before
@@ -399,10 +651,21 @@ public class TrikeAgent implements SendtoMATSIM{
                     JadexModel.flagMessage2();
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
                     SendPerceivetoAdc();
+
+
+                    agentLocation = new Location("", 238654.693529, 5886721.094209);
+
+                    sendAreaAgentUpdate("register");
+                    /**
+                     * TODO: @Mariam initiale anmeldung an firebase hier
+                     */
+
                 }
-            /**
-             * TODO: @Mariam initiale anmeldung an firebase hier
-             */
+
+
+
+
+
         }
     }
 
@@ -468,7 +731,7 @@ public class TrikeAgent implements SendtoMATSIM{
     void updateAtInputBroker(){
         ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
         query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
-        query.setServiceTags("user:" + currentSimInputBroker);
+        query.setServiceTags("" + currentSimInputBroker);
         Collection<INotifyService2> service = agent.getLocalServices(query);
         for (Iterator<INotifyService2> iteration = service.iterator(); iteration.hasNext(); ) {
             INotifyService2 cs = iteration.next();
@@ -494,7 +757,7 @@ public class TrikeAgent implements SendtoMATSIM{
          * TODO: @Mariam update firebase after every MATSim action: location of the agent
          */
         System.out.println("Neue Position: " + agentLocation);
-
+        sendAreaAgentUpdate("update");
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent
         currentTripStatus();
@@ -608,18 +871,23 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     void Status(){
-        if (agentID.equals("0")){
+        //if (agentID.equals("0")){
             System.out.println("AgentID: " + agentID + " activestatus: " + activestatus);
             System.out.println("AgentID: " + agentID + " currentTrip.size: " + currentTrip.size());
             System.out.println("AgentID: " + agentID + " tripList.size: " + tripList.size());
-            System.out.println("AgentID: " + agentID + " jobList.size: " + jobList.size());
+            System.out.println("AgentID: " + agentID + " decisionTaskList.size: " + decisionTaskList.size());
             System.out.println("AgentID: " + agentID + " SimActionList: " + SimActionList.size());
             System.out.println("AgentID: " + agentID + " SimPerceptList: " + SimPerceptList.size());
-            for (ActionContent actionContent : SimActionList) {
-                System.out.println("AgentID: " + agentID + " actionType: "+ actionContent.getAction_type() + " actionState: " + actionContent.getState());
-            }
-            currentTripStatus();
+            //for (ActionContent actionContent : SimActionList) {
+                //System.out.println("AgentID: " + agentID + " actionType: "+ actionContent.getAction_type() + " actionState: " + actionContent.getState());
+            //}
+        for (int i=0; i<decisionTaskList.size(); i++){
+            System.out.println("AgentID: " + agentID + " decisionTaskList status: " + decisionTaskList.get(i).getStatus());
         }
+
+
+            currentTripStatus();
+        //}
     }
 
     // why public static?
@@ -707,7 +975,7 @@ public class TrikeAgent implements SendtoMATSIM{
             }
             // If the CurrentTrip is finished or failed > remove it
             if (currentTrip.get(0).getProgress().equals("Finished") || currentTrip.get(0).getProgress().equals("Failed")) {
-                currentTrip.remove(0);
+                currentTrip.remove(0); //dodo: check if it does really work or if position.intValue() needed
                 tripList.remove(0);
                 if (tripList.size() > 0) { // if the tripList is not empty, depatch the next trip and send to data container
                     newCurrentTrip();
@@ -770,29 +1038,84 @@ public class TrikeAgent implements SendtoMATSIM{
 
         return CurrentLocation;
     }
+    ///////////////////////////////////////////////////////
+    //  updates locatedagentlist of the area agent
 
-    void sendTestAreaAgentUpdate(){
-        System.out.println(jobList.isEmpty());
-        ArrayList<String> values = new ArrayList<>();
-        values.add("");
-        values.add("12.2");
-        values.add("12.3");
-        MessageContent messageContent = new MessageContent("update", values);
-        Message testMessage = new Message("0", agentID,"area:0", "PROVIDE", JadexModel.simulationtime,  messageContent);
-        //System.out.println(agent.getId().getName());
-        ServiceQuery<IAreaAgentService> query = new ServiceQuery<>(IAreaAgentService.class);
-        query.setScope(ServiceScope.PLATFORM);
-        String areaAgentTag = testMessage.getReceiverId();
-        query.setServiceTags(areaAgentTag); // calling the tag of a trike agent   //# Service Baustein
-        Collection<IAreaAgentService> service = agent.getLocalServices(query);               //# Service Baustein
 
-        //# Service Baustein
-        for (IAreaAgentService cs : service) { //# Service Baustein
-            cs.sendAreaAgentUpdate(testMessage.serialize());
-        }
+    //  example of trike to trike communication
+    void sendMessageToTrike(String receiverID, String comAct, String action, ArrayList<String> values){
+        //message creation
+        //ArrayList<String> values = new ArrayList<>();
+        MessageContent messageContent = new MessageContent(action, values);
+        Message testMessage = new Message("1", ""+agentID, receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        IAreaTrikeService service = messageToService(agent, testMessage);
 
-        jobList.remove(0);
+        //calls trikeMessage methods of TrikeAgentService class
+        service.trikeReceiveTrikeMessage(testMessage.serialize());
     }
+
+
+    //  example of trike to trike communic ation
+    public void testTrikeToTrikeService(String receiverID, String comAct, String action, ArrayList<String> values){
+        //message creation
+        //ArrayList<String> values = new ArrayList<>();
+        MessageContent messageContent = new MessageContent(action, values);
+        Message testMessage = new Message("1", agentID,""+receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        IAreaTrikeService service = messageToService(agent, testMessage);
+
+        //calls trikeMessage methods of TrikeAgentService class
+        service.trikeReceiveTrikeMessage(testMessage.serialize());
+    }
+
+    //
+    public void sendMessage(String receiverID, String comAct, String action, ArrayList<String> values){
+        //todo adapt for multiple area agents
+        //todo use unique ids
+        //message creation
+
+        MessageContent messageContent = new MessageContent(action, values);
+        Message testMessage = new Message("1", ""+agentID, receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        IAreaTrikeService service = messageToService(agent, testMessage);
+
+        //calls trikeMessage methods of TrikeAgentService class
+        service.receiveMessage(testMessage.serialize());
+
+    }
+
+
+    void sendAreaAgentUpdate(String action){
+        //message creation
+        //todo: decide if register or update here
+        ArrayList<String> values = new ArrayList<>();
+
+        values.add(Double.toString(agentLocation.getX()));
+        values.add(Double.toString(agentLocation.getY()));
+        MessageContent messageContent = new MessageContent(action, values);
+        Message testMessage = new Message("0", agentID,"area:0", "inform", JadexModel.simulationtime,  messageContent);
+
+        //query assigning
+        IAreaTrikeService service = messageToService(agent, testMessage);
+        //calls updateAreaAgent of AreaAgentService class
+        service.areaReceiveUpdate(testMessage.serialize());
+
+    }
+
+    public void test(){
+        ArrayList<String> values = new ArrayList<>();
+        sendMessage("area:0", "request", "callForNeighbours", values);
+        //sendMessage("area:0", "inform", "update");
+
+    }
+
+    //  if isModified=true, then testTrikeToTrikeService worked properly
+    public void testModify(){
+        isModified = true;
+        System.out.println("isModified: " + isModified);
+
+
+    }
+
+
 }
 
 
