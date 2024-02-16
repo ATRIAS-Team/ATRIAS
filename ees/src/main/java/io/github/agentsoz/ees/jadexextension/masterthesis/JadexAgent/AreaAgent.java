@@ -94,12 +94,12 @@ public class AreaAgent {
         //jobList1.add(Job2);
 
         // add hardcoded agents for the locatedAgentList like this!
-        LocatedAgent agent0 = new LocatedAgent("0", new Location("", 238654.693529, 5886721.094209), JadexModel.simulationtime);
-        LocatedAgent agent1 = new LocatedAgent("1", new Location("", 4323654.693529, 5886721.094209), JadexModel.simulationtime);
-        LocatedAgent agent2 = new LocatedAgent("2", new Location("", 537654.693529, 5886721.094209), JadexModel.simulationtime);
-        LocatedAgent agent3 = new LocatedAgent("3", new Location("", 328654.693529, 5886721.094209), JadexModel.simulationtime);
+        LocatedAgent agent0 = new LocatedAgent("0", new Location("", 476721.007399257, 5552121.23354965), JadexModel.simulationtime);
+        LocatedAgent agent1 = new LocatedAgent("1", new Location("", 476699.603883165, 5552266.9952791), JadexModel.simulationtime);
+        LocatedAgent agent2 = new LocatedAgent("2", new Location("", 476180.530359862, 5553046.20781396), JadexModel.simulationtime);
+        LocatedAgent agent3 = new LocatedAgent("3", new Location("", 476149.517423122, 5553174.24700886), JadexModel.simulationtime);
 
-        //locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
+        locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent1, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent2, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent3, JadexModel.simulationtime, "register");
