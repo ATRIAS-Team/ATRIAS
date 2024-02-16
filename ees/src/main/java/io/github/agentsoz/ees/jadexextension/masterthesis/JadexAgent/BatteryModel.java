@@ -4,98 +4,103 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.matsim.EvacAgentTracker;
 import io.github.agentsoz.ees.matsim.EvacAgentTracker.VehicleTrackingData;
 import io.github.agentsoz.util.Location;
-import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.runtime.IPlan;
 import jadex.commons.future.DelegationResultListener;
 import jadex.commons.future.Future;
 import jadex.commons.future.IFuture;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.mobsim.jdeqsim.Vehicle;
-
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import java.util.List;
 
 public class BatteryModel {
 
-    @Belief
     protected double my_numberofcharges = 200;
-    @Belief
     protected double my_batteryhealth = 1.0 - 0.00025 * my_numberofcharges;
-    @Belief
     protected double my_speed;
-    @Belief
     protected boolean my_autopilot;
-    @Belief
-    //protected double my_chargestate = 0.21;
-    protected double my_chargestate = 1.0;
-    @Belief
-    protected boolean daytime;
-    @Belief
-    public List<Location> chargingStation;
-    @Belief
-    private static Location agentLocation; // position of the agent
+    protected int carriedcustomer;
+    protected TrikeAgent capa;
+    protected ChargingStation stat;
+    protected IPlan rplan;
+    private double lastUpdateTime = 0.0;
+    public final double DEFAULT_TOLERANCE = 0.001;
+    public double my_chargestate = 0.9; // TrikeAgent.java
+    protected boolean daytime; // TrikeAgent.java
+    //protected static TrikeAgent.AchieveMoveTo goal;
 
-    @PlanCapability
-    protected static TrikeAgent capa;
-    @PlanAPI
-    protected static IPlan rplan;
-    @PlanReason
-    protected static TrikeAgent.AchieveMoveTo goal;
+    //Methode 1: Batterieverbrauch -oemer
+    /*
+    Input: Distanz von Matsim nehmen, Output verbrauch/ändert den Batteriestand und andere Parameter
+    - Diese Methode wird bei SensoryUpdate in TrikeAgent.java aufgerufen
+    */
+    // private BatteryModel linkEnterEventsMap;
+    // VehicleTrackingData trackingData = linkEnterEventsMap.get(specificVehicleId);
+   // private Id<Vehicle> specificVehicleId;
+   // private VehicleTrackingData get(Id<Vehicle> specificVehicleId) {
+   //     return null;
+   // }
+    //private static void decreaseBattery(BatteryModel batteryModel, Id<Vehicle> specificVehicleId) {
 
+    public void discharge(double metersDriven, int carriedcustomer){
 
+        // EvacAgentTracker evacAgentTracker = null;
+        // VehicleTrackingData trackingData = evacAgentTracker.linkEnterEventsMap.get(specificVehicleId);
+       // double distanceTraveled = 0.0;
+        // if (trackingData != null) {
+        //This is the distance traveled since the vehicle agent started -oemer
+        //Link tripLink = null;
+        //distanceTraveled = tripLink.getLength();
+
+        //   distanceTraveled = trackingData.getDistanceSinceStart();
+        System.out.println("Distance traveled by the specific vehicle: " + metersDriven + " meters");
+        //  } else {
+        //     System.out.println("Tracking data not found for the specific vehicle.");
+        // }
+        //decreasing battery health based on distance traveled -oemer
+        double healthDecreaseCoefficient = 0.0001;
+        double healthDecrease = healthDecreaseCoefficient * metersDriven;
+        double newBatteryHealth = getMyBatteryHealth() - healthDecrease;
+        setMyBatteryHealth(newBatteryHealth);
+    }
 
     //Methode 2 added -oemer
 
-    /*
-     Charge als methode mit einklang mit Simulationszeit
-	- Charging station als Liste in den Agenten oder eine
-	eigene Klasse oder als Agent definieren
-	- List<String> chargingstation
-    Trike Agent.java: z. 713 Atchargingstation
-    */
-
-
-    private static void updateChargingProgress(TrikeAgent agent) {
-
-        double chargingRate = 0.001;
-        double newChargeState = agent.getMyChargestate() + chargingRate * JadexModel.simulationtime;
-        agent.setMyChargestate(Math.min(newChargeState, 1.0));
-    }
-
-
-    public static void loadBattery(TrikeAgent agentapi, IPlan planapi, double simulationTime)
+    public void loadBattery()
     {
-        //Hier sucht sich der Trike Agent eine Station raus und fährt mit AchieveMoveTo zur Station
-        //Das soll als Fahrauftrag erledigt werden in ATRIAS
-
-        //commented out -oemer
-        //   Chargingstation station = ((io.github.agentsoz.ees.jadexextension.masterthesis.trike.TrikeAgent.QueryChargingStation)planapi.dispatchSubgoal(agentapi.new QueryChargingStation()).get()).getStation();
+        //Hier sucht sich der Trike Agent eine Station raus und fährt mit AchieveMoveTo zur Station. Das soll als
+        // Fahrauftrag erledigt werden.
+        //commented out from ekins thesis -oemer
+        //   Chargingstation station = ((io.github.agentsoz.ees.jadexextension.masterthesis.
+        //   trike.TrikeAgent.QueryChargingStation)
+        //   planapi.dispatchSubgoal(agentapi.new QueryChargingStation()).get()).getStation();
         //   planapi.dispatchSubgoal(agentapi.new AchieveMoveTo(station.getLocation())).get();
+        //TODO: Location of trike agent and location of Charging station
+        // while (charge<1.0 && agentapi.getLocation().getDistance(station.getLocation())<0.01)
 
+          double charge = getMyChargestate();
+          double batteryhealth = getMyBatteryHealth();
+          double numberofcharges = getMyNumberOfCharges();
 
-            double charge = agentapi.getMyChargestate();
-            double batteryhealth = agentapi.getMyBatteryHealth();
-            double numberofcharges = agentapi.getMyNumberOfCharges();
-
-
-            //TODO: Location of trike agent and location of Charging station
-            // while (charge<1 && agentapi.getLocation().getDistance(station.getLocation())<0.01)
-
-            // create a new ChargingStation  -oemer
-            ChargingStation station = new ChargingStation();
-            while (charge<1 && agentapi.getLocation().getDistance(station.getLocation())<0.01)
-            {
+            //create a new ChargingStation  -oemer
+            //ChargingStation station = new ChargingStation();
+            //TODO oemer: while (charge <1 && BatteryModel.getLocation().getDistance(station.getLocation()) <0.01) prüft,
+            // ob Batterymodel bei Chargingstation ist.
+            //while (charge<1 && trikeAgent.location == chargingStation.location() )
+            //while (charge <1)
+        {
                 // Daytime
-                if (agentapi.daytime)
+                if (daytime)
                 {
                     charge = Math.min(charge + 0.01, 1.0);
 
                     if (charge>0.99)
                     {
+                       numberofcharges = 0;
                         numberofcharges = numberofcharges + 1;
                     }
                 }
-
                 // Nighttime
                 else
                 {
@@ -103,35 +108,45 @@ public class BatteryModel {
 
                     if (charge>0.995)
                     {
+                        numberofcharges = 0;
                         numberofcharges = numberofcharges + 0.5;
                     }
                 }
-
-                simulationTime = JadexModel.simulationtime;
-                updateChargingProgress(agentapi);
-
-                agentapi.setMyChargestate(charge);
-                planapi.waitFor(100).get();
-                agentapi.setMyNumberOfCharges(numberofcharges);
+                updateChargingProgress();
+                setMyChargestate(charge);
+                //TODO: what does this code do?? -oemer
+               // IPlan planapi = null;
+               // planapi.waitFor(100).get();
+                setMyNumberOfCharges(numberofcharges);
                 batteryhealth = 1.0 - 0.00025 * numberofcharges;
-                agentapi.setMyBatteryHealth(batteryhealth);
-
-                //create a new charging trip -oemer Frage : Soll diser Ladetrip bevor dem Aufladevorgang oder danach erstellt werden?
-                Location LocationCh= new Location("", 288654.693529, 5286721.094209);
-                Trip chargingTrip = new Trip("CH01", "ChargingTrip", LocationCh, "NotStarted");
-
+                setMyBatteryHealth(batteryhealth);
             }
-
     }
 
-    @PlanBody
-    protected static IFuture<Void> moveToTarget() {
+    /*
+ - Charge als Methode in Einklang mit Simulationszeit bringen(DONE)
+ - ChargingStation.java als Liste in den Agenten, oder eine eigene Klasse, oder als Agent definieren
+ - Trike Agent.java: z. 713 Atchargingstation
+*/
+    private void updateChargingProgress() {
+        double chargingRate = 0.001;
+        while (my_chargestate < 1.0) {
+            double currentSimTime = JadexModel.simulationtime;
+            double SimTimeDelta = currentSimTime - lastUpdateTime;
+            double newChargeState = my_chargestate + chargingRate * SimTimeDelta;
+            my_chargestate = Math.min(newChargeState, 1.0);
+            lastUpdateTime = currentSimTime;
+        }
+    }
+
+
+    protected IFuture<Void> moveToTarget() {
         final Future<Void> ret = new Future<Void>();
 
-        Location target = goal.getLocation();
-        Location myloc = agentLocation; //TODO: Location of the TrikeAgent
+        Location target = stat.getLocation();
+        Location myloc = capa.agentLocation; //Location of the TrikeAgent
 
-        if (!myloc.isNear(target)) { //comparison to other Location
+        if (!(myloc == target)) { //comparison to other Location //omit isnear method oemer
             oneStepToTarget().addResultListener(new DelegationResultListener<Void>(ret) {
                 public void customResultAvailable(Void result) {
                     moveToTarget().addResultListener(new DelegationResultListener<Void>(ret));
@@ -144,20 +159,20 @@ public class BatteryModel {
         return ret;
     }
 
-    @PlanBody
-    protected static IFuture<Void> oneStepToTarget() {
+
+    protected IFuture<Void> oneStepToTarget() {
+
         final Future<Void> ret = new Future<Void>();
 
         //Here the distance is calculated between 2 points by using a L1 norm
-        Location target = goal.getLocation();
-        Location myloc = agentLocation;
+        Location target = stat.getLocation();
+        Location myloc = capa.agentLocation;
 
-
-        double speed = capa.getMySpeed();
-        boolean autopilot = capa.getMyAutopilot();
-        double charge = capa.getMyChargestate();
-        double batteryhealth = capa.getMyBatteryHealth();
-        int carriedcustomer = capa.getCarriedCustomer();
+        double speed = getMySpeed();
+        boolean autopilot = getMyAutopilot();
+        double charge = getMyChargestate();
+        double batteryhealth = getMyBatteryHealth();
+        int carriedcustomer = getCarriedCustomer();
 
 
         if (autopilot) {
@@ -178,73 +193,91 @@ public class BatteryModel {
             charge = charge - speed * 0.0004 * (1 / batteryhealth);
         }
 
-        capa.setMySpeed(speed);
-        capa.setMyChargestate(Double.valueOf(charge));
+        setMySpeed(speed);
+        setMyChargestate(Double.valueOf(charge));
 
-        double d = myloc.getDistance(target);
+        double d = myloc.distanceBetween(myloc, target);
         double r = speed * 0.004;//(newtime-time);
         double dx = target.getX() - myloc.getX();
         double dy = target.getY() - myloc.getY();
 
         double rx = r < d ? r * dx / d : dx;
         double ry = r < d ? r * dy / d : dy;
-        //System.out.println("mypos: "+(myloc.getX()+rx)+" "+(myloc.getY()+ry)+" "+target);
+        System.out.println("mypos: "+(myloc.getX()+rx)+" "+(myloc.getY()+ry)+" "+target);
         capa.setMyLocation(new Location("",myloc.getX() + rx, myloc.getY() + ry));
 
         // wait for 0.01 seconds
         rplan.waitFor(100).addResultListener(new DelegationResultListener<Void>(ret) {
-        //public void customResultAvailable(Void result)
-        //{
-        //updateVision().addResultListener(new DelegationResultListener<Void>(ret));
-        //}
         });
         return ret;
     }
 
-
-    //Methode 1 + Parameters added -oemer
-    /*
-    - Methode 1: Batterieverbrauch
-    Input: Distanz von Matsim, Output verbrauch/ändert den Battereistand und andere Parameter
-    die entweder in die Beliefs reinkommen oder in der BatteryModel.java bleiben).
-     Diese Methode bei Sensoryupdate aufrubar machen
-*/
-
-    private BatteryModel linkEnterEventsMap;
-    private Id<Vehicle> specificVehicleId;
-    VehicleTrackingData trackingData = linkEnterEventsMap.get(specificVehicleId);
-
-    private VehicleTrackingData get(Id<Vehicle> specificVehicleId) {
-        return null;
+    //methods added from Ekins' trike agent -oemer
+    public double getMyChargestate()
+    {
+        return my_chargestate;
     }
-    //This is the distance traveled since the vehicle agent started.
-    double distanceTraveled = trackingData.getDistanceSinceStart();
-    private static void decreaseBatteryHealthBasedOnDistance(BatteryModel batteryModel, Id<Vehicle> specificVehicleId) {
-
-     //  VehicleTrackingData trackingData = EvacAgentTracker.linkEnterEventsMap.get(specificVehicleId);
-        EvacAgentTracker evacAgentTracker = null;
-        VehicleTrackingData trackingData = evacAgentTracker.linkEnterEventsMap.get(specificVehicleId);
-
-
-        // Calculate distance traveled
-        double distanceTraveled = 0.0;
-        if (trackingData != null) {
-            distanceTraveled = trackingData.getDistanceSinceStart();
-            System.out.println("Distance traveled by the specific vehicle: " + distanceTraveled + " meters");
-        } else {
-            System.out.println("Tracking data not found for the specific vehicle.");
-        }
-
-        //decreasing battery health based on distance traveled -oemer
-        double healthDecreaseCoefficient = 0.0001;
-        double healthDecrease = healthDecreaseCoefficient * distanceTraveled;
-        double newBatteryHealth = batteryModel.getMyBatteryHealth() - healthDecrease;
-        batteryModel.setMyBatteryHealth(newBatteryHealth);
+    public void setMyChargestate(double my_chargestate)
+    {
+        this.my_chargestate = my_chargestate;
     }
-    private void setMyBatteryHealth(double newBatteryHealth) {
+    public double getMyBatteryHealth() {
+        return my_batteryhealth;
     }
-    private double getMyBatteryHealth() {
-        return 0;
+    public void setMyBatteryHealth(double my_batteryhealth) {
+        this.my_batteryhealth = my_batteryhealth;
+    }
+    public double getMyNumberOfCharges() {
+        return my_numberofcharges;
+    }
+    public void setMyNumberOfCharges(double my_numberofcharges) {
+        this.my_numberofcharges = my_numberofcharges;
+    }
+    public int getCarriedCustomer()
+    {
+        return carriedcustomer;
+    }
+    public boolean getMyAutopilot()
+    {
+        return my_autopilot;
+    }
+    public void setMyAutopilot(boolean my_autopilot)
+    {
+        this.my_autopilot = my_autopilot;
+    }
+    public double getMySpeed()
+    {
+        return my_speed;
+    }
+    public void setMySpeed(double my_speed)
+    {
+        this.my_speed = my_speed;
     }
 
+  //  public double x;
+
+  //  public double y;
+
+    //added -oemer
+  //  public double getDistance(Location other)
+  //  {
+  //      assert other != null;
+  //      return Math.sqrt((other.y - this.y) * (other.y - this.y) + (other.x - this.x) * (other.x - this.x));
+  //  }
+    /**
+     *  Check, if two locations are near to each other
+     *  using the default tolerance.
+     *  @return True, if two locations are near to each other.
+     */
+
+    //added -oemer
+   // public boolean isNear(Location other)
+   // {
+   //     return isNear(other, DEFAULT_TOLERANCE);
+   // }
+    //added -oemer
+   // public boolean isNear(Location other, double tolerance)
+   // {
+   //     return getDistance(other) <= tolerance;
+   // }
 }

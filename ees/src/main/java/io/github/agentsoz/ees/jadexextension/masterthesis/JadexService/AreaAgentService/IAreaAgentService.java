@@ -13,12 +13,10 @@ public interface IAreaAgentService
     //public void sendTrip(String text);
     public void sendAreaAgentUpdate(String text);
 
+    void sendJob(String content);
+
 
     /**
      *  Basic chat user interface.
      */
-
-
-
-
 }
