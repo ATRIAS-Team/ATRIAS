@@ -20,7 +20,7 @@ public class XmlJavaParse {
 
 
             File file = new File(
-                    "C:\\Users\\Mahkamjon\\Desktop\\ees\\ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\jadexagent\\TrikeWorld.application.xml");
+                    "C:\\Users\\Marcel\\IdeaProjects\\ees\\ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\masterthesis\\Run\\TrikeWorld.application.xml");
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 

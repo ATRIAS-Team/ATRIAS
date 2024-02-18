@@ -4,10 +4,11 @@
  *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
+
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -24,7 +25,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Agent(type = "bdi")
@@ -99,7 +101,7 @@ public class AreaAgent {
         LocatedAgent agent2 = new LocatedAgent("2", new Location("", 476180.530359862, 5553046.20781396), JadexModel.simulationtime);
         LocatedAgent agent3 = new LocatedAgent("3", new Location("", 476149.517423122, 5553174.24700886), JadexModel.simulationtime);
 
-        locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
+        //locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent1, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent2, JadexModel.simulationtime, "register");
         //locatedAgentList.updateLocatedAgentList(agent3, JadexModel.simulationtime, "register");
