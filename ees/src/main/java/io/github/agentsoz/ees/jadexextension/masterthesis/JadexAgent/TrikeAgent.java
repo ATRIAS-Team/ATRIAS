@@ -548,14 +548,12 @@ public class TrikeAgent implements SendtoMATSIM{
                 String bidderID = decisionTaskList.get(position).getUTScoreList().get(i).getBidderID();
                 String tag = decisionTaskList.get(position).getUTScoreList().get(i).getTag();
                 if(tag.equals("AcceptProposal")){
-                    //todo ablehnugn schicken
                     ArrayList<String> values = new ArrayList<>();
                     values.add(decisionTaskList.get(position).getJobID());
                     testTrikeToTrikeService(bidderID, tag, tag, values);
                     decisionTaskList.get(position).setStatus("waitingForConfirmations");
                 }
                 else if(tag.equals("RejectProposal")){
-                    //todo: zusage schicken
                     ArrayList<String> values = new ArrayList<>();
                     values.add(decisionTaskList.get(position).getJobID());
                     testTrikeToTrikeService(bidderID, tag, tag, values);
@@ -609,7 +607,10 @@ public class TrikeAgent implements SendtoMATSIM{
         else if (decisionTaskList.get(position).getStatus().equals("waitingForConfirmations")){
             //todo: test timeout here
             // just a temporary solution for the paper
-            //decisionTaskList.get(position).setStatus("delegated"); //todo: delete this line
+            // workaround for the not workign confirmation
+            decisionTaskList.get(position).setStatus("delegated"); //todo: not shure if this is working corect
+            FinishedDecisionTaskList.add(decisionTaskList.get(position)); //todo: not shure if this is working corect
+            decisionTaskList.remove(position.intValue());//todo: not shure if this is working corect
         }
         else if (decisionTaskList.get(position).getStatus().equals("waitingForManager")){
             //todo: test timeout here
@@ -660,178 +661,171 @@ public class TrikeAgent implements SendtoMATSIM{
      * @return
      */
     Double calculateUtillity(DecisionTask newTask){
-        Double utillityScore = 100.0;
-        /**
+        Double utillityScore = 0.0;
+
+        if (chargingTripAvailable.equals("0")) {
 
 
-         newTask.getStartPositionFromJob();
-         newTask.getEndPositionFromJob();
-         newTask.getVATimeFromJob();
+            newTask.getStartPositionFromJob();
+            newTask.getEndPositionFromJob();
+            newTask.getVATimeFromJob();
 
-         Double a = 1.0/3.0;
-         Double b = 1.0/3.0;
-         Double c = 1.0/3.0;
-         Double uPunctuallity = null;
-         Double uBattery = null;
-         Double uDistance = null;
+            Double a = 1.0 / 3.0;
+            Double b = 1.0 / 3.0;
+            Double c = 1.0 / 3.0;
+            Double uPunctuallity = null;
+            Double uBattery = null;
+            Double uDistance = null;
 
-         //###########################################################
-         // punctuallity
-         // arrival delay to arrive at the start position when started from the agentLocation
-         if (currentTrip.size()==0 && tripList.size()==0){
-            //agentLocation
-            Double distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
-            //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-            Double timeToNewTask = distanceToStart/drivingSpeed*1000; //in this case equals the delay as vatiem is bookingtime
-            // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
-            uPunctuallity = Math.min(100.0,(100.0-(((Math.min(theta, timeToNewTask)-0.0)/(theta-0.0))*100.0)) );
-         }
-         // arrival delay to arrive at the start position when performed the last trip in pipe (LTIP) before starting at its start position at its vaTime
-         else if (currentTrip.size()>0 || tripList.size()>0) {
-             Double distanceToEnd_LTIP = 0.0;
-             Double timeToEnd_LTIP = null;
-         //todo: hier nach trip type unterscheiden
-             if (getLastTripInPipeline().getTripType().equals("CustomerTrip")){
-                 distanceToEnd_LTIP = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), getLastTripInPipeline().getEndPosition());
-                 timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
-             }
-             else if (getLastTripInPipeline().getTripType().equals("chargingTrip")){
-                 Double ChargingTime = 0.0; //TODO: @Ömer Ladezeit addieren
-                 timeToEnd_LTIP = (distanceToEnd_LTIP / drivingSpeed * 1000) + ChargingTime;
-             }
-             //Double timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
-             Double vATime_LTIP = timeInSeconds(getLastTripInPipeline().getVATime());
-             //todo: was tun wenn charging trip oder ähnliches? keien VA time
-             Double timeAtEnd_LTIP = vATime_LTIP + timeToEnd_LTIP;
-             //todo: maybe boarding time?
-             Double distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-             Double timeToNewTask = distanceToStart / drivingSpeed * 1000;
-             Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-             Double delayArrvialNewTask = Math.max((timeAtEnd_LTIP + timeToNewTask - vATimeNewTask), timeToNewTask);
-
-             uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(theta, delayArrvialNewTask) - 0.0) / (theta - 0.0)) * 100.0)));
-
-         // unterscheidung charging trip
-
-         //if (currentTrip.get(0).getTripType().equals("customerTrip)")){
-         //if (currentTrip.get(0).getTripType().equals("chargingTrip)")){
-         }
-
-
-         //###########################################################
-         // Battery
-         //todo: battery from Ömer needed
-         // differ between trips with and without customer???
-         Double currentBatteryLevel = 100.0; //todo: use real battery
-         Double estBatteryLevelAfter_TIP = trikeBattery.getMyChargestate();
-         Double estEnergyConsumption = 0.0;
-         Double estEnergyConsumption_TIP = 0.0;
-         Double totalDistance_TIP = 0.0;
-         Double negativeInfinity = Double.NEGATIVE_INFINITY;
-         Double bFactor = null;
-         //todo ennergieverbrauch für zu evuluierenden job bestimmen
-
-         //calculation of the estimatedEnergyConsumtion (of formertrips)
-
-
-         if (currentTrip.size()==1){ //battery relavant distance driven at currentTrip
-         //todo: fortschritt von currenttrip berücksichtigen
-            totalDistance_TIP +=Location.distanceBetween(agentLocation, currentTrip.get(0).getStartPosition());
-            if (currentTrip.get(0).getTripType().equals("customerTrip")){ //only drive to the end when it is a customerTrip
-                totalDistance_TIP +=Location.distanceBetween(currentTrip.get(0).getStartPosition(), currentTrip.get(0).getEndPosition());
+            //###########################################################
+            // punctuallity
+            // arrival delay to arrive at the start position when started from the agentLocation
+            if (currentTrip.size() == 0 && tripList.size() == 0) {
+                //agentLocation
+                Double distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
+                //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
+                Double timeToNewTask = distanceToStart / drivingSpeed * 1000; //in this case equals the delay as vatiem is bookingtime
+                // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
+                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(theta, timeToNewTask) - 0.0) / (theta - 0.0)) * 100.0)));
             }
-            if (currentTrip.get(0).getTripType().equals("ChargingTrip")){
-                totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
-            }
-         }
-         // battery relavant distance driven at tripList
-         if (tripList.size() > 0) {
-            if (currentTrip.size()>0){ //journey to the first entry in the tripList from a currentTrip
-                if (currentTrip.get(0).getTripType().equals("customerTrip")){
-                    totalDistance_TIP +=Location.distanceBetween(currentTrip.get(0).getEndPosition(), tripList.get(0).getStartPosition());
+            // arrival delay to arrive at the start position when performed the last trip in pipe (LTIP) before starting at its start position at its vaTime
+            else if (currentTrip.size() > 0 || tripList.size() > 0) {
+                Double distanceToEnd_LTIP = 0.0;
+                Double timeToEnd_LTIP = null;
+                //todo: hier nach trip type unterscheiden
+                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
+                    distanceToEnd_LTIP = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), getLastTripInPipeline().getEndPosition());
+                    timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
+                } else if (getLastTripInPipeline().getTripType().equals("chargingTrip")) {
+                    Double ChargingTime = 0.0; //TODO: @Ömer Ladezeit addieren
+                    timeToEnd_LTIP = (distanceToEnd_LTIP / drivingSpeed * 1000) + ChargingTime;
                 }
-                else{ // trips with only a start position
-                    totalDistance_TIP +=Location.distanceBetween(currentTrip.get(0).getStartPosition(), tripList.get(0).getStartPosition());
+                //Double timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
+                Double vATime_LTIP = timeInSeconds(getLastTripInPipeline().getVATime());
+                //todo: was tun wenn charging trip oder ähnliches? keien VA time
+                Double timeAtEnd_LTIP = vATime_LTIP + timeToEnd_LTIP;
+                //todo: maybe boarding time?
+                Double distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                Double timeToNewTask = distanceToStart / drivingSpeed * 1000;
+                Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
+                Double delayArrvialNewTask = Math.max((timeAtEnd_LTIP + timeToNewTask - vATimeNewTask), timeToNewTask);
+
+                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(theta, delayArrvialNewTask) - 0.0) / (theta - 0.0)) * 100.0)));
+
+                // unterscheidung charging trip
+
+                //if (currentTrip.get(0).getTripType().equals("customerTrip)")){
+                //if (currentTrip.get(0).getTripType().equals("chargingTrip)")){
+            }
+
+
+            //###########################################################
+            // Battery
+            //todo: battery from Ömer needed
+            // differ between trips with and without customer???
+            Double currentBatteryLevel = trikeBattery.getMyChargestate(); //todo: use real battery
+            Double estBatteryLevelAfter_TIP = trikeBattery.getMyChargestate();
+            Double estEnergyConsumption = 0.0;
+            Double estEnergyConsumption_TIP = 0.0;
+            Double totalDistance_TIP = 0.0;
+            Double negativeInfinity = Double.NEGATIVE_INFINITY;
+            Double bFactor = null;
+            //todo ennergieverbrauch für zu evuluierenden job bestimmen
+
+            //calculation of the estimatedEnergyConsumtion (of formertrips)
+
+
+            if (currentTrip.size() == 1) { //battery relavant distance driven at currentTrip
+                //todo: fortschritt von currenttrip berücksichtigen
+                totalDistance_TIP += Location.distanceBetween(agentLocation, currentTrip.get(0).getStartPosition());
+                if (currentTrip.get(0).getTripType().equals("customerTrip")) { //only drive to the end when it is a customerTrip
+                    totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), currentTrip.get(0).getEndPosition());
+                }
+                if (currentTrip.get(0).getTripType().equals("ChargingTrip")) {
+                    totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
                 }
             }
-            else{ //journey to the first entry in the tripList from the agentLocation
-            totalDistance_TIP +=Location.distanceBetween(agentLocation, tripList.get(0).getStartPosition());
-            }
-            // distance driven at TripList.get(0)
-            if (tripList.get(0).getTripType().equals("customerTrip")) {
-                totalDistance_TIP += Location.distanceBetween(tripList.get(0).getStartPosition(), tripList.get(0).getEndPosition());
-            }
-            if (tripList.get(0).getTripType().equals("chargingTrip")) {
-                 totalDistance_TIP = 0.0;
-            }
-            else{
-                 // do nothing as all other Trips with only a startPosition will not contain any other movements;
-            }
-
-
-            //todo: fahrt zum nächjsten start fehlt +-1 bei i???
-             // interates through all other Trips inside TripList
-            for (int i=1; i<tripList.size()-1; i++){
-                if (currentTrip.get(i-1).getTripType().equals("customerTrip")) {
-                 totalDistance_TIP += Location.distanceBetween(tripList.get(i-1).getEndPosition(), tripList.get(i).getStartPosition());
+            // battery relavant distance driven at tripList
+            if (tripList.size() > 0) {
+                if (currentTrip.size() > 0) { //journey to the first entry in the tripList from a currentTrip
+                    if (currentTrip.get(0).getTripType().equals("customerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getEndPosition(), tripList.get(0).getStartPosition());
+                    } else { // trips with only a start position
+                        totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), tripList.get(0).getStartPosition());
+                    }
+                } else { //journey to the first entry in the tripList from the agentLocation
+                    totalDistance_TIP += Location.distanceBetween(agentLocation, tripList.get(0).getStartPosition());
                 }
-                else{ // Trips with only a startPosition
-                    totalDistance_TIP += Location.distanceBetween(tripList.get(i-1).getStartPosition(), tripList.get(i).getEndPosition());
+                // distance driven at TripList.get(0)
+                if (tripList.get(0).getTripType().equals("customerTrip")) {
+                    totalDistance_TIP += Location.distanceBetween(tripList.get(0).getStartPosition(), tripList.get(0).getEndPosition());
                 }
-                if (currentTrip.get(i).getTripType().equals("customerTrip")) {
-                    totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                if (tripList.get(0).getTripType().equals("chargingTrip")) {
+                    totalDistance_TIP = 0.0;
+                } else {
+                    // do nothing as all other Trips with only a startPosition will not contain any other movements;
+                }
+
+
+                //todo: fahrt zum nächjsten start fehlt +-1 bei i???
+                // interates through all other Trips inside TripList
+                for (int i = 1; i < tripList.size() - 1; i++) {
+                    if (currentTrip.get(i - 1).getTripType().equals("customerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition());
+                    } else { // Trips with only a startPosition
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getStartPosition(), tripList.get(i).getEndPosition());
+                    }
+                    if (currentTrip.get(i).getTripType().equals("customerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                    }
                 }
             }
-         }
-         //todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RICHTIGE WERTE ZUGREIFEN
-         estEnergyConsumption_TIP = trikeBattery.SimulateDischarge(totalDistance_TIP);//todo: @Ömer ist es das was wir hier brauchen?
-         estBatteryLevelAfter_TIP = currentBatteryLevel - estEnergyConsumption_TIP;//todo: @Ömer ist es das was wir hier brauchen?
+            //todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RICHTIGE WERTE ZUGREIFEN
+            estEnergyConsumption_TIP = trikeBattery.SimulateDischarge(totalDistance_TIP);//todo: @Ömer ist es das was wir hier brauchen?
+            estBatteryLevelAfter_TIP = currentBatteryLevel - estEnergyConsumption_TIP;//todo: @Ömer ist es das was wir hier brauchen?
 
-         //###########################################################
-         // calculation of uBattery
-         if (estBatteryLevelAfter_TIP<estEnergyConsumption){
-         uBattery = negativeInfinity;
-         }
-         else {
+            //###########################################################
+            // calculation of uBattery
+            if (estBatteryLevelAfter_TIP < estEnergyConsumption) {
+                uBattery = negativeInfinity;
+            } else {
 
-         if (estBatteryLevelAfter_TIP > 0.8){
-         bFactor = 1.0;
-         }
-         else if (estBatteryLevelAfter_TIP >= 0.3){
-         bFactor = 0.75;
-         }
-         else if (estBatteryLevelAfter_TIP < 0.3){
-         bFactor = 0.1;
-         }
-         // ???? batteryLevelAfterTrips or 100?
-         uBattery = bFactor * ((estBatteryLevelAfter_TIP - estEnergyConsumption)/ estBatteryLevelAfter_TIP);
+                if (estBatteryLevelAfter_TIP > 0.8) {
+                    bFactor = 1.0;
+                } else if (estBatteryLevelAfter_TIP >= 0.3) {
+                    bFactor = 0.75;
+                } else if (estBatteryLevelAfter_TIP < 0.3) {
+                    bFactor = 0.1;
+                }
+                // ???? batteryLevelAfterTrips or 100?
+                uBattery = (bFactor * ((estBatteryLevelAfter_TIP - estEnergyConsumption) / estBatteryLevelAfter_TIP)) * 100;
 
-         }
-         //###########################################################
-         //Distance
-         Double dmax = 3000.0; //todo: @Ömer RICHTIGEN WERT EINTRAGEN!!!!!!!!!!!!!!!
-         Double distanceToStart;
+            }
+            //###########################################################
+            //Distance
+            Double dmax = 3000.0; //todo: @Ömer RICHTIGEN WERT EINTRAGEN!!!!!!!!!!!!!!!
+            Double distanceToStart;
 
-         if (tripList.size()==0 && currentTrip.size()==0){
-         distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
-         }
-         else{
-             if(getLastTripInPipeline().getTripType().equals("customerTrip")){
-                 distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-             }
-             else{
-                 distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
-             }
-         }
-         uDistance = dmax - distanceToStart/dmax;
-
-         //###########################################################
+            if (tripList.size() == 0 && currentTrip.size() == 0) {
+                distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
+            } else {
+                if (getLastTripInPipeline().getTripType().equals("customerTrip")) {
+                    distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                } else {
+                    distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                }
+            }
+            uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
 
 
+            //###########################################################
 
-         // calculate the total score
 
-        utillityScore = Math.max(0.0, (a * uPunctuallity + b * uBattery + c * uDistance));**/
+            // calculate the total score
+
+            utillityScore = Math.max(0.0, (a * uPunctuallity + b * uBattery + c * uDistance));
+        }
+        System.out.println("agentID: " + agentID + "utillity: " + utillityScore);
         return utillityScore;
     }
 

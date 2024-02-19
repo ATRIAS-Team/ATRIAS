@@ -11,7 +11,7 @@ public class csvLogger {
     }
 
     //contructor here
-
+/**
     public static void logTripCsv(String newData) {
         try (FileWriter writer = new FileWriter(filePath)) {
 
@@ -55,4 +55,5 @@ public class csvLogger {
 
         writeCsv(filePath, header, data);
     }
+**/
 }

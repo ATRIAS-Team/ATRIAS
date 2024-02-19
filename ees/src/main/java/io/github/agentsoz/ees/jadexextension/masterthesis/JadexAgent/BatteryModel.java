@@ -75,8 +75,8 @@ public class BatteryModel {
     public Double SimulateDischarge(double metersDriven){
         double chargeDecreaseCoefficient = 0.0001;
         double chargeDecrease = chargeDecreaseCoefficient * metersDriven;
-        double newChargingState = getMyChargestate() - chargeDecrease;
-        return newChargingState;
+        //double newChargingState = getMyChargestate() - chargeDecrease;
+        return chargeDecrease;
     }
 
     //Methode 2 added -oemer
