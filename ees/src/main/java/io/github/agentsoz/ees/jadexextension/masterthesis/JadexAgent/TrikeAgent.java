@@ -24,6 +24,8 @@ import io.github.agentsoz.util.Location;
 import io.github.agentsoz.util.Time;
 import jadex.bdiv3.runtime.IPlan;
 import jadex.commons.future.IFuture;
+
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import jadex.bdiv3.BDIAgentFactory;
@@ -111,7 +113,7 @@ public class TrikeAgent implements SendtoMATSIM{
     private List<PerceptContent> SimPerceptList = new ArrayList<>();
 
     @Belief
-    private String agentID = null; // store agent ID from the map
+    public String agentID = null; // store agent ID from the map
     @Belief
     public boolean sent = false;
     @Belief
@@ -129,7 +131,7 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public BatteryModel trikeBattery = new BatteryModel();
 
-    public csvLogger csvLogger = new csvLogger();
+
 
 
     /**
@@ -171,6 +173,8 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
         //sendMessage("area:0", "request", "");
+
+        //csvLogger csvLogger;// = new csvLogger(agentID);
     }
 
     @Goal(recur=true, recurdelay=1000) //in ms
@@ -914,10 +918,14 @@ public class TrikeAgent implements SendtoMATSIM{
 
                     agentLocation = new Location("", 476721.007399257, 5552121.23354965);
 
+                    //csvLogger.createCSVLog(agentID);
+
                     sendAreaAgentUpdate("register");
                     /**
                      * TODO: @Mariam initiale anmeldung an firebase hier
                      */
+
+                    csvLogger csvLogger = new csvLogger(agentID);
 
                 }
 
@@ -1006,11 +1014,32 @@ public class TrikeAgent implements SendtoMATSIM{
         Trip CurrentTripUpdate = currentTrip.get(0);
         double metersDriven = Double.parseDouble((String) SimActionList.get(0).getParameters()[1]);
 
+        //csvLogger csvLogger = new csvLogger(agentID);
+        //csvLogger.addLog(agentID,"1","2","3", "4", "5","6","7", "8", "9");
+
         //Transport ohne Kunde
         if (CurrentTripUpdate.getProgress().equals("DriveToStart")) {
             updateCurrentTripProgress("AtStartLocation");
             agentLocation = CurrentTripUpdate.getStartPosition();
+
+            String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
+
             trikeBattery.discharge(metersDriven, 0);
+
+
+            //String agentID = get.agentID;
+            CurrentTripUpdate.getTripID();
+            String driveOperationNumber = "1";
+            String tripType = CurrentTripUpdate.getTripType();
+            String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
+            String arrivedAtLocation = "true";
+            if (trikeBattery.getMyChargestate() < 0.0){
+                arrivedAtLocation = "false";
+            }
+            String distance = Double.toString(metersDriven);
+            //String origin = CurrentTripUpdate.getJob();
+            csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance, origin);
         }
 
 
@@ -1018,15 +1047,56 @@ public class TrikeAgent implements SendtoMATSIM{
         if (CurrentTripUpdate.getProgress().equals("DriveToEnd")){
             updateCurrentTripProgress("AtEndLocation");
             agentLocation = CurrentTripUpdate.getEndPosition();
+
+            String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
+
             trikeBattery.discharge(metersDriven, 1);
+
+
+            //String agentID = get.agentID;
+            CurrentTripUpdate.getTripID();
+            String driveOperationNumber = "2";
+            String tripType = CurrentTripUpdate.getTripType();
+            String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
+            String arrivedAtLocation = "true";
+            if (trikeBattery.getMyChargestate() < 0.0){
+                arrivedAtLocation = "false";
+            }
+            String distance = Double.toString(metersDriven);
+            //String origin = CurrentTripUpdate.getJob();
+            csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance, origin);
+
+
+
+
         }
+
+
         /**
          * TODO: @Mariam update firebase after every MATSim action: location of the agent
          */
         System.out.println("Neue Position: " + agentLocation);
         sendAreaAgentUpdate("update");
 
-        csvLogger.logTrip();
+
+        //csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
+
+
+        //csvLogger.logTrip();
+        /**
+
+        csvLogger csvLogger = new csvLogger("file.csv", ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
+                "BatteryBefore", "BatteryAfter", "ArriveAtLocation", "Distance", "Origin");
+        csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
+        csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
+        csvLogger.close();
+        **/
+
+
+
+
+
 
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent

@@ -120,6 +120,12 @@ public class Trip {
         return this.progress;
     }
 
+    /**
+    public Job getJob(){
+        this.Job.getOrigin();
+
+        return this.Job; }
+    **/
 
 
     //####################################################################################
