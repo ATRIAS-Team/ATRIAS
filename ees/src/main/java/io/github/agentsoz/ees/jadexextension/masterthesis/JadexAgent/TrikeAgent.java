@@ -119,11 +119,9 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public String write = null;
 
-    @Belief
-    Double drivingSpeed = 6.0;
 
-    @Belief
-    Double theta = 900.0; //allowed waiting time for customers todo: use it iside customer miss
+
+
     @Belief
     protected boolean daytime; //Battery -oemer
     @Belief
@@ -131,6 +129,14 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public BatteryModel trikeBattery = new BatteryModel();
 
+    Double estimateBatteryAfterTIP = trikeBattery.getMyChargestate();
+
+
+    @Belief
+    Double DRIVING_SPEED = 6.0;
+    Boolean CNP_ACTIVE = true;
+    @Belief
+    Double THETA = 900.0; //allowed waiting time for customers todo: use it inside customer miss
 
 
 
@@ -149,8 +155,8 @@ public class TrikeAgent implements SendtoMATSIM{
     //test variables
     public boolean isModified = false;
     boolean bool = true;
-    @Belief
-    public String my_chargestate = "1.0"; //Battery -oemer
+    //@Belief
+    //public String my_chargestate = "1.0"; //Battery -oemer
     @Belief
     public String chargingTripAvailable = "0"; //Battery -oemer
 
@@ -205,13 +211,43 @@ public class TrikeAgent implements SendtoMATSIM{
         //  my_chargestate = "0.5";
     }
 
-    @Goal(recur = true)
-    public class MaintainBatteryLoaded{
+    @Goal(recur = true, recurdelay = 10)
+    public class MaintainBatteryLoaded {
         //charging trip global prüfen, available dann 1, sonst 0 setzen.
-        @GoalCreationCondition(factchanged = "my_chargestate") // ||  chargingTripAvailable
-        public MaintainBatteryLoaded(){
+
+        //@GoalCreationCondition(beliefs = "my_chargestate")
+        //public static boolean checkBatteryLevel(double my_chargestate) {
+            //return my_chargestate < 0.3; // Trigger goal when battery level is under 30%, alternative utility from Battery
+        //}
+
+        //  @GoalCreationCondition(factchanged = "my_chargestate") // ||  chargingTripAvailable
+        //public MaintainBatteryLoaded() {
+        // }
+    }
+
+    @Plan(trigger = @Trigger(goals = MaintainBatteryLoaded.class))
+    public void NewChargingTrip() {
+        //@PlanBody
+        //public void body()
+        //TrikeAgent agentapi, IPlan planapi
+        {
+            //if(chargingTripAvailable.equals("")){
+
+
+            if (estimateBatteryAfterTIP < 0.4 && chargingTripAvailable.equals("0")){
+                //estimateBatteryAfterTIP();
+                Location LocationCh = new Location("", 476530.26535798033, 5552438.979076344);
+                Trip chargingTrip = new Trip("CH01", "ChargingTrip", LocationCh, "NotStarted");
+                tripList.add(chargingTrip);
+                chargingTripAvailable = "1";
+            }
         }
     }
+
+
+
+
+
 
     // @Goal(recur = true, recurdelay = 300)
     // public class MaintainBatteryLoaded{
@@ -259,22 +295,7 @@ public class TrikeAgent implements SendtoMATSIM{
 //		}
     // }
 
-    //(Plan 1) Battery- oemer
-    @Plan(trigger=@Trigger(goals=MaintainBatteryLoaded.class))
-    public class NewChargingTrip
-    {
-        @PlanBody
-        public void body()
-        //TrikeAgent agentapi, IPlan planapi
-        {
-            if(chargingTripAvailable.equals("0")){
-                Location LocationCh= new Location("", 476530.26535798033, 5552438.979076344);
-                Trip chargingTrip = new Trip("CH01", "ChargingTrip", LocationCh, "NotStarted");
-                tripList.add(chargingTrip);
-                chargingTripAvailable = "1";
-            }
-        }
-    }
+
 
 
     //(Goal 2) Battery -oemer
@@ -461,10 +482,10 @@ public class TrikeAgent implements SendtoMATSIM{
             /**
              *  Execute Utillity here > "commit"|"delegate"
              */
-            Double ownScore = calculateUtillity(decisionTaskList.get(position));
+            Double ownScore = calculateUtility(decisionTaskList.get(position));
             //ownScore = 0.0; //todo: delete this line after the implementation of the cnp
             decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
-            if (ownScore < commitThreshold){
+            if (ownScore < commitThreshold && CNP_ACTIVE){
                 decisionTaskList.get(position).setStatus("delegate");
             }
             else{ decisionTaskList.get(position).setStatus("commit");}
@@ -479,6 +500,7 @@ public class TrikeAgent implements SendtoMATSIM{
             //TODO: create a unique tripID
             tripList.add(newTrip);
             tripIDList.add("1");
+            estimateBatteryAfterTIP();
 
             decisionTaskList.get(position).setStatus("committed");
             FinishedDecisionTaskList.add(dTaToTrip);
@@ -586,7 +608,7 @@ public class TrikeAgent implements SendtoMATSIM{
             /**
              *  send bid > "waitingForManager"
              */
-            Double ownScore = calculateUtillity(decisionTaskList.get(position));
+            Double ownScore = calculateUtility(decisionTaskList.get(position));
             //todo: eigene utillity speichern
             // send bid
             // ursprung des proposed job bestimmen
@@ -646,7 +668,7 @@ public class TrikeAgent implements SendtoMATSIM{
     public Trip getLastTripInPipeline(){
         Trip lastTrip = null;
         if (tripList.size()>0){
-            lastTrip = tripList.get(tripList.size()-1);
+            lastTrip = tripList.get(tripList.size());
         }
         else if (tripList.size()==0 && currentTrip.size()>0){
             lastTrip = currentTrip.get(currentTrip.size()-1);
@@ -658,14 +680,17 @@ public class TrikeAgent implements SendtoMATSIM{
         return lastTrip;
     }
 
+
+
     /** Utillity Function
      * should be switchable between a regular and a learning attempt
      * todo: assumption bookingtime = vatime
      * todo: fortschritt von currenttrip berücksichtigen!
      * @return
      */
-    Double calculateUtillity(DecisionTask newTask){
+    Double calculateUtility(DecisionTask newTask){
         Double utillityScore = 0.0;
+
 
         if (chargingTripAvailable.equals("0")) {
 
@@ -684,43 +709,86 @@ public class TrikeAgent implements SendtoMATSIM{
             //###########################################################
             // punctuallity
             // arrival delay to arrive at the start position when started from the agentLocation
+            //todo: number of comitted trips TIP über alle berechnen erwartete ankunft bei aktuellem bestimmen, dann delay bewerten ohne ladefahrten
+            Double vaTimeFirstTrip = null;
+            //when there is no Trip before calculate the delay when started at the Agent Location
             if (currentTrip.size() == 0 && tripList.size() == 0) {
                 //agentLocation
                 Double distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
                 //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double timeToNewTask = distanceToStart / drivingSpeed * 1000; //in this case equals the delay as vatiem is bookingtime
+                Double timeToNewTask = ((distanceToStart/1000) / DRIVING_SPEED)*60*60; //in this case equals the delay as vatiem is bookingtime
                 // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
-                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(theta, timeToNewTask) - 0.0) / (theta - 0.0)) * 100.0)));
+                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(THETA, timeToNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
             }
-            // arrival delay to arrive at the start position when performed the last trip in pipe (LTIP) before starting at its start position at its vaTime
-            else if (currentTrip.size() > 0 || tripList.size() > 0) {
-                Double distanceToEnd_LTIP = 0.0;
-                Double timeToEnd_LTIP = null;
-                //todo: hier nach trip type unterscheiden
-                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
-                    distanceToEnd_LTIP = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), getLastTripInPipeline().getEndPosition());
-                    timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
-                } else if (getLastTripInPipeline().getTripType().equals("chargingTrip")) {
-                    Double ChargingTime = 0.0; //TODO: @Ömer Ladezeit addieren
-                    timeToEnd_LTIP = (distanceToEnd_LTIP / drivingSpeed * 1000) + ChargingTime;
+            else {
+                Double totalDistance_TIP = 0.0;
+                //todo: get va time of first job here or in an else case
+                if (currentTrip.size() == 1) { //distances driven from the agent location to the start of the current trip and to its end
+                    totalDistance_TIP += Location.distanceBetween(agentLocation, currentTrip.get(0).getStartPosition());
+                    if (currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
+                        vaTimeFirstTrip = timeInSeconds(currentTrip.get(0).getVATime());
+                        totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), currentTrip.get(0).getEndPosition());
+                    }
                 }
-                //Double timeToEnd_LTIP = distanceToEnd_LTIP / drivingSpeed * 1000;
-                Double vATime_LTIP = timeInSeconds(getLastTripInPipeline().getVATime());
-                //todo: was tun wenn charging trip oder ähnliches? keien VA time
-                Double timeAtEnd_LTIP = vATime_LTIP + timeToEnd_LTIP;
-                //todo: maybe boarding time?
-                Double distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-                Double timeToNewTask = distanceToStart / drivingSpeed * 1000;
+                //  distance driven at tripList
+                if (tripList.size() > 0) {
+                    if (currentTrip.size() > 0) { //journey to the first entry in the tripList from a currentTrip
+                        if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getEndPosition(), tripList.get(0).getStartPosition());
+                        } else { // trips with only a start position
+                            totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), tripList.get(0).getStartPosition());
+                        }
+                    } else { //journey to the first entry in the tripList from the agentLocation
+                        vaTimeFirstTrip = timeInSeconds(tripList.get(0).getVATime()); //fist VATime when there was no CurrentTrip
+                        totalDistance_TIP += Location.distanceBetween(agentLocation, tripList.get(0).getStartPosition());
+                    }
+                    // distance driven at TripList.get(0)
+                    if (tripList.get(0).getTripType().equals("CustomerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(0).getStartPosition(), tripList.get(0).getEndPosition());
+                    }
+                } else {
+                    // do nothing as all other Trips with only a startPosition will not contain any other movements;
+                }
+
+                // interates through all other Trips inside TripList
+                if (tripList.size() > 1){ //added to avoid crashes
+                    for (int i = 1; i < tripList.size(); i++) {
+                        if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
+                        } else { // Trips with only a startPosition
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getStartPosition(), tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                        }
+                        if (tripList.get(i).getTripType().equals("CustomerTrip")) { //triplist or currenttrip
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                        }
+                    }
+                }
+                //todo: drives to the start of the job that has to be evaluated
+                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
+                    totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                }
+                else {
+                    totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                }
+
+
                 Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double delayArrvialNewTask = Math.max((timeAtEnd_LTIP + timeToNewTask - vATimeNewTask), timeToNewTask);
+                Double timeToNewTask = ((totalDistance_TIP/1000) / DRIVING_SPEED)*60*60;
+                Double arrivalAtNewtask = vaTimeFirstTrip + timeToNewTask;
 
-                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(theta, delayArrvialNewTask) - 0.0) / (theta - 0.0)) * 100.0)));
+                Double delayArrvialNewTask = Math.max((arrivalAtNewtask - vATimeNewTask), timeToNewTask);
+                System.out.println("vATimeNewTask: " + vATimeNewTask );
+                System.out.println("timeToNewTask: " + timeToNewTask );
+                System.out.println("arrivalAtNewtask: " + arrivalAtNewtask );
+                System.out.println("delayArrvialNewTask: " + delayArrvialNewTask );
 
-                // unterscheidung charging trip
+                uPunctuallity = Math.min(100.0, (100.0 - (((Math.min(THETA, delayArrvialNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
 
-                //if (currentTrip.get(0).getTripType().equals("customerTrip)")){
-                //if (currentTrip.get(0).getTripType().equals("chargingTrip)")){
+
+
             }
+            //when there a trips iterate through all, starting at the va time of the first trip estimate your delay when arriving at the start location of
+            // the Job that has to be evaluated
 
 
             //###########################################################
@@ -742,7 +810,7 @@ public class TrikeAgent implements SendtoMATSIM{
             if (currentTrip.size() == 1) { //battery relavant distance driven at currentTrip
                 //todo: fortschritt von currenttrip berücksichtigen
                 totalDistance_TIP += Location.distanceBetween(agentLocation, currentTrip.get(0).getStartPosition());
-                if (currentTrip.get(0).getTripType().equals("customerTrip")) { //only drive to the end when it is a customerTrip
+                if (currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
                     totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), currentTrip.get(0).getEndPosition());
                 }
                 if (currentTrip.get(0).getTripType().equals("ChargingTrip")) {
@@ -752,7 +820,7 @@ public class TrikeAgent implements SendtoMATSIM{
             // battery relavant distance driven at tripList
             if (tripList.size() > 0) {
                 if (currentTrip.size() > 0) { //journey to the first entry in the tripList from a currentTrip
-                    if (currentTrip.get(0).getTripType().equals("customerTrip")) {
+                    if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
                         totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getEndPosition(), tripList.get(0).getStartPosition());
                     } else { // trips with only a start position
                         totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), tripList.get(0).getStartPosition());
@@ -761,10 +829,10 @@ public class TrikeAgent implements SendtoMATSIM{
                     totalDistance_TIP += Location.distanceBetween(agentLocation, tripList.get(0).getStartPosition());
                 }
                 // distance driven at TripList.get(0)
-                if (tripList.get(0).getTripType().equals("customerTrip")) {
+                if (tripList.get(0).getTripType().equals("CustomerTrip")) {
                     totalDistance_TIP += Location.distanceBetween(tripList.get(0).getStartPosition(), tripList.get(0).getEndPosition());
                 }
-                if (tripList.get(0).getTripType().equals("chargingTrip")) {
+                if (tripList.get(0).getTripType().equals("ChargingTrip")) {
                     totalDistance_TIP = 0.0;
                 } else {
                     // do nothing as all other Trips with only a startPosition will not contain any other movements;
@@ -773,14 +841,16 @@ public class TrikeAgent implements SendtoMATSIM{
 
                 //todo: fahrt zum nächjsten start fehlt +-1 bei i???
                 // interates through all other Trips inside TripList
-                for (int i = 1; i < tripList.size() - 1; i++) {
-                    if (currentTrip.get(i - 1).getTripType().equals("customerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition());
-                    } else { // Trips with only a startPosition
-                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getStartPosition(), tripList.get(i).getEndPosition());
-                    }
-                    if (currentTrip.get(i).getTripType().equals("customerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                if (tripList.size() > 1){ //added to avoid crashes
+                    for (int i = 1; i < tripList.size(); i++) {
+                        if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
+                        } else { // Trips with only a startPosition
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getStartPosition(), tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                        }
+                        if (tripList.get(i).getTripType().equals("CustomerTrip")) { //triplist or currenttrip
+                            totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                        }
                     }
                 }
             }
@@ -813,7 +883,7 @@ public class TrikeAgent implements SendtoMATSIM{
             if (tripList.size() == 0 && currentTrip.size() == 0) {
                 distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
             } else {
-                if (getLastTripInPipeline().getTripType().equals("customerTrip")) {
+                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
                     distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
                 } else {
                     distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
@@ -831,6 +901,66 @@ public class TrikeAgent implements SendtoMATSIM{
         }
         System.out.println("agentID: " + agentID + "utillity: " + utillityScore);
         return utillityScore;
+    }
+
+
+
+    //estimates the batteryLevel after all Trips. Calculations a based on aerial line x1.5
+    public Double estimateBatteryAfterTIP(){
+    Double batteryChargeAfterTIP = trikeBattery.getMyChargestate();
+        Double totalDistance_TIP = 0.0;
+        if (currentTrip.size() == 1) { //battery relavant distance driven at currentTrip
+            //todo: fortschritt von currenttrip berücksichtigen
+            totalDistance_TIP += Location.distanceBetween(agentLocation, currentTrip.get(0).getStartPosition());
+            if (currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
+                totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), currentTrip.get(0).getEndPosition());
+            }
+            if (currentTrip.get(0).getTripType().equals("ChargingTrip")) {
+                totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
+            }
+        }
+        // battery relavant distance driven at tripList
+        if (tripList.size() > 0) {
+            if (currentTrip.size() > 0) { //journey to the first entry in the tripList from a currentTrip
+                if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
+                    totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getEndPosition(), tripList.get(0).getStartPosition());
+                } else { // trips with only a start position
+                    totalDistance_TIP += Location.distanceBetween(currentTrip.get(0).getStartPosition(), tripList.get(0).getStartPosition());
+                }
+            } else { //journey to the first entry in the tripList from the agentLocation
+                totalDistance_TIP += Location.distanceBetween(agentLocation, tripList.get(0).getStartPosition());
+            }
+            // distance driven at TripList.get(0)
+            if (tripList.get(0).getTripType().equals("CustomerTrip")) {
+                totalDistance_TIP += Location.distanceBetween(tripList.get(0).getStartPosition(), tripList.get(0).getEndPosition());
+            }
+            if (tripList.get(0).getTripType().equals("ChargingTrip")) {
+                totalDistance_TIP = 0.0;
+            } else {
+                // do nothing as all other Trips with only a startPosition will not contain any other movements;
+            }
+
+            //todo: fahrt zum nächjsten start fehlt +-1 bei i???
+            // interates through all other Trips inside TripList
+            if (tripList.size() > 1){ //added to avoid crashes
+                for (int i = 1; i < tripList.size(); i++) {
+                    if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
+                    } else { // Trips with only a startPosition
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getStartPosition(), tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                    }
+                    if (tripList.get(i).getTripType().equals("CustomerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(tripList.get(i).getStartPosition(), tripList.get(i).getEndPosition());
+                    }
+                }
+            }
+        }
+        //todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RICHTIGE WERTE ZUGREIFEN
+        Double estEnergyConsumption_TIP = trikeBattery.SimulateDischarge((totalDistance_TIP * 2.0));//todo: @Ömer ist es das was wir hier brauchen?
+        batteryChargeAfterTIP = batteryChargeAfterTIP - estEnergyConsumption_TIP;//todo: @Ömer ist es das was wir hier brauchen?
+
+        estimateBatteryAfterTIP = batteryChargeAfterTIP;
+    return batteryChargeAfterTIP;
     }
 
 
@@ -915,17 +1045,34 @@ public class TrikeAgent implements SendtoMATSIM{
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
                     SendPerceivetoAdc();
 
+                    if (agentID.equals("0")){
+                        agentLocation = new Location("", 476411.90963429067, 5552419.709277404);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("1")){
+                        agentLocation = new Location("", 476593.32115363394, 5553317.19412722);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("2")){
+                        agentLocation = new Location("", 476438.79189037136, 5552124.30651799);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("3")){
+                        agentLocation = new Location("", 476500.76932398824, 5552798.971484745);
+                        sendAreaAgentUpdate("register");
+                    }
 
-                    agentLocation = new Location("", 476721.007399257, 5552121.23354965);
+
 
                     //csvLogger.createCSVLog(agentID);
 
-                    sendAreaAgentUpdate("register");
+                    //sendAreaAgentUpdate("register");
                     /**
                      * TODO: @Mariam initiale anmeldung an firebase hier
                      */
 
                     csvLogger csvLogger = new csvLogger(agentID);
+                    bdiFeature.dispatchTopLevelGoal(new MaintainBatteryLoaded());
 
                 }
 
@@ -977,6 +1124,16 @@ public class TrikeAgent implements SendtoMATSIM{
                 for (ActionContent actionContent : SimActionList) {
                     if (actionContent.getAction_type().equals("drive_to")) {
                         System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
+                        System.out.println("AgentID: " + agentID + actionContent.getParameters()[0]);
+                        System.out.println("AgentID: " + agentID + actionContent.getParameters()[1]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[2]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[3]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[4]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[5]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[6]);
+                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[7]);
+
+
                         updateBeliefAfterAction();
                         //TODO: ExecuteTrips should not be executes here, violates our VISIO diagram!
                         ExecuteTrips();
@@ -1013,6 +1170,10 @@ public class TrikeAgent implements SendtoMATSIM{
     void updateBeliefAfterAction() {
         Trip CurrentTripUpdate = currentTrip.get(0);
         double metersDriven = Double.parseDouble((String) SimActionList.get(0).getParameters()[1]);
+        //for (ActionContent actionContent : SimActionList) {
+        //System.out.println("AgentID: " + agentID + " actionType: "+ actionContent.getAction_type() + " actionState: " + actionContent.getState());
+        //}
+
 
         //csvLogger csvLogger = new csvLogger(agentID);
         //csvLogger.addLog(agentID,"1","2","3", "4", "5","6","7", "8", "9");
@@ -1038,7 +1199,8 @@ public class TrikeAgent implements SendtoMATSIM{
             }
             String distance = Double.toString(metersDriven);
             //String origin = CurrentTripUpdate.getJob();
-            csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            csvLogger.addLog(agentID, agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
             //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance, origin);
         }
 
@@ -1064,7 +1226,8 @@ public class TrikeAgent implements SendtoMATSIM{
             }
             String distance = Double.toString(metersDriven);
             //String origin = CurrentTripUpdate.getJob();
-            csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            csvLogger.addLog(agentID, agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
+            //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance);
             //csvLogger.addRow(agentID, CurrentTripUpdate.getTripID(), driveOperationNumber, CurrentTripUpdate.getTripType(), batteryBefore, batteryAfter, arrivedAtLocation, distance, origin);
 
 
@@ -1292,6 +1455,7 @@ public class TrikeAgent implements SendtoMATSIM{
                 if (currentTrip.get(0).getTripType().equals("ChargingTrip")) {
                     trikeBattery.loadBattery();
                     updateCurrentTripProgress("Finished");
+                    chargingTripAvailable = "0";
                 }
                 if (currentTrip.get(0).getTripType().equals("CustomerTrip")) {
                     if (customerMiss(currentTrip.get(0)) == true) { // customer not there

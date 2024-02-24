@@ -24,10 +24,10 @@ public class BatteryModel {
     protected TrikeAgent capa;
     protected ChargingStation stat;
     protected IPlan rplan;
-    private double lastUpdateTime = 0.0;
+    //private double lastUpdateTime = 0.0; //why here???
     public final double DEFAULT_TOLERANCE = 0.001;
     public double my_chargestate = 0.9; // TrikeAgent.java
-    protected boolean daytime; // TrikeAgent.java
+    protected boolean daytime = true; // TrikeAgent.java
     //protected static TrikeAgent.AchieveMoveTo goal;
 
     //Methode 1: Batterieverbrauch -oemer
@@ -103,6 +103,7 @@ public class BatteryModel {
         // ob Batterymodel bei Chargingstation ist.
         //while (charge<1 && trikeAgent.location == chargingStation.location() )
         //while (charge <1)
+
         {
             // Daytime
             if (daytime)
@@ -127,7 +128,8 @@ public class BatteryModel {
                 }
             }
             updateChargingProgress();
-            setMyChargestate(charge);
+            //setMyChargestate(charge); //why?
+            setMyChargestate(1.0); //workaround @Marcel
             //TODO: what does this code do?? -oemer
             // IPlan planapi = null;
             // planapi.waitFor(100).get();
@@ -142,6 +144,7 @@ public class BatteryModel {
  - ChargingStation.java als Liste in den Agenten, oder eine eigene Klasse, oder als Agent definieren
  - Trike Agent.java: z. 713 Atchargingstation
 */
+    /**
     private void updateChargingProgress() {
         double chargingRate = 0.001;
         while (my_chargestate < 1.0) {
@@ -151,6 +154,30 @@ public class BatteryModel {
             my_chargestate = Math.min(newChargeState, 1.0);
             lastUpdateTime = currentSimTime;
         }
+    }**/
+
+    //new version @Marcel
+    //calculation of delta corrected
+    private void updateChargingProgress() {
+        double chargingRate = 0.001;
+        double currentSimTime = JadexModel.simulationtime;
+        double lastUpdateTime = JadexModel.simulationtime;
+        Double SimTimeDelta;
+        double newChargeState;
+
+        my_chargestate = 1.0;
+        /** while loop prevent JadexModel.simulationtime to update
+        while (my_chargestate < 1.0) {
+            currentSimTime = JadexModel.simulationtime;
+            SimTimeDelta = currentSimTime - lastUpdateTime;
+            if (SimTimeDelta > 0.0){
+                my_chargestate = my_chargestate + chargingRate * SimTimeDelta;
+                lastUpdateTime = currentSimTime;
+            }
+            //mit vergangener zeit arbeiten? nur eien variable ind er schleife neu setzen!
+        }
+        my_chargestate = Math.min(my_chargestate, 1.0);
+         **/
     }
 
 
