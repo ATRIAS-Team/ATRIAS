@@ -1,6 +1,6 @@
 /** AreaAgent
- *  Version: v0.3 (15.12.2023)
- *  changelog: able to send multiple Jobs from its JobList1 and compare with simulationTime
+ *  Version: v0.4 (02.03.2024)
+ *  changelog: cleaned for paper
  *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
@@ -24,6 +24,8 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,24 +90,6 @@ public class AreaAgent {
         IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
         //agent.getId().getName() instead of 0
         agent.setTags(sid, areaAgentId);
-
-        /** example code delete after testing */
-        //Job Job1 = new Job("1", "1", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238654.693529, 5886721.094209), new Location("", 238674.543999, 5901195.908183));
-        //Job Job2 = new Job("2", "2", LocalDateTime.now(), LocalDateTime.now(), new Location("", 238674.543999, 5901195.908183), new Location("", 238654.693529, 5886721.094209));
-        //jobList1.add(Job1);
-        //jobList1.add(Job2);
-
-        // add hardcoded agents for the locatedAgentList like this!
-        LocatedAgent agent0 = new LocatedAgent("0", new Location("", 476721.007399257, 5552121.23354965), JadexModel.simulationtime);
-        LocatedAgent agent1 = new LocatedAgent("1", new Location("", 476699.603883165, 5552266.9952791), JadexModel.simulationtime);
-        LocatedAgent agent2 = new LocatedAgent("2", new Location("", 476180.530359862, 5553046.20781396), JadexModel.simulationtime);
-        LocatedAgent agent3 = new LocatedAgent("3", new Location("", 476149.517423122, 5553174.24700886), JadexModel.simulationtime);
-
-        //locatedAgentList.updateLocatedAgentList(agent0, JadexModel.simulationtime, "register");
-        //locatedAgentList.updateLocatedAgentList(agent1, JadexModel.simulationtime, "register");
-        //locatedAgentList.updateLocatedAgentList(agent2, JadexModel.simulationtime, "register");
-        //locatedAgentList.updateLocatedAgentList(agent3, JadexModel.simulationtime, "register");
-
         System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
         /** ########*/
@@ -188,6 +172,9 @@ public class AreaAgent {
             else{
                 //message creation
                 MessageContent messageContent = new MessageContent("", toHandle.toArrayList());
+                //String timeStampBooked = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.ms").format(new java.util.Date());
+                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+                System.out.println("START Negotiation - JobID: " + toHandle.getID() + " TimeStamp: "+ timeStampBooked);
                 Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
 
                 IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);

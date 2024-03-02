@@ -14,6 +14,9 @@ public class Trip {
     public String tripID;
 
     private Job job;
+
+    public DecisionTask decisionTask;
+
     public String tripType; //charging trip, customer trip, ...
     public LocalDateTime vaTime; // vehicle arriving time
     public Location startPosition; // use this for trips with just one Geolocation
@@ -33,6 +36,16 @@ public class Trip {
 
 
     public Trip(String tripID, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress){
+        this.tripID = tripID;
+        this.tripType = tripType;
+        this.vaTime = vaTime;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.progress = progress;
+    }
+
+    public Trip(DecisionTask decisionTask, String tripID, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress){
+        this.decisionTask = decisionTask;
         this.tripID = tripID;
         this.tripType = tripType;
         this.vaTime = vaTime;
@@ -96,6 +109,10 @@ public class Trip {
     //####################################################################################
 
     //@Marcel musste public machen
+
+    public DecisionTask getDecisionTaskD() {
+        return this.decisionTask;
+    }
     public String getTripID() {
         return this.tripID;
     }

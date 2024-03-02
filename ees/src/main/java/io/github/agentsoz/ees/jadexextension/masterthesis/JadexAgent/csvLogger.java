@@ -39,7 +39,7 @@ public class csvLogger {
         try {
             writer = new FileWriter("LogAgent_" + agentID + ".csv", true);
             writer.append(String.join( ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
-                    "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "Origin") + "\n");
+                    "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "arrivalTime", "Origin") + "\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {
@@ -49,8 +49,6 @@ public class csvLogger {
 
 
     public static void addLog(String agentID, String... row){
-
-
         FileWriter writer = null;
         try {
             writer = new FileWriter("LogAgent_" + agentID + ".csv", true);
@@ -61,6 +59,11 @@ public class csvLogger {
             throw new RuntimeException(e);
         }
     }
+
+
+
+
+
 
 
 
