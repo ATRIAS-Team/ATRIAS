@@ -1,6 +1,6 @@
 /* TrikeAgnet.java
- * Version: v0.11 (02.03.2024)
- * changelog: sync with MATASim CNP, Charging+ Customer Miss working, optimized for paper
+ * Version: v0.12 (03.03.2024)
+ * changelog: terminate tripList
  * @Author Marcel (agent logic), Thu (BDI-ABM sync), Oemer (customer miss)
  *
  *
@@ -170,7 +170,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
-    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476530.26535798033, 5552438.979076344)); //@Ömer add new Charrging Stations here!
+    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33,5553197.70), new Location("", 476172.65,5552839.64),new Location("", 476482.10,5552799.06),new Location("", 476659.13,5553054.12),new Location("", 476787.10,5552696.95),new Location("", 476689.45,5552473.11),new Location("", 476405.41,5552489.17),new Location("", 476100.86,5552372.79));
 
 
 
@@ -193,7 +193,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
         //sendMessage("area:0", "request", "");
 
-
+        //csvLogger csvLogger;// = new csvLogger(agentID);
     }
 
     @Goal(recur=true, recurdelay=1000) //in ms
@@ -828,7 +828,7 @@ public class TrikeAgent implements SendtoMATSIM{
             }
             //###########################################################
             //Distance
-            Double dmax = 3000.0; //todo: @Ömer RICHTIGEN WERT EINTRAGEN!!!!!!!!!!!!!!!
+            Double dmax = 3000.0;
             Double distanceToStart;
 
             if (tripList.size() == 0 && currentTrip.size() == 0) {
@@ -841,7 +841,7 @@ public class TrikeAgent implements SendtoMATSIM{
                 }
             }
             uDistance = Math.max(0, (100-distanceToStart / dmax));
-                    //uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
+            //uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
 
 
             //###########################################################
@@ -859,7 +859,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     //estimates the batteryLevel after all Trips. Calculations a based on aerial line x1.5
     public Double estimateBatteryAfterTIP(){
-    Double batteryChargeAfterTIP = trikeBattery.getMyChargestate();
+        Double batteryChargeAfterTIP = trikeBattery.getMyChargestate();
         Double totalDistance_TIP = 0.0;
         if (currentTrip.size() == 1) { //battery relavant distance driven at currentTrip
             //todo: fortschritt von currenttrip berücksichtigen
@@ -911,7 +911,7 @@ public class TrikeAgent implements SendtoMATSIM{
         batteryChargeAfterTIP = batteryChargeAfterTIP - estEnergyConsumption_TIP;
 
         estimateBatteryAfterTIP.set(0, batteryChargeAfterTIP);
-    return batteryChargeAfterTIP;
+        return batteryChargeAfterTIP;
     }
 
 
@@ -1002,21 +1002,131 @@ public class TrikeAgent implements SendtoMATSIM{
                     SendPerceivetoAdc();
 
                     if (agentID.equals("0")){
+                        agentLocation = new Location("", 476693.70,5553399.74);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("1")){
                         agentLocation = new Location("", 476411.90963429067, 5552419.709277404);
                         sendAreaAgentUpdate("register");
                     }
-
-                    ///**
-                    else if (agentID.equals("1")){
+                    else if (agentID.equals("2")){
                         agentLocation = new Location("", 476593.32115363394, 5553317.19412722);
                         sendAreaAgentUpdate("register");
                     }
-                    else if (agentID.equals("2")){
+                    else if (agentID.equals("3")){
                         agentLocation = new Location("", 476438.79189037136, 5552124.30651799);
                         sendAreaAgentUpdate("register");
                     }
-                    else if (agentID.equals("3")){
+                    else if (agentID.equals("4")){
                         agentLocation = new Location("", 476500.76932398824, 5552798.971484745);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("5")){
+                        agentLocation = new Location("", 476538.9427888916, 5553324.827033389);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("6")){
+                        agentLocation = new Location("", 476619.6161561999, 5552925.794018047);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("7")){
+                        agentLocation = new Location("", 476606.7547, 5552369.86);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("8")){
+                        agentLocation = new Location("", 476072.454, 5552737.847);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("9")){
+                        agentLocation = new Location("", 476183.6117, 5552372.253);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("10")){
+                        agentLocation = new Location("", 476897.6661, 5552908.159);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("11")){
+                        agentLocation = new Location("", 476117.4177, 5552983.103);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("12")){
+                        agentLocation = new Location("", 476206.3887, 5553181.409);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("13")){
+                        agentLocation = new Location("", 476721.5633, 5553163.268);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("14")){
+                        agentLocation = new Location("", 476504.8636, 5553075.586);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("15")){
+                        agentLocation = new Location("", 476006.3971, 5552874.791);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("16")){
+                        agentLocation = new Location("", 476896.9427, 5552809.207);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("17")){
+                        agentLocation = new Location("", 476576.8201, 5552875.558);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("18")){
+                        agentLocation = new Location("", 476659.5715, 5552264.147);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("19")){
+                        agentLocation = new Location("", 476140.0289, 5552869.111);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("20")){
+                        agentLocation = new Location("", 476459.8442, 5552766.704);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("21")){
+                        agentLocation = new Location("", 476076.6989, 5552496.082);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("22")){
+                        agentLocation = new Location("", 475950.8911, 5553012.783);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("23")){
+                        agentLocation = new Location("", 476269.0866, 5553041.63);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("24")){
+                        agentLocation = new Location("", 476574.3644, 5552706.306);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("25")){
+                        agentLocation = new Location("", 476229.5433, 5553032.162);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("26")){
+                        agentLocation = new Location("", 476182.5081, 5552736.953);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("27")){
+                        agentLocation = new Location("", 476718.9972, 5552412.517);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("28")){
+                        agentLocation = new Location("", 476088.6448, 5552928.079);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("29")){
+                        agentLocation = new Location("", 476285.4132, 5552547.373);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("30")){
+                        agentLocation = new Location("", 476257.686, 5553038.9);
+                        sendAreaAgentUpdate("register");
+                    }
+                    else if (agentID.equals("31")){
+                        agentLocation = new Location("", 476276.6184, 5553043.434);
                         sendAreaAgentUpdate("register");
                     }
                     //**/
@@ -1025,6 +1135,7 @@ public class TrikeAgent implements SendtoMATSIM{
                      */
                     //csvLogger csvLogger = new csvLogger(agentID);
                     csvLogger csvLogger = new csvLogger(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR);
+
                 }
         }
     }
@@ -1124,7 +1235,6 @@ public class TrikeAgent implements SendtoMATSIM{
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
             origin = "trike:" + trip.getDecisionTaskD().getOrigin();
         }
-        //csvLogger.addLog(agentID, "trike:" + agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
         csvLogger.addLog(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR, "trike:" + agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
     }
 
@@ -1137,18 +1247,27 @@ public class TrikeAgent implements SendtoMATSIM{
         double metersDriven = Double.parseDouble((String) SimActionList.get(0).getParameters()[1]);
         //double metersDriven = 100.0;
         //Transport ohne Kunde
+        String arrivedAtLocation = "true";
+
         if (CurrentTripUpdate.getProgress().equals("DriveToStart")) {
             updateCurrentTripProgress("AtStartLocation");
             agentLocation = CurrentTripUpdate.getStartPosition();
             String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
             trikeBattery.discharge(metersDriven, 0);
             String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
-            String arrivedAtLocation = "true";
+            //String arrivedAtLocation = "true";
             if (trikeBattery.getMyChargestate() < 0.0){
                 arrivedAtLocation = "false";
+                updateCurrentTripProgress("Failed");
+
             }
             String distance = Double.toString(metersDriven);
             prepareLog(CurrentTripUpdate, batteryBefore, batteryAfter, arrivedAtLocation, distance);
+
+            if (arrivedAtLocation.equals("false")){
+                currentTrip.remove(0);
+                terminateTripList();
+            }
         }
 
 
@@ -1159,13 +1278,20 @@ public class TrikeAgent implements SendtoMATSIM{
             String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
             trikeBattery.discharge(metersDriven, 1);
             String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
-            String arrivedAtLocation = "true";
+            //String arrivedAtLocation = "true";
             if (trikeBattery.getMyChargestate() < 0.0){
                 arrivedAtLocation = "false";
+                updateCurrentTripProgress("Failed");
             }
             String distance = Double.toString(metersDriven);
             prepareLog(CurrentTripUpdate, batteryBefore, batteryAfter, arrivedAtLocation, distance);
+
+            if (arrivedAtLocation.equals("false")){
+                currentTrip.remove(0);
+                terminateTripList();
+            }
         }
+
 
 
         /**
@@ -1175,27 +1301,32 @@ public class TrikeAgent implements SendtoMATSIM{
         sendAreaAgentUpdate("update");
 
 
-        //csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
-
-
-        //csvLogger.logTrip();
-        /**
-
-        csvLogger csvLogger = new csvLogger("file.csv", ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
-                "BatteryBefore", "BatteryAfter", "ArriveAtLocation", "Distance", "Origin");
-        csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
-        csvLogger.addRow("1","2","3", "4", "5","6","7", "8", "9");
-        csvLogger.close();
-        **/
-
-
-
-
-
-
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent
         currentTripStatus();
+    }
+
+    //remove all Trips from tripList and currenTrip and write them with the logger
+    public void terminateTripList(){
+        if (currentTrip.size() > 1){
+            prepareLog(currentTrip.get(0), "0.0", "0.0", "false", "0.0");
+            currentTrip.get(0).setProgress("Failed");
+            currentTrip.remove(0);
+
+
+
+        }
+        if (tripList.size() > 0){
+            while (tripList.size() > 0) {
+                prepareLog(tripList.get(0), "0.0", "0.0", "false", "0.0");
+                tripList.get(0).setProgress("Failed");
+                tripList.remove(0);
+            }
+        }
+        trikeBattery.loadBattery();
+        chargingTripAvailable = "0";
+
+        System.out.println("AgentID: " + agentID + "ALL TRIPS TERMINATED");
     }
 
     public void setResultfromMASIM(String Result) {
@@ -1297,13 +1428,16 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     void currentTripStatus() {
-        System.out.println("\n currentTripStatus:");
-        System.out.println("AgentID: " + agentID + " currentTripID: " + currentTrip.get(0).getTripID());
-        System.out.println("AgentID: " + agentID + " currentTripType: " + currentTrip.get(0).getTripType());
-        System.out.println("AgentID: " + agentID + " currentVaTime: " + currentTrip.get(0).getVATime());
-        System.out.println("AgentID: " + agentID + " currentStartPosition: " + currentTrip.get(0).getStartPosition());
-        System.out.println("AgentID: " + agentID + " currentEndPosition: " +currentTrip.get(0).getEndPosition());
-        System.out.println("AgentID: " + agentID + " currentProgress: " + currentTrip.get(0).getProgress());
+        if (currentTrip.size() > 0){
+            System.out.println("\n currentTripStatus:");
+            System.out.println("AgentID: " + agentID + " currentTripID: " + currentTrip.get(0).getTripID());
+            System.out.println("AgentID: " + agentID + " currentTripType: " + currentTrip.get(0).getTripType());
+            System.out.println("AgentID: " + agentID + " currentVaTime: " + currentTrip.get(0).getVATime());
+            System.out.println("AgentID: " + agentID + " currentStartPosition: " + currentTrip.get(0).getStartPosition());
+            System.out.println("AgentID: " + agentID + " currentEndPosition: " +currentTrip.get(0).getEndPosition());
+            System.out.println("AgentID: " + agentID + " currentProgress: " + currentTrip.get(0).getProgress());
+        }
+
     }
 
     void Status(){
@@ -1379,17 +1513,17 @@ public class TrikeAgent implements SendtoMATSIM{
         return isMissed;
     }
     /** old version
-    public boolean customerMiss(Trip trip) {
-        // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
-        boolean isMissed = false;
-        double vaTimeMilli = trip.getVATime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        double curr = JadexModel.simulationtime;
-        double diff = (vaTimeMilli - (curr * 30000000));
-        if (diff >= 1.6000000E13){
-            return isMissed = true;
-        }
-        return isMissed;
-    }
+     public boolean customerMiss(Trip trip) {
+     // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
+     boolean isMissed = false;
+     double vaTimeMilli = trip.getVATime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+     double curr = JadexModel.simulationtime;
+     double diff = (vaTimeMilli - (curr * 30000000));
+     if (diff >= 1.6000000E13){
+     return isMissed = true;
+     }
+     return isMissed;
+     }
      **/
 
     public boolean customerMissProb(Trip trip) {
@@ -1414,12 +1548,15 @@ public class TrikeAgent implements SendtoMATSIM{
         System.out.println("currentTrip: " + currentTrip.size());
         //TODO: erst erledigtes löschen dann neue ausführen!
         newCurrentTrip();
-        if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
-            updateCurrentTripProgress("Finished");
+        if (currentTrip.size() == 1){
+            if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
+                updateCurrentTripProgress("Finished");
+            }
+            if (currentTrip.get(0).getProgress().equals("Finished") || currentTrip.get(0).getProgress().equals("Failed")) {
+                currentTrip.remove(0); //dodo: check if it does really work or if position.intValue() needed
+            }
         }
-        if (currentTrip.get(0).getProgress().equals("Finished") || currentTrip.get(0).getProgress().equals("Failed")) {
-            currentTrip.remove(0); //dodo: check if it does really work or if position.intValue() needed
-        }
+
         newCurrentTrip(); // creates new current Trip if necessary and possible
         if (currentTrip.size() == 1) { //if there is a currentTrip
             currentTripStatus();
@@ -1627,11 +1764,3 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
 }
-
-
-
-
-
-
-
-
