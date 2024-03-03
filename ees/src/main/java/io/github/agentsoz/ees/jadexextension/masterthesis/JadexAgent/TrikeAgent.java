@@ -193,7 +193,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
         //sendMessage("area:0", "request", "");
 
-        //csvLogger csvLogger;// = new csvLogger(agentID);
+
     }
 
     @Goal(recur=true, recurdelay=1000) //in ms
@@ -1023,7 +1023,8 @@ public class TrikeAgent implements SendtoMATSIM{
                     /**
                      * TODO: @Mariam initiale anmeldung an firebase hier
                      */
-                    csvLogger csvLogger = new csvLogger(agentID);
+                    //csvLogger csvLogger = new csvLogger(agentID);
+                    csvLogger csvLogger = new csvLogger(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR);
                 }
         }
     }
@@ -1123,10 +1124,11 @@ public class TrikeAgent implements SendtoMATSIM{
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
             origin = "trike:" + trip.getDecisionTaskD().getOrigin();
         }
-        csvLogger.addLog(agentID, "trike:" + agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
+        //csvLogger.addLog(agentID, "trike:" + agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
+        csvLogger.addLog(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR);
     }
 
-    
+
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
     //todo: better get the location from MATSim
