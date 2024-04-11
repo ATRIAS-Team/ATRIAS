@@ -6,6 +6,7 @@
  *
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
+
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -42,6 +44,9 @@ import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.router.util.LeastCostPathCalculator;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,22 +54,22 @@ import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
-@Agent(type= BDIAgentFactory.TYPE)
+@Agent(type = BDIAgentFactory.TYPE)
 @ProvidedServices({
-        @ProvidedService(type= IMappingAgentsService.class, implementation=@Implementation(WritingIDService.class)),
-        @ProvidedService(type= INotifyService.class, implementation=@Implementation(TrikeAgentReceiveService.class)),
-        @ProvidedService(type= INotifyService2.class, implementation=@Implementation(TrikeAgentSendService.class)),
-        @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( TrikeAgentService.class)),
+        @ProvidedService(type = IMappingAgentsService.class, implementation = @Implementation(WritingIDService.class)),
+        @ProvidedService(type = INotifyService.class, implementation = @Implementation(TrikeAgentReceiveService.class)),
+        @ProvidedService(type = INotifyService2.class, implementation = @Implementation(TrikeAgentSendService.class)),
+        @ProvidedService(type = IAreaTrikeService.class, implementation = @Implementation(TrikeAgentService.class)),
 })
 @RequiredServices({
-        @RequiredService(name="clockservice", type= IClockService.class),
-        @RequiredService(name ="sendareaagendservice", type = IAreaTrikeService.class),
-        @RequiredService(name="mapservices", type= IMappingAgentsService.class),
-        @RequiredService(name="broadcastingservices", type= INotifyService.class, scope= ServiceScope.PLATFORM),
-        @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
+        @RequiredService(name = "clockservice", type = IClockService.class),
+        @RequiredService(name = "sendareaagendservice", type = IAreaTrikeService.class),
+        @RequiredService(name = "mapservices", type = IMappingAgentsService.class),
+        @RequiredService(name = "broadcastingservices", type = INotifyService.class, scope = ServiceScope.PLATFORM),
+        @RequiredService(name = "notifywhenexecutiondoneservice", type = INotifyService2.class, scope = ServiceScope.PLATFORM),
 })
 
-public class TrikeAgent implements SendtoMATSIM{
+public class TrikeAgent implements SendtoMATSIM {
 
     /**
      * The bdi agent. Automatically injected
@@ -121,7 +126,6 @@ public class TrikeAgent implements SendtoMATSIM{
     public String write = null;
 
 
-
     public Integer chargingTripCounter = 0;
 
     @Belief
@@ -132,13 +136,6 @@ public class TrikeAgent implements SendtoMATSIM{
     public BatteryModel trikeBattery = new BatteryModel();
     @Belief
     public List<Double> estimateBatteryAfterTIP = Arrays.asList(trikeBattery.getMyChargestate());
-
-
-
-
-
-
-
 
 
     /**
@@ -170,8 +167,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
-    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33,5553197.70), new Location("", 476172.65,5552839.64),new Location("", 476482.10,5552799.06),new Location("", 476659.13,5553054.12),new Location("", 476787.10,5552696.95),new Location("", 476689.45,5552473.11),new Location("", 476405.41,5552489.17),new Location("", 476100.86,5552372.79));
-
+    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33, 5553197.70), new Location("", 476172.65, 5552839.64), new Location("", 476482.10, 5552799.06), new Location("", 476659.13, 5553054.12), new Location("", 476787.10, 5552696.95), new Location("", 476689.45, 5552473.11), new Location("", 476405.41, 5552489.17), new Location("", 476100.86, 5552372.79));
 
 
     /**
@@ -196,13 +192,12 @@ public class TrikeAgent implements SendtoMATSIM{
         //csvLogger csvLogger;// = new csvLogger(agentID);
     }
 
-    @Goal(recur=true, recurdelay=1000) //in ms
+    @Goal(recur = true, recurdelay = 1000) //in ms
     class ManageFlutter {
     }
 
-    @Plan(trigger=@Trigger(goals=ManageFlutter.class))
-    private void WriteFlutter()
-    {
+    @Plan(trigger = @Trigger(goals = ManageFlutter.class))
+    private void WriteFlutter() {
         /** TODO: @Mariam look for open questions in the firebase database and write answers into it
          *
          */
@@ -212,14 +207,13 @@ public class TrikeAgent implements SendtoMATSIM{
      * This is just a debug Goal that will print many usefull information every 10s
      * TODO: find a better name
      */
-    @Goal(recur=true, recurdelay=10000)
+    @Goal(recur = true, recurdelay = 10000)
     class TimeTest {
     }
 
-    @Plan(trigger=@Trigger(goals=TimeTest.class))
-    private void TimeTestPrint()
-    {
-        System.out.println("agentID " + agentID +  " simtime" + JadexModel.simulationtime);
+    @Plan(trigger = @Trigger(goals = TimeTest.class))
+    private void TimeTestPrint() {
+        System.out.println("agentID " + agentID + " simtime" + JadexModel.simulationtime);
         Status();
     }
 
@@ -254,11 +248,11 @@ public class TrikeAgent implements SendtoMATSIM{
     @Plan(trigger = @Trigger(goals = MaintainBatteryLoaded.class))
     public void NewChargingTrip() {
         {
-            if (estimateBatteryAfterTIP.get(0) < CHARGING_THRESHOLD && chargingTripAvailable.equals("0")){
+            if (estimateBatteryAfterTIP.get(0) < CHARGING_THRESHOLD && chargingTripAvailable.equals("0")) {
                 //estimateBatteryAfterTIP();
                 //Location LocationCh = new Location("", 476530.26535798033, 5552438.979076344);
                 //Location LocationCh = new Location("", 476224.26535798033, 5552487.979076344);
-                chargingTripCounter+=1;
+                chargingTripCounter += 1;
                 String tripID = "CH";
                 tripID = tripID.concat(Integer.toString(chargingTripCounter));
                 Trip chargingTrip = new Trip(tripID, "ChargingTrip", getNextChargingStation(), "NotStarted");
@@ -269,21 +263,20 @@ public class TrikeAgent implements SendtoMATSIM{
         }
     }
 
-    public Location getNextChargingStation(){
+    public Location getNextChargingStation() {
         //CHARGING_STATION_LIST
         Location ChargingStation = CHARGING_STATION_LIST.get(0); //= new Location("", 476530.26535798033, 5552438.979076344);
         // last trip In pipe endlocation oder agentposition als ausgang nehmen
         Location startPosition;
-        if (tripList.size() == 0 && currentTrip.size() == 0){
+        if (tripList.size() == 0 && currentTrip.size() == 0) {
             startPosition = agentLocation;
-        }
-        else {
+        } else {
             startPosition = getLastTripInPipeline().getEndPosition();
         }
         Double lowestDistance = Double.MAX_VALUE;
-        for (int i=0; i < CHARGING_STATION_LIST.size(); i++){
+        for (int i = 0; i < CHARGING_STATION_LIST.size(); i++) {
             Double compareDistance = Location.distanceBetween(startPosition, CHARGING_STATION_LIST.get(i));
-            if (compareDistance<lowestDistance){
+            if (compareDistance < lowestDistance) {
                 lowestDistance = compareDistance;
                 ChargingStation = CHARGING_STATION_LIST.get(i);
             }
@@ -299,103 +292,52 @@ public class TrikeAgent implements SendtoMATSIM{
      * Will generate Trips from the Jobs sent by the Area Agent
      */
 
-    @Goal(recur=true, recurdelay=1000) //standard = 1000
-    class MaintainManageJobs
-    {
-        @GoalMaintainCondition	// The cleaner aims to maintain the following expression, i.e. act to restore the condition, whenever it changes to false.
-        boolean jobListEmpty()
-        {
-            return decisionTaskList.size()==0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
+    @Goal(recur = true, recurdelay = 1000) //standard = 1000
+    class MaintainManageJobs {
+        @GoalMaintainCondition
+            // The cleaner aims to maintain the following expression, i.e. act to restore the condition, whenever it changes to false.
+        boolean jobListEmpty() {
+            return decisionTaskList.size() == 0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
         }
     }
 
-    @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
-    private void EvaluateDecisionTask()
-    {
-
-        /**
-         * agentID
-         * TODO: @Mariam Trike will commit a Trip here. write into firebase
-         */
-
-        //TODO: zwischenschritte (visio) fehlen utilliy usw.
-        //tripIDList.add("1");
-        //jobList.remove(0);
-        //}
-
-
-
-
-        /**
-         * todo: will replace solution above
-         */
-        if (decisionTaskList.size()>0) {
-            //System.out.println("EvaluateDecisionTask: new Version");
+    @Plan(trigger = @Trigger(goals = MaintainManageJobs.class))
+    private void EvaluateDecisionTask() {
+        if (decisionTaskList.size() > 0) {
             boolean finishedForNow = false;
             while (finishedForNow == false) {
                 Integer changes = 0;
                 for (int i = 0; i < decisionTaskList.size(); i++) {
                     Integer currentChanges = selectNextAction(i);
-
-
-
-                    //progress abgreifen
-                    // funktion aufrufen
-                    //finished decisiontask List anlegen?
-                    //wenn durchlauf ohen Änderungen finishedForNow = true
                     changes += currentChanges;
                 }
-                if(changes==0){
+                if (changes == 0) {
                     finishedForNow = true;
                 }
             }
-
-            /**
-             Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
-             //TODO: create a unique tripID
-             tripList.add(newTrip);
-
-             // TEST MESSAGE DELETE LATER
-             sendTestAreaAgentUpdate();
-             //
-             /**
-             * agentID
-             * TODO: @Mariam Trike will commit a Trip here. write into firebase
-             */
-
-            /**
-
-             //TODO: zwischenschritte (visio) fehlen utilliy usw.
-             tripIDList.add("1");
-             jobList.remove(0);
-             */
-
-
         }
 
     }
 
     public Integer selectNextAction(Integer position) {
         Integer changes = 0;
-        if (decisionTaskList.get(position).getStatus().equals("new")){
+        if (decisionTaskList.get(position).getStatus().equals("new")) {
             /**
              *  Execute Utillity here > "commit"|"delegate"
              */
             Double ownScore = calculateUtility(decisionTaskList.get(position));
             //ownScore = 0.0; //todo: delete this line after the implementation of the cnp
             decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
-            if (ownScore < commitThreshold && CNP_ACTIVE){
+            if (ownScore < commitThreshold && CNP_ACTIVE) {
                 decisionTaskList.get(position).setStatus("delegate");
-            }
-            else{
+            } else {
                 decisionTaskList.get(position).setStatus("commit");
                 String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: "+ timeStampBooked);
+                System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: " + timeStampBooked);
             }
 
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("commit")){
+        } else if (decisionTaskList.get(position).getStatus().equals("commit")) {
             /**
              *  create trip here
              */
@@ -422,8 +364,7 @@ public class TrikeAgent implements SendtoMATSIM{
              * TODO: @Mariam Trike will commit a Trip here. write into firebase
              */
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("delegate")){
+        } else if (decisionTaskList.get(position).getStatus().equals("delegate")) {
             /**
              *  start cnp here > "waitingForNeighbourlist"
              */
@@ -441,14 +382,13 @@ public class TrikeAgent implements SendtoMATSIM{
             //testTrikeToTrikeService();
             //testAskForNeighbours();
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForCFP")){
+        } else if (decisionTaskList.get(position).getStatus().equals("readyForCFP")) {
             /**
              *  send cfp> "waitingForProposals"
              */
             Job JobForCFP = decisionTaskList.get(position).getJob();
             ArrayList<String> neighbourIDs = decisionTaskList.get(position).getNeighbourIDs();
-            for( int i=0; i<neighbourIDs.size(); i++){
+            for (int i = 0; i < neighbourIDs.size(); i++) {
                 //todo: klären message pro nachbar evtl mit user:
                 //todo: action values definieren
                 // values: gesammterJob evtl. bereits in area zu triek so vorhanden?
@@ -459,44 +399,39 @@ public class TrikeAgent implements SendtoMATSIM{
 
             decisionTaskList.get(position).setStatus("waitingForProposals");
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForProposals")){
+        } else if (decisionTaskList.get(position).getStatus().equals("waitingForProposals")) {
             //todo: überprüfen ob bereits alle gebote erhalten
             // falls ja ("readyForDecision")
             //todo:
-            if (decisionTaskList.get(position).testAllProposalsReceived() == true){
+            if (decisionTaskList.get(position).testAllProposalsReceived() == true) {
                 //System.out.println("");
                 decisionTaskList.get(position).setStatus("readyForDecision");
             }
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForDecision")){
+        } else if (decisionTaskList.get(position).getStatus().equals("readyForDecision")) {
             /**
              *  send agree/cancel > "waitingForConfirmations"
              */
             decisionTaskList.get(position).tagBestScore(agentID);
-            for (int i=0; i<decisionTaskList.get(position).getUTScoreList().size(); i++){
+            for (int i = 0; i < decisionTaskList.get(position).getUTScoreList().size(); i++) {
                 String bidderID = decisionTaskList.get(position).getUTScoreList().get(i).getBidderID();
                 String tag = decisionTaskList.get(position).getUTScoreList().get(i).getTag();
-                if(tag.equals("AcceptProposal")){
+                if (tag.equals("AcceptProposal")) {
                     ArrayList<String> values = new ArrayList<>();
                     values.add(decisionTaskList.get(position).getJobID());
                     testTrikeToTrikeService(bidderID, tag, tag, values);
                     decisionTaskList.get(position).setStatus("waitingForConfirmations");
-                }
-                else if(tag.equals("RejectProposal")){
+                } else if (tag.equals("RejectProposal")) {
                     ArrayList<String> values = new ArrayList<>();
                     values.add(decisionTaskList.get(position).getJobID());
                     testTrikeToTrikeService(bidderID, tag, tag, values);
-                }
-                else if(tag.equals("AcceptSelf")){
+                } else if (tag.equals("AcceptSelf")) {
                     //todo: selbst zusagen
                     decisionTaskList.get(position).setStatus("commit");
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                    System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: "+ timeStampBooked);
+                    System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: " + timeStampBooked);
 
 
-                }
-                else{
+                } else {
                     //todo: print ungültiger tag
                     System.out.println(agentID + ": invalid UTScoretag");
                 }
@@ -505,14 +440,12 @@ public class TrikeAgent implements SendtoMATSIM{
             }
             //decisionTaskList.get(position).setStatus("waitingForConfirmations");
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForConfirmation")){
+        } else if (decisionTaskList.get(position).getStatus().equals("readyForConfirmation")) {
             /**
              *  send bid > "commit"
              */
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("proposed")){
+        } else if (decisionTaskList.get(position).getStatus().equals("proposed")) {
             /**
              *  send bid > "waitingForManager"
              */
@@ -531,35 +464,28 @@ public class TrikeAgent implements SendtoMATSIM{
             decisionTaskList.get(position).setStatus("waitingForManager");
 
             changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("notAssigned")){
+        } else if (decisionTaskList.get(position).getStatus().equals("notAssigned")) {
             //todo in erledigt verschieben
             FinishedDecisionTaskList.add(decisionTaskList.get(position));
             decisionTaskList.remove(position.intValue());
 
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForConfirmations")){
+        } else if (decisionTaskList.get(position).getStatus().equals("waitingForConfirmations")) {
             //todo: test timeout here
             // just a temporary solution for the paper
             // workaround for the not workign confirmation
             decisionTaskList.get(position).setStatus("delegated"); //todo: not shure if this is working corect
             FinishedDecisionTaskList.add(decisionTaskList.get(position)); //todo: not shure if this is working corect
             decisionTaskList.remove(position.intValue());//todo: not shure if this is working corect
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForManager")){
+        } else if (decisionTaskList.get(position).getStatus().equals("waitingForManager")) {
             //todo: test timeout here
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("committed")){
+        } else if (decisionTaskList.get(position).getStatus().equals("committed")) {
             System.out.println("should not exist: " + decisionTaskList.get(position).getStatus());
             //decisionTaskList.remove(0);
-        }
-        else {
+        } else {
             //System.out.println("invalid status: " + decisionTaskList.get(position).getStatus());
         }
         return changes;
     }
-
-
 
 
     public Double timeInSeconds(LocalDateTime time) {
@@ -573,30 +499,29 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     //test if there is at least one trip anywhere
-    public Trip getLastTripInPipeline(){
+    public Trip getLastTripInPipeline() {
         Trip lastTrip = null;
-        if (tripList.size()>0){
-            lastTrip = tripList.get(tripList.size()-1);
-        }
-        else if (tripList.size()==0 && currentTrip.size()>0){
-            lastTrip = currentTrip.get(currentTrip.size()-1);
+        if (tripList.size() > 0) {
+            lastTrip = tripList.get(tripList.size() - 1);
+        } else if (tripList.size() == 0 && currentTrip.size() > 0) {
+            lastTrip = currentTrip.get(currentTrip.size() - 1);
 
-        }
-        else{
+        } else {
             System.out.println("ERROR: getLastTripInPipeline() no trips available!");
         }
         return lastTrip;
     }
 
 
-
-    /** Utillity Function
+    /**
+     * Utillity Function
      * should be switchable between a regular and a learning attempt
      * todo: assumption bookingtime = vatime
      * todo: fortschritt von currenttrip berücksichtigen!
+     *
      * @return
      */
-    Double calculateUtility(DecisionTask newTask){
+    Double calculateUtility(DecisionTask newTask) {
         Double utillityScore = 0.0;
 
 
@@ -625,21 +550,18 @@ public class TrikeAgent implements SendtoMATSIM{
                 //agentLocation
                 Double distanceToStart = Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
                 //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double timeToNewTask = ((distanceToStart/1000) / DRIVING_SPEED)*60*60; //in this case equals the delay as vatiem is bookingtime
+                Double timeToNewTask = ((distanceToStart / 1000) / DRIVING_SPEED) * 60 * 60; //in this case equals the delay as vatiem is bookingtime
                 // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
-                if (timeToNewTask<THETA){
+                if (timeToNewTask < THETA) {
                     uPunctuality = 100.0;
-                }
-                else if (THETA<= timeToNewTask && timeToNewTask<=2*THETA){
-                    uPunctuality = 100.0 - ((100.0 * timeToNewTask - THETA)/THETA);
-                }
-                else{
+                } else if (THETA <= timeToNewTask && timeToNewTask <= 2 * THETA) {
+                    uPunctuality = 100.0 - ((100.0 * timeToNewTask - THETA) / THETA);
+                } else {
                     uPunctuality = 0.0;
                 }
 
                 //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, timeToNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
-            }
-            else {
+            } else {
                 Double totalDistance_TIP = 0.0;
                 //todo: get va time of first job here or in an else case
                 if (currentTrip.size() == 1) { //distances driven from the agent location to the start of the current trip and to its end
@@ -670,7 +592,7 @@ public class TrikeAgent implements SendtoMATSIM{
                 }
 
                 // interates through all other Trips inside TripList
-                if (tripList.size() > 1){ //added to avoid crashes
+                if (tripList.size() > 1) { //added to avoid crashes
                     for (int i = 1; i < tripList.size(); i++) {
                         if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
                             totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
@@ -685,34 +607,30 @@ public class TrikeAgent implements SendtoMATSIM{
                 //todo: drives to the start of the job that has to be evaluated
                 if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
                     totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-                }
-                else {
+                } else {
                     totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                 }
 
 
                 Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double timeToNewTask = ((totalDistance_TIP/1000) / DRIVING_SPEED)*60*60;
+                Double timeToNewTask = ((totalDistance_TIP / 1000) / DRIVING_SPEED) * 60 * 60;
                 Double arrivalAtNewtask = vaTimeFirstTrip + timeToNewTask;
 
                 Double delayArrvialNewTask = Math.max((arrivalAtNewtask - vATimeNewTask), timeToNewTask);
-                System.out.println("vATimeNewTask: " + vATimeNewTask );
-                System.out.println("timeToNewTask: " + timeToNewTask );
-                System.out.println("arrivalAtNewtask: " + arrivalAtNewtask );
-                System.out.println("delayArrvialNewTask: " + delayArrvialNewTask );
+                System.out.println("vATimeNewTask: " + vATimeNewTask);
+                System.out.println("timeToNewTask: " + timeToNewTask);
+                System.out.println("arrivalAtNewtask: " + arrivalAtNewtask);
+                System.out.println("delayArrvialNewTask: " + delayArrvialNewTask);
 
-                if (delayArrvialNewTask<THETA){
+                if (delayArrvialNewTask < THETA) {
                     uPunctuality = 100.0;
-                }
-                else if (THETA<= delayArrvialNewTask && delayArrvialNewTask <=2*THETA){
-                    uPunctuality = 100.0 - ((100.0 * delayArrvialNewTask - THETA)/THETA);
-                }
-                else{
+                } else if (THETA <= delayArrvialNewTask && delayArrvialNewTask <= 2 * THETA) {
+                    uPunctuality = 100.0 - ((100.0 * delayArrvialNewTask - THETA) / THETA);
+                } else {
                     uPunctuality = 0.0;
                 }
 
                 //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, delayArrvialNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
-
 
 
             }
@@ -771,7 +689,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
                 //todo: fahrt zum nächjsten start fehlt +-1 bei i???
                 // interates through all other Trips inside TripList
-                if (tripList.size() > 1){ //added to avoid crashes
+                if (tripList.size() > 1) { //added to avoid crashes
                     for (int i = 1; i < tripList.size(); i++) {
                         if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
                             totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
@@ -792,15 +710,14 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
             //Distance from the agent location
-            if (currentTrip.size() == 0 && tripList.size() == 0){
+            if (currentTrip.size() == 0 && tripList.size() == 0) {
                 estDistance += Location.distanceBetween(agentLocation, newTask.getStartPositionFromJob());
             }
             //Distance from the Last Trip in Pipe
-            else{
-                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")){
+            else {
+                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
                     estDistance += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-                }
-                else{
+                } else {
                     estDistance += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                 }
             }
@@ -841,7 +758,7 @@ public class TrikeAgent implements SendtoMATSIM{
                     distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                 }
             }
-            uDistance = Math.max(0, (100-distanceToStart / dmax));
+            uDistance = Math.max(0, (100 - distanceToStart / dmax));
             //uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
 
 
@@ -857,9 +774,8 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
 
-
     //estimates the batteryLevel after all Trips. Calculations a based on aerial line x1.5
-    public Double estimateBatteryAfterTIP(){
+    public Double estimateBatteryAfterTIP() {
         Double batteryChargeAfterTIP = trikeBattery.getMyChargestate();
         Double totalDistance_TIP = 0.0;
         if (currentTrip.size() == 1) { //battery relavant distance driven at currentTrip
@@ -895,7 +811,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
             //todo: fahrt zum nächjsten start fehlt +-1 bei i???
             // interates through all other Trips inside TripList
-            if (tripList.size() > 1){ //added to avoid crashes
+            if (tripList.size() > 1) { //added to avoid crashes
                 for (int i = 1; i < tripList.size(); i++) {
                     if (tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
                         totalDistance_TIP += Location.distanceBetween(tripList.get(i - 1).getEndPosition(), tripList.get(i).getStartPosition()); //triplist or currenttrip
@@ -917,11 +833,10 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
     /**
-     *  MaintainTripService former SendDrivetoTooutAdc
-     *
-     *  desired behavior:
-     *  start: when new trip is generated
-
+     * MaintainTripService former SendDrivetoTooutAdc
+     * <p>
+     * desired behavior:
+     * start: when new trip is generated
      */
 
     @Goal(recur = true, recurdelay = 300)
@@ -942,9 +857,9 @@ public class TrikeAgent implements SendtoMATSIM{
     ///**
     @Plan(trigger = @Trigger(goalfinisheds = MaintainTripService.class))
     public void DoNextTrip() {
-        System.out.println( "New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
-        if (activestatus == true){
-            if(currentTrip.size() == 0){
+        System.out.println("New trip is added to agent " + agentID + " : Trip " + tripIDList.get(tripIDList.size() - 1));
+        if (activestatus == true) {
+            if (currentTrip.size() == 0) {
                 ExecuteTrips();
                 activestatus = false;
             }
@@ -954,7 +869,6 @@ public class TrikeAgent implements SendtoMATSIM{
             // updateAtInputBroker();
         }
     }
-
 
 
     //#######################################################################
@@ -969,8 +883,7 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     @Plan(trigger = @Trigger(goals = ReactoAgentIDAdded.class))
-    private void ReacttoAgentIDAdded()
-    {
+    private void ReacttoAgentIDAdded() {
         if (agentID != null) // only react if the agentID exists
         {
             if (SimIDMapper.NumberSimInputAssignedID.size() == JadexModel.SimSensoryInputBrokernumber) // to make sure all SimInputBroker also receives its ID so vehicle agent could choose one SimInputBroker ID to register
@@ -995,138 +908,107 @@ public class TrikeAgent implements SendtoMATSIM{
                     for (INotifyService2 cs : service) {
                         cs.NotifyotherAgent(agentID); // write the agentID into the list of the SimSensoryInputBroker that it chose before
                     }
-                    System.out.println("agent "+ this.agentID +"  registers at " + currentSimInputBroker);
+                    System.out.println("agent " + this.agentID + "  registers at " + currentSimInputBroker);
                     // Notify TripRequestControlAgent and JADEXModel
-                    TrikeMain.TrikeAgentNumber = TrikeMain.TrikeAgentNumber+1;
+                    TrikeMain.TrikeAgentNumber = TrikeMain.TrikeAgentNumber + 1;
                     JadexModel.flagMessage2();
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
                     SendPerceivetoAdc();
 
-                    if (agentID.equals("0")){
-                        agentLocation = new Location("", 476693.70,5553399.74);
+                    if (agentID.equals("0")) {
+                        agentLocation = new Location("", 476693.70, 5553399.74);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("1")){
+                    } else if (agentID.equals("1")) {
                         agentLocation = new Location("", 476411.90963429067, 5552419.709277404);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("2")){
+                    } else if (agentID.equals("2")) {
                         agentLocation = new Location("", 476593.32115363394, 5553317.19412722);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("3")){
+                    } else if (agentID.equals("3")) {
                         agentLocation = new Location("", 476438.79189037136, 5552124.30651799);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("4")){
+                    } else if (agentID.equals("4")) {
                         agentLocation = new Location("", 476500.76932398824, 5552798.971484745);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("5")){
+                    } else if (agentID.equals("5")) {
                         agentLocation = new Location("", 476538.9427888916, 5553324.827033389);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("6")){
+                    } else if (agentID.equals("6")) {
                         agentLocation = new Location("", 476619.6161561999, 5552925.794018047);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("7")){
+                    } else if (agentID.equals("7")) {
                         agentLocation = new Location("", 476606.7547, 5552369.86);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("8")){
+                    } else if (agentID.equals("8")) {
                         agentLocation = new Location("", 476072.454, 5552737.847);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("9")){
+                    } else if (agentID.equals("9")) {
                         agentLocation = new Location("", 476183.6117, 5552372.253);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("10")){
+                    } else if (agentID.equals("10")) {
                         agentLocation = new Location("", 476897.6661, 5552908.159);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("11")){
+                    } else if (agentID.equals("11")) {
                         agentLocation = new Location("", 476117.4177, 5552983.103);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("12")){
+                    } else if (agentID.equals("12")) {
                         agentLocation = new Location("", 476206.3887, 5553181.409);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("13")){
+                    } else if (agentID.equals("13")) {
                         agentLocation = new Location("", 476721.5633, 5553163.268);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("14")){
+                    } else if (agentID.equals("14")) {
                         agentLocation = new Location("", 476504.8636, 5553075.586);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("15")){
+                    } else if (agentID.equals("15")) {
                         agentLocation = new Location("", 476006.3971, 5552874.791);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("16")){
+                    } else if (agentID.equals("16")) {
                         agentLocation = new Location("", 476896.9427, 5552809.207);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("17")){
+                    } else if (agentID.equals("17")) {
                         agentLocation = new Location("", 476576.8201, 5552875.558);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("18")){
+                    } else if (agentID.equals("18")) {
                         agentLocation = new Location("", 476659.5715, 5552264.147);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("19")){
+                    } else if (agentID.equals("19")) {
                         agentLocation = new Location("", 476140.0289, 5552869.111);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("20")){
+                    } else if (agentID.equals("20")) {
                         agentLocation = new Location("", 476459.8442, 5552766.704);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("21")){
+                    } else if (agentID.equals("21")) {
                         agentLocation = new Location("", 476076.6989, 5552496.082);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("22")){
+                    } else if (agentID.equals("22")) {
                         agentLocation = new Location("", 475950.8911, 5553012.783);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("23")){
+                    } else if (agentID.equals("23")) {
                         agentLocation = new Location("", 476269.0866, 5553041.63);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("24")){
+                    } else if (agentID.equals("24")) {
                         agentLocation = new Location("", 476574.3644, 5552706.306);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("25")){
+                    } else if (agentID.equals("25")) {
                         agentLocation = new Location("", 476229.5433, 5553032.162);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("26")){
+                    } else if (agentID.equals("26")) {
                         agentLocation = new Location("", 476182.5081, 5552736.953);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("27")){
+                    } else if (agentID.equals("27")) {
                         agentLocation = new Location("", 476718.9972, 5552412.517);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("28")){
+                    } else if (agentID.equals("28")) {
                         agentLocation = new Location("", 476088.6448, 5552928.079);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("29")){
+                    } else if (agentID.equals("29")) {
                         agentLocation = new Location("", 476285.4132, 5552547.373);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("30")){
+                    } else if (agentID.equals("30")) {
                         agentLocation = new Location("", 476257.686, 5553038.9);
                         sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("31")){
+                    } else if (agentID.equals("31")) {
                         agentLocation = new Location("", 476276.6184, 5553043.434);
                         sendAreaAgentUpdate("register");
                     }
@@ -1146,23 +1028,23 @@ public class TrikeAgent implements SendtoMATSIM{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 
-    @Goal(recur = true,recurdelay = 300)
+    @Goal(recur = true, recurdelay = 300)
     class PerformSIMReceive {
         // Goal should be triggered when the simPerceptList or simActionList are triggered
         @GoalCreationCondition(beliefs = "resultfromMATSIM") //
         public PerformSIMReceive() {
         }
+
         @GoalTargetCondition
-        boolean	PerceptorContentnotEmpty()
-        {
-            return ( !(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty())|| (!(SimPerceptList.isEmpty()) && !(SimActionList.isEmpty())));
+        boolean PerceptorContentnotEmpty() {
+            return (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()) || (!(SimPerceptList.isEmpty()) && !(SimActionList.isEmpty())));
         }
     }
 
     @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
     public void SensoryUpdate() {
         if (resultfromMATSIM.contains("true")) {
-            System.out.println(agentID +" receives information from MATSIM");
+            System.out.println(agentID + " receives information from MATSIM");
             //optional loop to print the SimActionList and the SimPerceptList
             //for (ActionContent actionContent : SimActionList) {
             //System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
@@ -1177,7 +1059,8 @@ public class TrikeAgent implements SendtoMATSIM{
         currentTripStatus();
         //updateBeliefAfterAction();
         if (informSimInput == false) //make sure it only sent once per iteration
-        {   informSimInput = true;
+        {
+            informSimInput = true;
             if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
                 for (ActionContent actionContent : SimActionList) {
                     if (actionContent.getAction_type().equals("drive_to")) {
@@ -1210,7 +1093,7 @@ public class TrikeAgent implements SendtoMATSIM{
     /**
      * for the sny of the cycle
      */
-    void updateAtInputBroker(){
+    void updateAtInputBroker() {
         ServiceQuery<INotifyService2> query = new ServiceQuery<>(INotifyService2.class);
         query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
         query.setServiceTags("" + currentSimInputBroker);
@@ -1223,22 +1106,21 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
 
-    void prepareLog(Trip trip, String batteryBefore, String batteryAfter, String arrivedAtLocation, String distance){
+    void prepareLog(Trip trip, String batteryBefore, String batteryAfter, String arrivedAtLocation, String distance) {
         String tripID = trip.getTripID();
         String tripType = trip.getTripType();
         String driveOperationNumber = "1";
         String origin = "";
-        if (trip.getProgress().equals("AtEndLocation")){
+        if (trip.getProgress().equals("AtEndLocation")) {
             driveOperationNumber = "2";
         }
         String arrivalTime = "0.0"; //when it was not a CustomerTrip
-        if (trip.getTripType().equals("CustomerTrip")){
+        if (trip.getTripType().equals("CustomerTrip")) {
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
             origin = "trike:" + trip.getDecisionTaskD().getOrigin();
         }
         csvLogger.addLog(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR, "trike:" + agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
     }
-
 
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
@@ -1257,7 +1139,7 @@ public class TrikeAgent implements SendtoMATSIM{
             trikeBattery.discharge(metersDriven, 0);
             String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
             //String arrivedAtLocation = "true";
-            if (trikeBattery.getMyChargestate() < 0.0){
+            if (trikeBattery.getMyChargestate() < 0.0) {
                 arrivedAtLocation = "false";
                 updateCurrentTripProgress("Failed");
 
@@ -1265,7 +1147,7 @@ public class TrikeAgent implements SendtoMATSIM{
             String distance = Double.toString(metersDriven);
             prepareLog(CurrentTripUpdate, batteryBefore, batteryAfter, arrivedAtLocation, distance);
 
-            if (arrivedAtLocation.equals("false")){
+            if (arrivedAtLocation.equals("false")) {
                 currentTrip.remove(0);
                 terminateTripList();
             }
@@ -1273,26 +1155,25 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
         //Transport mit Kunde
-        if (CurrentTripUpdate.getProgress().equals("DriveToEnd")){
+        if (CurrentTripUpdate.getProgress().equals("DriveToEnd")) {
             updateCurrentTripProgress("AtEndLocation");
             agentLocation = CurrentTripUpdate.getEndPosition();
             String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
             trikeBattery.discharge(metersDriven, 1);
             String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
             //String arrivedAtLocation = "true";
-            if (trikeBattery.getMyChargestate() < 0.0){
+            if (trikeBattery.getMyChargestate() < 0.0) {
                 arrivedAtLocation = "false";
                 updateCurrentTripProgress("Failed");
             }
             String distance = Double.toString(metersDriven);
             prepareLog(CurrentTripUpdate, batteryBefore, batteryAfter, arrivedAtLocation, distance);
 
-            if (arrivedAtLocation.equals("false")){
+            if (arrivedAtLocation.equals("false")) {
                 currentTrip.remove(0);
                 terminateTripList();
             }
         }
-
 
 
         /**
@@ -1308,16 +1189,15 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     //remove all Trips from tripList and currenTrip and write them with the logger
-    public void terminateTripList(){
-        if (currentTrip.size() > 1){
+    public void terminateTripList() {
+        if (currentTrip.size() > 1) {
             prepareLog(currentTrip.get(0), "0.0", "0.0", "false", "0.0");
             currentTrip.get(0).setProgress("Failed");
             currentTrip.remove(0);
 
 
-
         }
-        if (tripList.size() > 0){
+        if (tripList.size() > 0) {
             while (tripList.size() > 0) {
                 prepareLog(tripList.get(0), "0.0", "0.0", "false", "0.0");
                 tripList.get(0).setProgress("Failed");
@@ -1334,29 +1214,24 @@ public class TrikeAgent implements SendtoMATSIM{
         this.resultfromMATSIM = Result;
     }
 
-    public void AddAgentNametoAgentList()
-    {
+    public void AddAgentNametoAgentList() {
         SimIDMapper.TrikeAgentNameList.add(agent.getId().getName());
     }
 
-    public void AddTriptoTripList(Trip Trip)
-    {
+    public void AddTriptoTripList(Trip Trip) {
         tripList.add(Trip);
     }
 
-    public void AddTripIDTripList(String ID)
-    {
+    public void AddTripIDTripList(String ID) {
         tripIDList.add(ID);
     }
 
     //todo: remove for AddDecisionTask
-    public void AddJobToJobList(Job Job)
-    {
+    public void AddJobToJobList(Job Job) {
         jobList.add(Job);
     }
 
-    public void AddDecisionTask(DecisionTask decisionTask)
-    {
+    public void AddDecisionTask(DecisionTask decisionTask) {
         decisionTaskList.add(decisionTask);
     }
 
@@ -1405,9 +1280,9 @@ public class TrikeAgent implements SendtoMATSIM{
     //Methods uses for sending trip info to data container
     //#######################################################################
 
-    void newCurrentTrip(){
+    void newCurrentTrip() {
         System.out.println("Test if new currentTrip can be created");
-        if(currentTrip.size()==0 && tripList.size()>0 ){
+        if (currentTrip.size() == 0 && tripList.size() > 0) {
             System.out.println("no currentTrip available");
             System.out.println("getting nextTrip from TripList");
             currentTrip.add(tripList.get(0));
@@ -1417,7 +1292,8 @@ public class TrikeAgent implements SendtoMATSIM{
         }
     }
 
-    /** Updates the progress of the CurrentTrip
+    /**
+     * Updates the progress of the CurrentTrip
      *
      * @param newProgress
      */
@@ -1429,19 +1305,19 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     void currentTripStatus() {
-        if (currentTrip.size() > 0){
+        if (currentTrip.size() > 0) {
             System.out.println("\n currentTripStatus:");
             System.out.println("AgentID: " + agentID + " currentTripID: " + currentTrip.get(0).getTripID());
             System.out.println("AgentID: " + agentID + " currentTripType: " + currentTrip.get(0).getTripType());
             System.out.println("AgentID: " + agentID + " currentVaTime: " + currentTrip.get(0).getVATime());
             System.out.println("AgentID: " + agentID + " currentStartPosition: " + currentTrip.get(0).getStartPosition());
-            System.out.println("AgentID: " + agentID + " currentEndPosition: " +currentTrip.get(0).getEndPosition());
+            System.out.println("AgentID: " + agentID + " currentEndPosition: " + currentTrip.get(0).getEndPosition());
             System.out.println("AgentID: " + agentID + " currentProgress: " + currentTrip.get(0).getProgress());
         }
 
     }
 
-    void Status(){
+    void Status() {
         //if (agentID.equals("0")){
         System.out.println("AgentID: " + agentID + " activestatus: " + activestatus);
         System.out.println("AgentID: " + agentID + " currentTrip.size: " + currentTrip.size());
@@ -1452,7 +1328,7 @@ public class TrikeAgent implements SendtoMATSIM{
         //for (ActionContent actionContent : SimActionList) {
         //System.out.println("AgentID: " + agentID + " actionType: "+ actionContent.getAction_type() + " actionState: " + actionContent.getState());
         //}
-        for (int i=0; i<decisionTaskList.size(); i++){
+        for (int i = 0; i < decisionTaskList.size(); i++) {
             System.out.println("AgentID: " + agentID + " decisionTaskList status: " + decisionTaskList.get(i).getStatus());
         }
 
@@ -1473,9 +1349,7 @@ public class TrikeAgent implements SendtoMATSIM{
     // 2. option: if delta > 10 probability higher that it is missed
 
 
-
-
-    public Double ArrivalTime(LocalDateTime vATime){
+    public Double ArrivalTime(LocalDateTime vATime) {
         long offset = (vATime
                 .withHour(0)
                 .withMinute(0)
@@ -1485,11 +1359,12 @@ public class TrikeAgent implements SendtoMATSIM{
 
         long vaTimeMilli = vATime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         double curr = (JadexModel.simulationtime) * 1000;
-        double diff = (curr - (vaTimeMilli - offset))/1000 ; //in seconds
+        double diff = (curr - (vaTimeMilli - offset)) / 1000; //in seconds
         //Double arrivalTime;
         return diff;
-    };
+    }
 
+    ;
 
 
     public boolean customerMiss(Trip trip) {
@@ -1501,30 +1376,31 @@ public class TrikeAgent implements SendtoMATSIM{
                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 
 
-
         // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
         boolean isMissed = false;
         long vaTimeMilli = trip.getVATime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         //Double vaTimeSec = timeInSeconds(currentTrip.get(0).getVATime());
         double curr = (JadexModel.simulationtime) * 1000;
-        double diff = curr - (vaTimeMilli - offset) ;
-        if (diff > (THETA*1000) && ALLOW_CUSTOMER_MISS){
+        double diff = curr - (vaTimeMilli - offset);
+        if (diff > (THETA * 1000) && ALLOW_CUSTOMER_MISS) {
             return isMissed = true;
         }
         return isMissed;
     }
-    /** old version
-     public boolean customerMiss(Trip trip) {
-     // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
-     boolean isMissed = false;
-     double vaTimeMilli = trip.getVATime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-     double curr = JadexModel.simulationtime;
-     double diff = (vaTimeMilli - (curr * 30000000));
-     if (diff >= 1.6000000E13){
-     return isMissed = true;
-     }
-     return isMissed;
-     }
+
+    /**
+     * old version
+     * public boolean customerMiss(Trip trip) {
+     * // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
+     * boolean isMissed = false;
+     * double vaTimeMilli = trip.getVATime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+     * double curr = JadexModel.simulationtime;
+     * double diff = (vaTimeMilli - (curr * 30000000));
+     * if (diff >= 1.6000000E13){
+     * return isMissed = true;
+     * }
+     * return isMissed;
+     * }
      **/
 
     public boolean customerMissProb(Trip trip) {
@@ -1541,15 +1417,15 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     /**
-     *  handles the progress of the current Trip
+     * handles the progress of the current Trip
      */
     public void ExecuteTrips() {
         System.out.println("DoNextTrip running");
-        System.out.println("tripList of agent" +agentID+ " :"+ tripList.size());
+        System.out.println("tripList of agent" + agentID + " :" + tripList.size());
         System.out.println("currentTrip: " + currentTrip.size());
         //TODO: erst erledigtes löschen dann neue ausführen!
         newCurrentTrip();
-        if (currentTrip.size() == 1){
+        if (currentTrip.size() == 1) {
             if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
                 updateCurrentTripProgress("Finished");
             }
@@ -1566,11 +1442,9 @@ public class TrikeAgent implements SendtoMATSIM{
             if (currentTrip.get(0).getProgress().equals("NotStarted")) {
                 sendDriveTotoAdc();
                 updateCurrentTripProgress("DriveToStart");
-            }
-            else if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
+            } else if (currentTrip.get(0).getProgress().equals("AtEndLocation")) {
                 updateCurrentTripProgress("Finished");
-            }
-            else if (currentTrip.get(0).getProgress().equals("AtStartLocation")) {
+            } else if (currentTrip.get(0).getProgress().equals("AtStartLocation")) {
                 // manage CustomerTrips that are AtStartLocation
                 //TODO: @oemer add case for charging trip and execute charge operation
                 //added -oemer
@@ -1614,18 +1488,15 @@ public class TrikeAgent implements SendtoMATSIM{
         estimateBatteryAfterTIP();
     }
 
-    public void sendDriveTotoAdc()
-    {
+    public void sendDriveTotoAdc() {
         Object[] Endparams = new Object[7];
         // needs to get seperate parameter for different types of trip
-        if (currentTrip.get(0).getProgress().equals("NotStarted"))
-        {
+        if (currentTrip.get(0).getProgress().equals("NotStarted")) {
             Endparams[0] = Constants.DRIVETO;
             Endparams[1] = currentTrip.get(0).getStartPosition().getCoordinates();
 
         }
-        if (currentTrip.get(0).getProgress().equals("AtStartLocation"))
-        {
+        if (currentTrip.get(0).getProgress().equals("AtStartLocation")) {
             Endparams[0] = Constants.DRIVETO;
             Endparams[1] = currentTrip.get(0).getEndPosition().getCoordinates();
         }
@@ -1657,32 +1528,41 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public double getDrivingDistanceTo(Location location) throws AgentNotFoundException { // EUclician Distanz
         double dist =
-                (double)SimActuator.getQueryPerceptInterface().queryPercept(
+                (double) SimActuator.getQueryPerceptInterface().queryPercept(
                         String.valueOf(agentID),
                         Constants.REQUEST_DRIVING_DISTANCE_TO,
                         location.getCoordinates());
         return dist;
     }
 
-    public  Location getCurrentLocation() throws AgentNotFoundException {
-        Location CurrentLocation = (Location) SimActuator.getQueryPerceptInterface()
+    public Location[] getCurrentLocation() throws AgentNotFoundException {
+        Location[] currentLocation = (Location[]) SimActuator.getQueryPerceptInterface()
                 .queryPercept(
                         String.valueOf(agentID),
                         Constants.REQUEST_LOCATION,
                         null);
 
-        return CurrentLocation;
+        return currentLocation;
     }
+
+    LeastCostPathCalculator.Path getDrivingDistancePathTo(Location location) throws AgentNotFoundException {
+        LeastCostPathCalculator.Path path = (LeastCostPathCalculator.Path) SimActuator.getQueryPerceptInterface().queryPercept(
+                String.valueOf(agentID),
+                Constants.REQUEST_DRIVING_PATH_TO,
+                location.getCoordinates());
+        return path;
+    }
+
     ///////////////////////////////////////////////////////
     //  updates locatedagentlist of the area agent
 
 
     //  example of trike to trike communication
-    void sendMessageToTrike(String receiverID, String comAct, String action, ArrayList<String> values){
+    void sendMessageToTrike(String receiverID, String comAct, String action, ArrayList<String> values) {
         //message creation
         //ArrayList<String> values = new ArrayList<>();
         MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message("1", ""+agentID, receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        Message testMessage = new Message("1", "" + agentID, receiverID, comAct, JadexModel.simulationtime, messageContent);
         IAreaTrikeService service = messageToService(agent, testMessage);
 
         //calls trikeMessage methods of TrikeAgentService class
@@ -1691,11 +1571,11 @@ public class TrikeAgent implements SendtoMATSIM{
 
 
     //  example of trike to trike communic ation
-    public void testTrikeToTrikeService(String receiverID, String comAct, String action, ArrayList<String> values){
+    public void testTrikeToTrikeService(String receiverID, String comAct, String action, ArrayList<String> values) {
         //message creation
         //ArrayList<String> values = new ArrayList<>();
         MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message("1", agentID,""+receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        Message testMessage = new Message("1", agentID, "" + receiverID, comAct, JadexModel.simulationtime, messageContent);
         IAreaTrikeService service = messageToService(agent, testMessage);
 
         //calls trikeMessage methods of TrikeAgentService class
@@ -1703,13 +1583,13 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     //
-    public void sendMessage(String receiverID, String comAct, String action, ArrayList<String> values){
+    public void sendMessage(String receiverID, String comAct, String action, ArrayList<String> values) {
         //todo adapt for multiple area agents
         //todo use unique ids
         //message creation
 
         MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message("1", ""+agentID, receiverID, comAct, JadexModel.simulationtime,  messageContent);
+        Message testMessage = new Message("1", "" + agentID, receiverID, comAct, JadexModel.simulationtime, messageContent);
         IAreaTrikeService service = messageToService(agent, testMessage);
 
         //calls trikeMessage methods of TrikeAgentService class
@@ -1718,7 +1598,7 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
 
-    void sendAreaAgentUpdate(String action){
+    void sendAreaAgentUpdate(String action) {
         //message creation
         //todo: decide if register or update here
         ArrayList<String> values = new ArrayList<>();
@@ -1726,7 +1606,7 @@ public class TrikeAgent implements SendtoMATSIM{
         values.add(Double.toString(agentLocation.getX()));
         values.add(Double.toString(agentLocation.getY()));
         MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message("0", agentID,"area:0", "inform", JadexModel.simulationtime,  messageContent);
+        Message testMessage = new Message("0", agentID, "area:0", "inform", JadexModel.simulationtime, messageContent);
 
         //query assigning
         IAreaTrikeService service = messageToService(agent, testMessage);
@@ -1735,7 +1615,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     }
 
-    public void test(){
+    public void test() {
         ArrayList<String> values = new ArrayList<>();
         sendMessage("area:0", "request", "callForNeighbours", values);
         //sendMessage("area:0", "inform", "update");
@@ -1743,26 +1623,26 @@ public class TrikeAgent implements SendtoMATSIM{
     }
 
     //  if isModified=true, then testTrikeToTrikeService worked properly
-    public void testModify(){
+    public void testModify() {
         isModified = true;
         System.out.println("isModified: " + isModified);
 
     }
+
     //Battery -oemer
     public void setMyLocation(Location location) {
     }
 
-    public boolean isDaytime()
-    {
+    public boolean isDaytime() {
         return this.daytime;
     }
 
     /**
      * Set the daytime of this Vision.
+     *
      * @param daytime the value to be set
      */
-    public void setDaytime(boolean daytime)
-    {
+    public void setDaytime(boolean daytime) {
         this.daytime = daytime;
 
     }
