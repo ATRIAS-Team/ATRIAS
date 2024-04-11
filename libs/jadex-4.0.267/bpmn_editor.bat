@@ -1,0 +1,1 @@
+java -cp apps\jadex-editor-bpmn-4.0.267.jar jadex.bpmn.editor.BpmnEditor

@@ -55,7 +55,7 @@ public class Run implements DataClient {
     private DiffusionModel diffusionModel = null;
 
     //  Defaults
-    private int optTimestep = 1; // in seconds
+    private int optTimestep = 10; // in seconds
 
 
     public static void main(String[] args) {

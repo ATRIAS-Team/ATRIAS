@@ -159,6 +159,18 @@
       <artifactId>gt-epsg-hsql</artifactId>
       <version>20.5</version>
     </dependency>
+      <dependency>
+          <groupId>io.github.agentsoz</groupId>
+          <artifactId>bdi-abm</artifactId>
+          <version>3.0.1-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
+    <dependency>
+      <groupId>io.github.agentsoz</groupId>
+      <artifactId>bdi-abm</artifactId>
+      <version>3.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 
