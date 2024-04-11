@@ -58,7 +58,7 @@ import java.util.*;
  * #%L
  * BDI-ABM Integration Package
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -360,8 +360,8 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 								// blockage may happen between there and arriving at the node ...  kai, dec'17
 
 							}
-//							log.debug( "time=" + MATSimModel.this.getTime() + ";\t fromLink=" + currentLink.getId() +
-//										     ";\ttoLink=" + nextLinkId + ";\tanswer=" + accept.name() );
+							//log.debug( "time=" + MATSimModel.this.getTime() + ";\t fromLink=" + currentLink.getId() +
+							//			     ";\ttoLink=" + nextLinkId + ";\tanswer=" + accept.name() );
 							return accept;
 						}
 					} );
