@@ -17,6 +17,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -45,6 +46,7 @@ import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleUtils;
 import org.matsim.withinday.mobsim.MobsimDataProvider;
 import org.matsim.withinday.utils.EditPlans;
 import org.slf4j.Logger;
@@ -142,18 +144,14 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 	private Controler controller;
 
 	public MATSimModel(Map<String, String> opts, DataServer dataServer) {
-		this( new String [] {
-				opts.get( eConfigFile ) ,
-							  MATSIM_OUTPUT_DIRECTORY_CONFIG_INDICATOR , opts.get( eOutputDir) ,
-							  eGlobalStartHhMm , opts.get( eGlobalStartHhMm )
-		} ) ;
+		this(new String[]{
+				opts.get(eConfigFile),
+				MATSIM_OUTPUT_DIRECTORY_CONFIG_INDICATOR,
+				opts.get(eOutputDir),
+				eGlobalStartHhMm,
+				opts.get(eGlobalStartHhMm)
+		});
 
-		// yyyy this is so far NOT the same as what is was originally, see below, since the code below
-		// could pass "null" which the new code cannot.  (However, the "null" was not really handled
-		// correctly in the receiving code so it needs to be repaired ...).  kai, nov'18
-		
-//		this(opts.get(eConfigFile), opts.get(eOutputDir), opts.get(eGlobalStartHhMm));
-		
 		registerDataServer(dataServer);
 
 		if (opts == null) {
@@ -597,12 +595,27 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 		return this.qSim.getSimTimer().getTimeOfDay() ;
 	}
 
-	@Override public Object queryPercept(String agentID, String perceptID, Object args) throws AgentNotFoundException {
+	@Override public Object queryPercept(String agentID, String perceptID, Object args) throws AgentNotFoundException, NullPointerException {
 		log.debug("received query from agent {} for percept {} with args {}", agentID, perceptID, args);
 		MobsimAgent mobsimAgent = this.getMobsimAgentFromIdString(agentID) ;
 		if (mobsimAgent == null) {
 			throw new AgentNotFoundException("MobsimAgent " + agentID + " not found");
 		}
+
+		System.out.println("");
+		System.out.println("#############################################################################");
+		System.out.println("Current time: " + getTime() / 60);
+		System.out.println("");
+//		System.out.println("AgentID: " + agentID + " is currently at: ");
+//		System.out.println("X: " + mobsimAgent.getCurrentFacility().getCoord().getX());
+//		System.out.println("Y: " + mobsimAgent.getCurrentFacility().getCoord().getY());
+		System.out.println("");
+		System.out.println("AgentID: " + agentID + " drives to: ");
+//		Coord coord1 = mobsimAgent.getDestinationFacility().getCoord();
+//		System.out.println("X: " + coord1.getX() + " Y: " + coord1.getY());
+		System.out.println("");
+		System.out.println("#############################################################################");
+
 		switch(perceptID) {
 			case PerceptList.REQUEST_LOCATION:
 				final Link link = scenario.getNetwork().getLinks().get( mobsimAgent.getCurrentLinkId() );
@@ -650,6 +663,62 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 					cords[1] = destAct.getCoord().getY();
 				}
 				return cords;
+
+			case PerceptList.REQUEST_PATH_FOR_TWO_NODES:
+				if (args == null || !(args instanceof Node[])) {
+					throw new RuntimeException("Query percept '"+perceptID+"' expecting Node[], but found: " + args);
+				}
+				Node[] nodes = (Node[]) args;
+				Node start = nodes[0];
+				Node end = nodes[0];
+
+				Person person = (Person) mobsimAgent;
+				Vehicle vehicle;
+
+				Id<Person> id = mobsimAgent.getId();
+				Map<String, Id<Vehicle>> vehicleIds = VehicleUtils.getVehicleIds(person);
+
+				if (vehicleIds != null && !vehicleIds.isEmpty()) {
+					Id<Vehicle> vehicleId = vehicleIds.values().iterator().next();
+					vehicle = scenario.getVehicles().getVehicles().get(vehicleId);
+
+					// Parameter: startNode, endNode, departureTime, person and vehicle
+					// ToDo: Determination of the time (v)
+					return this.getReplanner().pathCalculator.calcLeastCostPath(
+							start,
+							end,
+							500.0,
+							person,
+							vehicle
+					);
+				}
+			case PerceptList.REQUEST_DESTINATION_COORDINATES_2 :
+				double[] cords2= {-1,-1};
+				if(this.getReplanner().editPlans().isAtRealActivity(mobsimAgent)){ // if agent is currently in an activity
+					int currentIndex = EditPlans.getCurrentPlanElementIndex(mobsimAgent);
+					Plan plan = WithinDayAgentUtils.getModifiablePlan(mobsimAgent);
+					return plan;
+				}
+//				else{ // if agent is currently in a leg
+//					return this.getReplanner().editTrips().findCurrentTrip(this.getMobsimAgentFromIdString(agentID)).getDestinationActivity();
+//				}
+			case PerceptList.REQUEST_DRIVING_PATH :
+				if (args == null || !(args instanceof double[])) {
+					throw new RuntimeException("Query percept '"+perceptID+"' expecting double[] coordinates argument, but found: " + args);
+				}
+				double[] destination = (double[]) args;
+				Coord coordination = new Coord( destination[0], destination[1] ) ;
+				final Link destinationLink = NetworkUtils.getNearestLink(getScenario().getNetwork(), coordination );
+				Gbl.assertNotNull(destinationLink);
+				final Link currLink = scenario.getNetwork().getLinks().get( mobsimAgent.getCurrentLinkId() );
+				final double currTime = getTime();
+				LeastCostPathCalculator.Path result;
+				synchronized (this.replanner) {
+					result = this.replanner.editRoutes(RoutingMode.carFreespeed).getPathCalculator().calcLeastCostPath(
+							currLink.getFromNode(), destinationLink.getFromNode(), currTime, null, null
+					);
+				}
+				return result;
 			default:
 				throw new RuntimeException("Unknown query percept '"+perceptID+"' received from agent "+agentID+" with args " + args);
 		}
