@@ -320,6 +320,50 @@ public class TrikeAgent implements SendtoMATSIM {
     }
 
     public Integer selectNextAction(Integer position) {
+//        try {
+//            Location newLocation = new Location("Test", 14f, 14f);
+//            double test = getDrivingDistanceTo(newLocation);
+//            Location[] currLocationOfAgent = getCurrentLocation();
+////            LeastCostPathCalculator.Path path = getDrivingDistancePathTo(newLocation);
+//            Object planOrActivity = getPlanOrActivity();
+//
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//            System.out.println("Current location of agent " + agentID + ": " +
+//                    "\n x1: " + currLocationOfAgent[0].getX() +
+//                    "\n y1: " + currLocationOfAgent[0].getY() +
+//                    "\n x2: " + currLocationOfAgent[1].getX() +
+//                    "\n y2: " + currLocationOfAgent[1].getY()
+//            );
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//
+//            if (planOrActivity instanceof org.matsim.api.core.v01.population.Plan) {
+//                org.matsim.api.core.v01.population.Plan plan = (org.matsim.api.core.v01.population.Plan) planOrActivity;
+//                System.out.println("");
+//                System.out.println("Plan Elements:");
+//                for (PlanElement elem: plan.getPlanElements()) {
+//                    System.out.println(elem);
+//                }
+//            }
+//
+////            System.out.println("Path: \n Travel time: " + path.travelTime + " travel cost: " + path.travelCost);
+////            System.out.println("\n");
+////            System.out.println("Link coords: ");
+////            for (Link link : path.links) {
+////                System.out.println(link.getCoord());
+////            }
+////            System.out.println("\n");
+////            System.out.println("Node coords: ");
+////            for (Node node : path.nodes) {
+////                System.out.println(node.getCoord());
+////            }
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
         Integer changes = 0;
         if (decisionTaskList.get(position).getStatus().equals("new")) {
             /**
@@ -1288,6 +1332,42 @@ public class TrikeAgent implements SendtoMATSIM {
             currentTrip.add(tripList.get(0));
             tripList.remove(0);
 
+            try {
+                Trip trip = currentTrip.get(0);
+                Location newLocation = trip.startPosition;
+                double test = getDrivingDistanceTo(newLocation);
+                Location[] currLocationOfAgent = getCurrentLocation();
+                LeastCostPathCalculator.Path path = getDrivingDistancePathTo(newLocation);
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("Distance to test location: " + test);
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("Current location of AgentID: " + agentID + ": " +
+                        "\n x1: " + currLocationOfAgent[0].getX() +
+                        "\n y1: " + currLocationOfAgent[0].getY() +
+                        "\n x2: " + currLocationOfAgent[1].getX() +
+                        "\n y2: " + currLocationOfAgent[1].getY()
+                );
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("Path: \n Travel time: " + path.travelTime + " travel cost: " + path.travelCost);
+                System.out.println("\n");
+                System.out.println("Link coords: ");
+                for (Link link : path.links) {
+                    System.out.println(link.getCoord());
+                }
+                System.out.println("\n");
+                System.out.println("Node coords: ");
+                for (Node node : path.nodes) {
+                    System.out.println(node.getCoord());
+                }
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             //       currentTrip.get(0).setProgress("NotStarted"); //because when SImSensoryInput sends back the result, it sets the progress to finished.
         }
     }
@@ -1551,6 +1631,14 @@ public class TrikeAgent implements SendtoMATSIM {
                 Constants.REQUEST_DRIVING_PATH_TO,
                 location.getCoordinates());
         return path;
+    }
+
+    Object getPlanOrActivity() throws AgentNotFoundException {
+        Object planOrActivity = SimActuator.getQueryPerceptInterface().queryPercept(
+                String.valueOf(agentID),
+                Constants.REQUEST_TEST,
+                null);
+        return planOrActivity;
     }
 
     ///////////////////////////////////////////////////////
