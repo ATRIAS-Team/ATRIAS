@@ -9,7 +9,6 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrike
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
-import io.github.agentsoz.util.Location;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
@@ -24,9 +23,9 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.security.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,7 +106,7 @@ public class AreaAgent {
     public void PrintTime() {
         // when receive result from other agents, the plan somehow
         //TODO need time from MATSim
-        System.out.println(JadexModel.simulationtime);
+        System.out.println("Jadex Model Simulation Time: " + JadexModel.simulationtime);
     }
 
 
@@ -131,7 +130,7 @@ public class AreaAgent {
     @Goal(recur = true, recurdelay = 1000 )
     class MaintainDistributeJobs
     {
-        //Compare time with matsim and send only if simulationtiem > booking time
+        //Compare time with matsim and send only if simulationtime > booking time
         //bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
         @GoalMaintainCondition
         boolean jobListNotEmpty(){
@@ -174,8 +173,19 @@ public class AreaAgent {
                 MessageContent messageContent = new MessageContent("", toHandle.toArrayList());
                 //String timeStampBooked = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.ms").format(new java.util.Date());
                 String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                System.out.println("START Negotiation - JobID: " + toHandle.getID() + " TimeStamp: "+ timeStampBooked);
-                Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
+
+                // Booking time from output.json
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+                String bookingTime = formatter.format(toHandle.getbookingTime());
+                System.out.println("START Negotiation - JobID: " + toHandle.getID() + " TimeStamp Booked: "+ bookingTime);
+                Message message = new Message(
+                        "0",
+                        areaAgentId,
+                        "" + closestAgent,
+                        "PROVIDE",
+                        JadexModel.simulationtime,
+                        messageContent
+                );
 
                 IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
                 service.trikeReceiveJob(message.serialize());

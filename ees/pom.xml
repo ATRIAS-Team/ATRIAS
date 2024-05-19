@@ -54,22 +54,22 @@
     <profile>
       <id>release</id>
       <build>
-      <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      </plugins>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>
@@ -134,7 +134,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version> 
+      <version>4.13.1</version>
       <!--<scope>test</scope>-->
     </dependency>
     <dependency>
@@ -159,54 +159,65 @@
       <artifactId>gt-epsg-hsql</artifactId>
       <version>20.5</version>
     </dependency>
-      <dependency>
-          <groupId>io.github.agentsoz</groupId>
-          <artifactId>bdi-abm</artifactId>
-          <version>3.0.1-SNAPSHOT</version>
-          <scope>compile</scope>
-      </dependency>
     <dependency>
       <groupId>io.github.agentsoz</groupId>
       <artifactId>bdi-abm</artifactId>
       <version>3.0.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>io.github.agentsoz</groupId>
+      <artifactId>bdi-abm</artifactId>
+      <version>3.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.activecomponents.jadex</groupId>
+      <artifactId>jadex-distribution-standard</artifactId>
+      <version>4.0.267</version>
+    </dependency>
   </dependencies>
 
 
   <build>
     <plugins>
-    <!-- Begin SONATYPE setup : http://central.sonatype.org/pages/apache-maven.html -->
-    <plugin>
-      <groupId>org.sonatype.plugins</groupId>
-      <artifactId>nexus-staging-maven-plugin</artifactId>
-      <version>1.6.7</version>
-      <extensions>true</extensions>
-      <configuration>
-        <serverId>ossrh</serverId>
-        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-      </configuration>
-    </plugin>
-    <!-- Maven release plugin -->
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-release-plugin</artifactId>
-      <version>2.5.3</version>
-      <configuration>
-        <autoVersionSubmodules>true</autoVersionSubmodules>
-        <useReleaseProfile>true</useReleaseProfile>
-        <releaseProfiles>release</releaseProfiles>
-        <goals>deploy</goals>
-      </configuration>
-    </plugin>
-    <plugin>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <version>3.8.0</version>
-      <configuration>
-        <release>11</release>
-      </configuration>
-    </plugin>
+      <!-- Begin SONATYPE setup : http://central.sonatype.org/pages/apache-maven.html -->
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <!-- Maven release plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>true</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -259,7 +270,7 @@
         <configuration>
           <skipAssembly>false</skipAssembly>
           <descriptors>
-          <descriptor>src/assembly/ees.xml</descriptor>
+            <descriptor>src/assembly/ees.xml</descriptor>
           </descriptors>
         </configuration>
         <executions>

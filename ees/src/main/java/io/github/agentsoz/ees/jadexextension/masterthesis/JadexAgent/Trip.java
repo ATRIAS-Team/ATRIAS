@@ -23,6 +23,9 @@ public class Trip {
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
 
+    // NEW
+    public LocalDateTime bookingTime;
+
     //####################################################################################
     // Constructors
     //####################################################################################
@@ -52,6 +55,17 @@ public class Trip {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.progress = progress;
+    }
+
+    public Trip(DecisionTask decisionTask, String tripID, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress, LocalDateTime bookingTime){
+        this.decisionTask = decisionTask;
+        this.tripID = tripID;
+        this.tripType = tripType;
+        this.vaTime = vaTime;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.progress = progress;
+        this.bookingTime = bookingTime;
     }
 
     public Trip(String tripID, Job job, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress){

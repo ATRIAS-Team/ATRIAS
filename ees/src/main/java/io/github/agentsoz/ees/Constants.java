@@ -23,6 +23,8 @@ package io.github.agentsoz.ees;
  */
 
 
+import io.github.agentsoz.util.PerceptList;
+
 public class Constants {
     // Actions
     public static final String DRIVETO = io.github.agentsoz.util.ActionList.DRIVETO;
@@ -54,6 +56,8 @@ public class Constants {
     // BDI Query Percept  strings
     public static final String REQUEST_LOCATION = io.github.agentsoz.util.PerceptList.REQUEST_LOCATION;
     public static final String REQUEST_DRIVING_DISTANCE_TO = io.github.agentsoz.util.PerceptList.REQUEST_DRIVING_DISTANCE_TO;
+    public static final String REQUEST_TEST = PerceptList.REQUEST_DESTINATION_COORDINATES_2;
+    public static final String REQUEST_DRIVING_PATH_TO = PerceptList.REQUEST_DRIVING_PATH;
 
     //Diffusion model percepts
     public static final String DIFFUSION = "diffusion";
