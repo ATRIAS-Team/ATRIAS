@@ -21,14 +21,12 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler;
 import io.github.agentsoz.util.Location;
-import io.github.agentsoz.util.Time;
-import jadex.bdiv3.runtime.IPlan;
-import jadex.commons.future.IFuture;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 
 import jadex.bdiv3.BDIAgentFactory;
@@ -44,13 +42,10 @@ import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Node;
-import org.matsim.core.router.util.LeastCostPathCalculator;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
@@ -106,6 +101,10 @@ public class TrikeAgent implements SendtoMATSIM {
 
     @Belief    //contains all the trips
     public List<Trip> tripList = new ArrayList<>();
+
+    @Belief
+    public List<Trip> tempTripList = new ArrayList<>();
+
     @Belief
     public List<String> tripIDList = new ArrayList<>();
 
@@ -167,7 +166,16 @@ public class TrikeAgent implements SendtoMATSIM {
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
-    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33, 5553197.70), new Location("", 476172.65, 5552839.64), new Location("", 476482.10, 5552799.06), new Location("", 476659.13, 5553054.12), new Location("", 476787.10, 5552696.95), new Location("", 476689.45, 5552473.11), new Location("", 476405.41, 5552489.17), new Location("", 476100.86, 5552372.79));
+    public List<Location> CHARGING_STATION_LIST = Arrays.asList(
+            new Location("", 476142.33, 5553197.70),
+            new Location("", 476172.65, 5552839.64),
+            new Location("", 476482.10, 5552799.06),
+            new Location("", 476659.13, 5553054.12),
+            new Location("", 476787.10, 5552696.95),
+            new Location("", 476689.45, 5552473.11),
+            new Location("", 476405.41, 5552489.17),
+            new Location("", 476100.86, 5552372.79)
+    );
 
 
     /**
@@ -213,7 +221,7 @@ public class TrikeAgent implements SendtoMATSIM {
 
     @Plan(trigger = @Trigger(goals = TimeTest.class))
     private void TimeTestPrint() {
-        System.out.println("agentID " + agentID + " simtime" + JadexModel.simulationtime);
+        System.out.println("agentID " + agentID + " simtime " + JadexModel.simulationtime);
         Status();
     }
 
@@ -247,20 +255,20 @@ public class TrikeAgent implements SendtoMATSIM {
 
     @Plan(trigger = @Trigger(goals = MaintainBatteryLoaded.class))
     public void NewChargingTrip() {
-        {
-            if (estimateBatteryAfterTIP.get(0) < CHARGING_THRESHOLD && chargingTripAvailable.equals("0")) {
-                //estimateBatteryAfterTIP();
-                //Location LocationCh = new Location("", 476530.26535798033, 5552438.979076344);
-                //Location LocationCh = new Location("", 476224.26535798033, 5552487.979076344);
-                chargingTripCounter += 1;
-                String tripID = "CH";
-                tripID = tripID.concat(Integer.toString(chargingTripCounter));
-                Trip chargingTrip = new Trip(tripID, "ChargingTrip", getNextChargingStation(), "NotStarted");
-                tripList.add(chargingTrip);
-                tripIDList.add("1");
-                chargingTripAvailable = "1";
-            }
-        }
+//        {
+//            if (estimateBatteryAfterTIP.get(0) < CHARGING_THRESHOLD && chargingTripAvailable.equals("0")) {
+//                //estimateBatteryAfterTIP();
+//                //Location LocationCh = new Location("", 476530.26535798033, 5552438.979076344);
+//                //Location LocationCh = new Location("", 476224.26535798033, 5552487.979076344);
+//                chargingTripCounter += 1;
+//                String tripID = "CH";
+//                tripID = tripID.concat(Integer.toString(chargingTripCounter));
+//                Trip chargingTrip = new Trip(tripID, "ChargingTrip", getNextChargingStation(), "NotStarted");
+//                tripList.add(chargingTrip);
+//                tripIDList.add("1");
+//                chargingTripAvailable = "1";
+//            }
+//        }
     }
 
     public Location getNextChargingStation() {
@@ -320,50 +328,6 @@ public class TrikeAgent implements SendtoMATSIM {
     }
 
     public Integer selectNextAction(Integer position) {
-//        try {
-//            Location newLocation = new Location("Test", 14f, 14f);
-//            double test = getDrivingDistanceTo(newLocation);
-//            Location[] currLocationOfAgent = getCurrentLocation();
-////            LeastCostPathCalculator.Path path = getDrivingDistancePathTo(newLocation);
-//            Object planOrActivity = getPlanOrActivity();
-//
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//            System.out.println("Current location of agent " + agentID + ": " +
-//                    "\n x1: " + currLocationOfAgent[0].getX() +
-//                    "\n y1: " + currLocationOfAgent[0].getY() +
-//                    "\n x2: " + currLocationOfAgent[1].getX() +
-//                    "\n y2: " + currLocationOfAgent[1].getY()
-//            );
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//
-//            if (planOrActivity instanceof org.matsim.api.core.v01.population.Plan) {
-//                org.matsim.api.core.v01.population.Plan plan = (org.matsim.api.core.v01.population.Plan) planOrActivity;
-//                System.out.println("");
-//                System.out.println("Plan Elements:");
-//                for (PlanElement elem: plan.getPlanElements()) {
-//                    System.out.println(elem);
-//                }
-//            }
-//
-////            System.out.println("Path: \n Travel time: " + path.travelTime + " travel cost: " + path.travelCost);
-////            System.out.println("\n");
-////            System.out.println("Link coords: ");
-////            for (Link link : path.links) {
-////                System.out.println(link.getCoord());
-////            }
-////            System.out.println("\n");
-////            System.out.println("Node coords: ");
-////            for (Node node : path.nodes) {
-////                System.out.println(node.getCoord());
-////            }
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
         Integer changes = 0;
         if (decisionTaskList.get(position).getStatus().equals("new")) {
             /**
@@ -386,9 +350,36 @@ public class TrikeAgent implements SendtoMATSIM {
              *  create trip here
              */
             DecisionTask dTaToTrip = decisionTaskList.get(position);
-            Trip newTrip = new Trip(decisionTaskList.get(position), dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
+
+            System.out.println("*******************************************************************************************");
+            System.out.println("Booking Time: " + dTaToTrip.getJob().getbookingTime());
+            System.out.println("Jadex Simtime: " + JadexModel.simulationtime * 1000);
+            long secondsAfterMidnight = (long) JadexModel.simulationtime;
+            LocalDateTime simulationDateTime = LocalDateTime
+                    .of(
+                            dTaToTrip.getJob().getbookingTime().toLocalDate(),
+                            LocalTime.of(
+                                    (int) secondsAfterMidnight / 3600,
+                                    (int) (secondsAfterMidnight % 3600) / 60,
+                                    (int) secondsAfterMidnight % 60
+                            )
+                    );
+
+            System.out.println("Jadex Simtime als Date: " + simulationDateTime);
+            System.out.println("*******************************************************************************************");
+
+            Trip newTrip = new Trip(
+                    decisionTaskList.get(position),
+                    dTaToTrip.getIDFromJob(),
+                    "CustomerTrip",
+                    dTaToTrip.getVATimeFromJob(),
+                    dTaToTrip.getStartPositionFromJob(),
+                    dTaToTrip.getEndPositionFromJob(),
+                    "NotStarted",
+                    dTaToTrip.getJob().getbookingTime()
+            );
             //TODO: create a unique tripID
-            tripList.add(newTrip);
+            tempTripList.add(newTrip);
             tripIDList.add("1");
             estimateBatteryAfterTIP();
 
@@ -1134,6 +1125,47 @@ public class TrikeAgent implements SendtoMATSIM {
         }
     }
 
+    @Goal()
+    class ScheduleNewTrips {
+
+        // creates goal every time the tempTripList changes (e.g a new trip is added)
+        @GoalCreationCondition(beliefs = "tempTripList")
+        public ScheduleNewTrips() {
+            System.out.println("Created Goal ScheduleNewTrips");
+        }
+    }
+
+    @Plan(trigger = @Trigger(goals = ScheduleNewTrips.class))
+    public void UpdateTripList() {
+        List<Trip> allTrips = Stream.concat(tripList.stream(), tempTripList.stream()).collect(Collectors.toList());
+
+
+        // Simulation Time as LocalDateTime instance from TripList to determine waiting time of customers
+        long secondsAfterMidnight = (long) JadexModel.simulationtime;
+        LocalDateTime bookingTime = allTrips.get(0).bookingTime;
+        LocalDateTime simulationDateTime = LocalDateTime
+                .of(
+                        bookingTime.toLocalDate(),
+                        LocalTime.of(
+                                (int) secondsAfterMidnight / 3600,
+                                (int) (secondsAfterMidnight % 3600) / 60,
+                                (int) secondsAfterMidnight % 60
+                        )
+                );
+
+
+        GreedyScheduler greedyScheduler = new GreedyScheduler(
+                CHARGING_STATION_LIST,
+                trikeBattery.getMyChargestate(),
+                null,
+                simulationDateTime,
+                DRIVING_SPEED,
+                THETA
+        );
+
+        tripList = greedyScheduler.greedySchedule(allTrips);
+    }
+
     /**
      * for the sny of the cycle
      */
@@ -1332,42 +1364,6 @@ public class TrikeAgent implements SendtoMATSIM {
             currentTrip.add(tripList.get(0));
             tripList.remove(0);
 
-            try {
-                Trip trip = currentTrip.get(0);
-                Location newLocation = trip.startPosition;
-                double test = getDrivingDistanceTo(newLocation);
-                Location[] currLocationOfAgent = getCurrentLocation();
-                LeastCostPathCalculator.Path path = getDrivingDistancePathTo(newLocation);
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("Distance to test location: " + test);
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("Current location of AgentID: " + agentID + ": " +
-                        "\n x1: " + currLocationOfAgent[0].getX() +
-                        "\n y1: " + currLocationOfAgent[0].getY() +
-                        "\n x2: " + currLocationOfAgent[1].getX() +
-                        "\n y2: " + currLocationOfAgent[1].getY()
-                );
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("Path: \n Travel time: " + path.travelTime + " travel cost: " + path.travelCost);
-                System.out.println("\n");
-                System.out.println("Link coords: ");
-                for (Link link : path.links) {
-                    System.out.println(link.getCoord());
-                }
-                System.out.println("\n");
-                System.out.println("Node coords: ");
-                for (Node node : path.nodes) {
-                    System.out.println(node.getCoord());
-                }
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
             //       currentTrip.get(0).setProgress("NotStarted"); //because when SImSensoryInput sends back the result, it sets the progress to finished.
         }
     }
@@ -1439,6 +1435,9 @@ public class TrikeAgent implements SendtoMATSIM {
 
         long vaTimeMilli = vATime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         double curr = (JadexModel.simulationtime) * 1000;
+        // vaTimeMilli - offset ist die Zeit in Millisekunden bis die vaTime erreicht ist.
+        // Diese kann dann mit der aktuellen Zeit der Simulation vergleichen werden, um die Differenz zu bestimmen
+        // und festlegen zu können wie lange jemand bereits wartet
         double diff = (curr - (vaTimeMilli - offset)) / 1000; //in seconds
         //Double arrivalTime;
         return diff;
@@ -1580,6 +1579,10 @@ public class TrikeAgent implements SendtoMATSIM {
             Endparams[0] = Constants.DRIVETO;
             Endparams[1] = currentTrip.get(0).getEndPosition().getCoordinates();
         }
+        System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        System.out.println("CarFreespeed: " + Constants.EvacRoutingMode.carFreespeed);
+        System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         Endparams[2] = JadexModel.simulationtime;
         Endparams[3] = Constants.EvacRoutingMode.carFreespeed;
         Endparams[4] = "EvacPlace";
@@ -1625,21 +1628,13 @@ public class TrikeAgent implements SendtoMATSIM {
         return currentLocation;
     }
 
-    LeastCostPathCalculator.Path getDrivingDistancePathTo(Location location) throws AgentNotFoundException {
-        LeastCostPathCalculator.Path path = (LeastCostPathCalculator.Path) SimActuator.getQueryPerceptInterface().queryPercept(
-                String.valueOf(agentID),
-                Constants.REQUEST_DRIVING_PATH_TO,
-                location.getCoordinates());
-        return path;
-    }
-
-    Object getPlanOrActivity() throws AgentNotFoundException {
-        Object planOrActivity = SimActuator.getQueryPerceptInterface().queryPercept(
-                String.valueOf(agentID),
-                Constants.REQUEST_TEST,
-                null);
-        return planOrActivity;
-    }
+//    LeastCostPathCalculator.Path getDrivingDistancePathTo(Location location) throws AgentNotFoundException {
+//        LeastCostPathCalculator.Path path = (LeastCostPathCalculator.Path) SimActuator.getQueryPerceptInterface().queryPercept(
+//                String.valueOf(agentID),
+//                Constants.REQUEST_DRIVING_PATH_TO,
+//                location.getCoordinates());
+//        return path;
+//    }
 
     ///////////////////////////////////////////////////////
     //  updates locatedagentlist of the area agent
