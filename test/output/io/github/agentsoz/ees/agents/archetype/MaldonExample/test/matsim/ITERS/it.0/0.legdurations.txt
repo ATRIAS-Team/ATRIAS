@@ -1,0 +1,11 @@
+pattern	0+	5+	10+	15+	20+	25+	30+	35+	40+	45+	50+	55+	60+
+DependentsPlace---Replan	5	0	0	0	0	0	0	0	0	0	0	0	0
+Home---Replan	4	0	0	0	0	0	0	0	0	0	0	0	0
+Replan---DependentsPlace	1	0	0	1	0	1	1	0	2	0	0	0	0
+Replan---EvacPlace	0	0	0	0	1	3	0	2	4	0	0	0	2
+Replan---Home	0	0	0	0	0	0	0	0	0	0	0	0	18
+Replan---Replan	0	0	0	0	1	1	0	0	0	0	0	0	0
+home---Replan	29	0	0	0	0	0	0	0	0	0	0	0	0
+home---home	1	0	0	0	0	0	0	0	0	0	0	0	0
+
+average trip duration: 4232.467532467533 seconds = 01:10:32
