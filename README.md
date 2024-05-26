@@ -1,3 +1,13 @@
+# EES Jadex Layer installation 
+
+ 1. Download the repository and process the Setup and Build package. 
+ 2. Import the AMOD Scenario provided in the folder "amod-campus" in the following path: 
+ 3. Create a run config with the following specifications:
+ 4. Update the paths in the following classes:
+ 5. 
+
+
+
 # Emergency Evacuation Simulator
  
 `master`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=master) `dev`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=dev)
