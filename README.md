@@ -1,5 +1,7 @@
-# EES Jadex Layer installation 
+# EES-Jadex Layer Installation 
 
+
+In the following, we will describe the Installation steps for EES-Jadex.
  1. Download the repository and process the Setup and Build package. 
  2. Import the AMOD Scenario provided in the folder "amod-campus" in the following path: 
  3. Create a run config with the following specifications:
