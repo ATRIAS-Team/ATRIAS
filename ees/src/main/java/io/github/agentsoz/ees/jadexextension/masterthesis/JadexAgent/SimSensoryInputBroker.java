@@ -130,7 +130,7 @@ public class SimSensoryInputBroker {
 									if (actionId == "drive_to") {
 										ActionContent.State actionState = content.getState();
 										if (actionState == ActionContent.State.PASSED ||
-												actionState == ActionContent.State.FAILED)
+														actionState == ActionContent.State.FAILED)
 										{
 											ActiveAgentList.add(agentId); // create a list of potential active agents
 											Activestatus = true; // local active status to assign to each trike agent in this iteration via service later

@@ -31,7 +31,7 @@
 	</module>
 
 	<module name="network">
-		<param name="inputNetworkFile" value="campus-layer-utm.xml" />
+		<param name="inputNetworkFile" value="campus-layer-utm-6kmh.xml" />
 		<!--<param name="inputNetworkFile" value="campus-layer.xml" />-->
 		<param name= "timeVariantNetwork" value= "false" />
 		<!--<param name= "inputChangeEventsFile" value= "scenario_matsim_network_change_events.xml.gz" />-->

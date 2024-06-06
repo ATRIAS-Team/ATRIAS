@@ -63,7 +63,7 @@ public class LocatedAgentList {
             LocatedAgent toInvestigate = LocatedAgentList.get(i);
             compareDistance = Location.distanceBetween(startPosition, toInvestigate.getLastPosition());
             if (compareDistance<lowestDistance){
-                compareDistance = lowestDistance;
+                lowestDistance = compareDistance; //fixed! was compareDistance = lowestDistance before
                 closestAgentID = toInvestigate.getAgentID();
 
             }

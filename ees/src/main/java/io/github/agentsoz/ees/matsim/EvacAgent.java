@@ -44,8 +44,9 @@ package io.github.agentsoz.ees.matsim;
  * oemer: added totalLinkLengthTraveled, which sums the distance of each drive_to resulting to a trip
  */
 
+import io.github.agentsoz.bdimatsim.TotalLinkLengthSingleton;
+import io.github.agentsoz.bdimatsim.TotalLinkLengthHashMap;
 import io.github.agentsoz.bdimatsim.NextLinkBlockedEvent;
-import io.github.agentsoz.bdimatsim.TotalLinkLengthTraveledEvent;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -126,6 +127,9 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 		// programming???
 		//		final PlanElement nextPlanElement = basicAgentDelegate.getNextPlanElement();
 		// yyyyyy this seems to be getting the unmodified plan but I don't know why. kai, nov'17
+
+		//resetTotalLinkLengthTraveled();
+
 		Plan plan = WithinDayAgentUtils.getModifiablePlan(this) ;
 		Integer index = WithinDayAgentUtils.getCurrentPlanElementIndex(this) ;
 		if ( index+1 < plan.getPlanElements().size() ) {
@@ -252,9 +256,15 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 		Link link = network.getLinks().get(newLinkId);
 		double now = simTimer.getTimeOfDay();
 		//added oemer
-		if(link != null){
-			totalLinkLengthTraveled += link.getLength();
-		}
+		//if(link != null){
+			//totalLinkLengthTraveled += link.getLength();
+		//TODO: ConcurrentHasMap aufrufen
+	//	}
+		Id<Person> it = basicAgentDelegate.getId();
+		TotalLinkLengthSingleton.INSTANCE.putValue(it.toString(), link.getLength());
+		//	DistanceWorkaroundWrite dw = new DistanceWorkaroundWrite();
+		//	dw.totalLinkLengthLog(it.toString(), link.getLength());
+
 		this.expectedLinkLeaveTime = link.getLength()/link.getFreespeed(now);
 	}
 
@@ -267,12 +277,28 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 	private void resetTotalLinkLengthTraveled() {
 		final double now = this.simTimer.getTimeOfDay();
 		double tot = getTotalLinkLengthTraveled();
+		//DistanceWorkaround dw = new DistanceWorkaround();
+		//Id<Person> ip = basicAgentDelegate.getId();
+		//dw.totalLinkLengthLog(ip.toString(), tot);
+		//TotalLinkLengthHashMap map = new TotalLinkLengthHashMap();
+		//map.addValue();
 
-		TotalLinkLengthTraveledEvent TotalLinkLengthTraveledEvent = new TotalLinkLengthTraveledEvent(
-				now, this.getPerson().getId(), this.getCurrentLinkId(), totalLinkLengthTraveled);
-		log.debug(Double.toString(totalLinkLengthTraveled));
-		eventsManager.processEvent(TotalLinkLengthTraveledEvent);
+		//TODO csv LOGGER
+		//Idee 1: Jeder Agent gibt jede distanz die er fährt in den Logger schreiben, über jeden link, zu not jeder agent bekommt seine eigene log datei.
+		//Idee 2: beim Aufsummieren, vergleichen wir die ids und wenn sie gleich sind, dann addieren wir die distanzen zusammen.
 
+
+		//	TotalLinkLengthTraveledEvent TotalLinkLengthTraveledEvent = new TotalLinkLengthTraveledEvent(
+		//			now, this.getPerson().getId(), this.getCurrentLinkId(), totalLinkLengthTraveled);
+		//	log.debug(Double.toString(totalLinkLengthTraveled));
+    	//	eventsManager.processEvent(TotalLinkLengthTraveledEvent);
+
+
+		//possible alternative? -oemer
+		//PersonArrivalEvent PersonArrivalEvent = new PersonArrivalEvent(
+		//		now, this.getPerson().getId(), this.getCurrentLinkId(), totalLinkLengthTraveled);
+		//log.debug(Double.toString(totalLinkLengthTraveled));
+		//eventsManager.processEvent(TotalLinkLengthTraveledEvent);
 		totalLinkLengthTraveled = 0.0;
 	}
 
@@ -299,12 +325,15 @@ class EvacAgent implements MobsimDriverAgent, HasPerson, PlanAgent, HasModifiabl
 				// closure may happen between here and arriving at the node ...  kai, dec'17
 			}
 			//added oemer
-		} else if(retVal ==true){
+		} //else if(retVal ==true){
+			//Id<Person> it = basicAgentDelegate.getId();
+			//TotalLinkLengthSingleton.INSTANCE.putValue(it.toString(), totalLinkLengthTraveled);
+			//totalLinkLengthTraveled = 0.0;
+			//TotalLinkLengthSingleton.INSTANCE.putValue(it.toString(), link.getLength());
+			//resetTotalLinkLengthTraveled();
+		//}
 
-			resetTotalLinkLengthTraveled();
-		}
-
-		return retVal ;
+		return retVal;
 	}
 
 	@Override public final Plan getModifiablePlan() {

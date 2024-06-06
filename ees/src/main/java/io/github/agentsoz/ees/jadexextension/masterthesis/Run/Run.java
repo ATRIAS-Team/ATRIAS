@@ -102,8 +102,8 @@ public class Run implements DataClient {
 
 
 
-        // initialise the Jill model, register it as an active data source, and start it
-        log.info("Starting Jill BDI model");
+        // initialise the Jadex model, register it as an active data source, and start it
+        log.info("Starting Jadex BDI model");
         //    JillBDIModel jillmodel = new JillBDIModel(cfg.getModelConfig(Config.eModelBdi), dataServer, (QueryPerceptInterface)matsimEvacModel, bdiMap);
         //      jillmodel.setAgentDataContainer(adc_from_bdi);
         //    jillmodel.init(Utils.getAsSortedStringArray(bdiMap.keySet()));

@@ -78,8 +78,10 @@ public class TrikeAgentService implements IAreaTrikeService {
 					trikeAgent.decisionTaskList.get(i).setStatus("commit");
 					ArrayList<String> values = new ArrayList<>();
 					values.add(jobID);
-					//trikeAgent.sendMessage(messageObj.getSenderId(), "inform", "confirmAccept", values);
-					trikeAgent.testTrikeToTrikeService(messageObj.getSenderId(), "inform", "confirmAccept", values);
+					trikeAgent.sendMessage(messageObj.getSenderId(), "inform", "confirmAccept", values);
+					// nur clients waitingForconfirmations
+					//trikeAgent.testTrikeToTrikeService(messageObj.getSenderId(), "inform", "confirmAccept", values);
+					// alle waitingmanager waiting confirmation
 				}
 
 			}

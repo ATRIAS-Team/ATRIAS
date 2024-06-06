@@ -48,7 +48,7 @@ public class KMedoidsPAMTest {
         // Generate a random double between 0.0 (inclusive) and 1.0 (exclusive)
         data[i][j] = Math.random() * 100;
       //todo: Read Trip Location data and cluster them, the result should be plotted with elki
-       //data[i][j] =
+       //data[i][j] = Trip
       }
     }
       DatabaseConnection dbc = new ArrayAdapterDatabaseConnection(data);

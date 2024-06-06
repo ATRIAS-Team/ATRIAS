@@ -1,0 +1,3 @@
+AgentID;TripID;DriveOperationNumber;TripType;BatteryBefore;BatteryAfter;ArrivedAtLocation;Distance;Origin
+17;AP0057;1;CustomerTrip;0.9;0.8130034687410923;true;869.9653125890767
+17;AP0057;2;CustomerTrip;0.8130034687410923;0.6794492508974541;true;1335.5421784363823
