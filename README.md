@@ -1,53 +1,60 @@
-# Emergency Evacuation Simulator
- 
-`master`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=master) `dev`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=dev)
+# Jadex-DJL
+An environment of Jadex (Agent Development Platform) and MATSim (Traffic Simulation) with a Deep Reinforcement Learning scenario considering Multiple Software-Agents.
 
-## Dependencies
 
-This program depends on the following projects:
-* [BDI-ABM Integration](https://github.com/agentsoz/bdi-abm-integration)
-* [Social Network Diffusion Model](https://github.com/agentsoz/diffusion-model)
+## Introduction 
 
-## Setup
+This project aims to integrate Deep RL algorithms into Jadex BDI agents applying them in a Mobility on Demand environment using MATSim traffic simulation as an environment. Therefore, we first extended 
 
-Initialise and update the git submodules as below. This only has to be done once, when you first clone this repository.
+### Installation
 
-```
-git submodule update --init --recursive
-```
+### License
 
-## How to build
+# Jadex-DJL: Integration of Deep Reinforcement Learning into the Jadex BDI Agent architecture
+This is the implementation of the BDI-DRL architecture proposed in the paper: "TBA" published in "TBA. In this project, the integration of DRL into the cognitive Jadex BDI Agent architecture is considered as an hybrid approach to combine symbolic AI and Deep Neural Networks, known s Neuro-Symbolic AI. We integrate Q-Learning (QL) and Deep Q-Learning (DQN) into cognitive BDI software agents implemented in the Jadex Agent Development Framework. Furthermore, we consider Autonomous Ride-Hailing as an application scenario, using MATSim as a simulation environment and trip requests from a bike-sharing company. In our experiments, we compare the RL-BDI approach with an informed utility-based approach evaluating critical domain-specific quality measures.
 
-```
-./mvnw package
-```
-
-This will produce the EES release archive in `ees/target/ees-x.y.z-SNAPSHOT.zip`.
 
 ## How to run
 
-To run the example scenario unzip the release archive and follow the instructions provided in the packaged README.md.
+The following steps are required to start the BDI-RL architecture.
 
-## Known Issues
 
-* See [GitHub Issues](https://github.com/agentsoz/ees/issues).
 
-## License
 
-Emergency Evacuation Simulator
-Copyright (C) 2014-2020 by its authors. See ees/AUTHORS file.
+- `src/`: source folder 
+  - `Agent0.java`: Area agent distributing trip requests to vehicle agents;
+  - `Agent1.java`: Vehicle Agent 1 (other configured Agents are also Vehicle Agents);
+  - https://github.com/M4rc3l-M/ees-Jadex
+  - https://github.com/M4rc3l-M/TrikeFramework
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+![BDI architecture](TrikeAgent_abstract.pdf)
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-For contact information, see ees/AUTHORS file.
+1. Add the `jade.jar` into 
+2.  in the *run configuration*
+
+Program arguments:
+```bash
+-gui Agent0:Agent0;Agent1:Agent1;Agent2:Agent2;Agent3:Agent3;
+```
+
+
+# Dataset information
+
+The data samples were created by modifying the "Call A Bike" data sets from Deutsche Bahn (DB).
+https://data.deutschebahn.com/dataset/data-call-a-bike.html 
+
+
+# Running DRL and RL 
+
+There are two configurations for the learning process, Q-Leearning as an RL method and Deep-Q-Learning as a DRL method. 
+To configure different running scenarios, use the corresponding run.py file and add it to the Jadex platform.
+
+
+
+To cite this work, please refer to the corresponding Paper in the Introduction.
+
+# License
+
+See LICENSE.md file
