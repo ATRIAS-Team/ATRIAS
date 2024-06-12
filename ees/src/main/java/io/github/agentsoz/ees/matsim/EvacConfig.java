@@ -4,7 +4,7 @@ package io.github.agentsoz.ees.matsim;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -23,6 +23,11 @@ package io.github.agentsoz.ees.matsim;
  */
 
 import org.matsim.core.config.ReflectiveConfigGroup;
+
+		//added to test DVRP
+//import org.matsim.contrib.util.ReflectiveConfigGroupWithConfigurableParameterSets;
+
+//EvacConfigDvrp
 
 public class EvacConfig extends ReflectiveConfigGroup{
 	public static final String NAME="evac" ;

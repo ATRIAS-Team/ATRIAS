@@ -37,7 +37,7 @@
     <!-- simulation start time in HH:MM format -->
     <opt id="startHHMM">12:00</opt>
     <!-- Output file for trips written in DeckGL format -->
-    <opt id="deckGlOutFile">test/output/io/github/agentsoz/ees/agents/MaldonExample/test/trips.deckgl.json</opt>
+    <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/MaldonExample/test/trips.deckgl.json</opt>
   </global>
 
   <!-- model specific configuration -->
@@ -48,11 +48,11 @@
       <opt id="jPlanSelectionPolicy">FIRST</opt>
       <opt id="jAgents"></opt>
       <opt id="jLogLevel">WARN</opt>
-      <opt id="jLogFile">test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/jill.log</opt>
-      <opt id="jOutFile">test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/jill.out.gz</opt>
+      <opt id="jLogFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/jill.log</opt>
+      <opt id="jOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/jill.out.gz</opt>
       <!--<opt id="jNumThreads">1</opt>-->
       <!-- Output file for evacuation metrics -->
-      <opt id="bdiMetricsFile">test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/archetype.metrics.json.gz</opt>
+      <opt id="bdiMetricsFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/archetype.metrics.json.gz</opt>
       <!-- Time bin size in seconds for collected evacuation metrics -->
       <opt id="bdiMetricsFrequencyInSeconds">600</opt>
 
@@ -60,9 +60,9 @@
 
     <model id="matsim">
       <!-- MATSim output directory relative to examples/bushfire directory (will overrule the setting in MATSim config) -->
-      <opt id="outputDir">test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/matsim</opt>
+      <opt id="outputDir">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/matsim</opt>
       <!-- MATSim XML config XML file relative to examples/bushfire directory -->
-      <opt id="configXml">scenarios/mount-alexander-shire/maldon-example/matsim_config.xml</opt>
+      <opt id="configXml">ees/scenarios/mount-alexander-shire/maldon-example/matsim_config.xml</opt>
       <!-- Maximum distance at which the fire can be seen (in metres)-->
       <opt id="maxDistanceForFireVisual">1000</opt>
       <!-- Maximum distance at which smoke can be seen (in metres)-->
@@ -85,7 +85,7 @@
       <!-- Phoenix start time in HH:MM format; used to calculate absolute values for hour_spot and hour_burnt -->
       <opt id="ignitionHHMM">12:30</opt>
       <!-- Phoenix grid GeoJSON file -->
-      <opt id="gridGeoJson">scenarios/mount-alexander-shire/maldon-example/20181109_mountalex_evac_ffdi75d_grid.shp.json.gz</opt>
+      <opt id="gridGeoJson">ees/scenarios/mount-alexander-shire/maldon-example/20181109_mountalex_evac_ffdi75d_grid.shp.json.gz</opt>
       <!-- Phoenix grid square size (in meteres) -->
       <opt id="gridSquareSideInMetres">180</opt>
     </model>
@@ -97,9 +97,9 @@
 
     <model id="messaging">
       <!-- Messaging JSON file  -->
-      <opt id="fileJson">scenarios/mount-alexander-shire/maldon-example/messages.json</opt>
+      <opt id="fileJson">ees/scenarios/mount-alexander-shire/maldon-example/messages.json</opt>
       <!-- Zones GeoJSON file mapping zone IDs to polygon shapes -->
-      <opt id="fileZonesGeoJson">scenarios/mount-alexander-shire/maldon-example/mas_sa1s_epsg4326.json</opt>
+      <opt id="fileZonesGeoJson">ees/scenarios/mount-alexander-shire/maldon-example/mas_sa1s_epsg4326.json</opt>
     </model>
 
   </models>

@@ -55,7 +55,7 @@ public class Run implements DataClient {
     private DiffusionModel diffusionModel = null;
 
     //  Defaults
-    private int optTimestep = 1; // in seconds
+    private int optTimestep = 10; // in seconds
 
 
     public static void main(String[] args) {
@@ -103,6 +103,19 @@ public class Run implements DataClient {
         {
             log.info("Starting phoenix fire model (GRID)");
             PhoenixGridModel model = new PhoenixGridModel(cfg.getModelConfig(Config.eModelFire), dataServer);
+            model.setTimestepUnit(Time.TimestepUnit.SECONDS);
+            model.start();
+        }
+        // initialise the cyclone model and register it as an active data source
+        {
+            log.info("Starting cyclone model ");
+            CycloneModel model = new CycloneModel(cfg.getModelConfig(Config.eModelCyclone), dataServer);
+            model.setTimestepUnit(Time.TimestepUnit.SECONDS);
+            model.start();
+        }
+        {
+            log.info("Starting flood model ");
+            FloodModel model = new FloodModel(cfg.getModelConfig(Config.eModelFlood), dataServer);
             model.setTimestepUnit(Time.TimestepUnit.SECONDS);
             model.start();
         }

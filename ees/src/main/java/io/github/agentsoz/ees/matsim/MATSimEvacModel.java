@@ -1,10 +1,12 @@
 package io.github.agentsoz.ees.matsim;
 
+import io.github.agentsoz.bdiabm.ABMServerInterface;
+
 /*
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -19,7 +21,6 @@ package io.github.agentsoz.ees.matsim;
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
- * #L%
  */
 
 import com.google.common.collect.ObjectArrays;
@@ -55,6 +56,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.mobsim.framework.MobsimAgent;
 import org.matsim.core.mobsim.qsim.AbstractQSimModule;
@@ -86,49 +88,53 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
     private final MATSimModel matsimModel;
     private final Map<String, DataClient> dataListeners = createDataListeners();
     private EvacConfig evacConfig = null;
-
-    private Shape2XyWriter fireWriter;
-    private Shape2XyWriter emberWriter;
-    private DisruptionWriter disruptionWriter;
-
+    //private Shape2XyWriter fireWriter;
+    //private Shape2XyWriter emberWriter;
+    //private Shape2XyWriter cycloneWriter;
+    //private Shape2XyWriter floodWriter;
+    //private DisruptionWriter disruptionWriter;
     private final Map<Id<Link>,Double> penaltyFactorsOfLinks = new HashMap<>() ;
     private final Map<Id<Link>,Double> penaltyFactorsOfLinksForEmergencyVehicles = new HashMap<>() ;
-
-    private static final String eMaxDistanceForFireVisual = "maxDistanceForFireVisual";
-    private static final String eMaxDistanceForSmokeVisual = "maxDistanceForSmokeVisual";
-    private static final String eFireAvoidanceBufferForVehicles = "fireAvoidanceBufferForVehicles";
-    private static final String eFireAvoidanceBufferForEmergencyVehicles = "fireAvoidanceBufferForEmergencyVehicles";
-    private static final String eRoutingAlgorithmType = "routingAlgorithmType";
-
+    //private static final String eMaxDistanceForCycloneVisual = "maxDistanceForCycloneVisual";
+    //private static final String eMaxDistanceForFireVisual = "maxDistanceForFireVisual";
+    //private static final String eMaxDistanceForSmokeVisual = "maxDistanceForSmokeVisual";
+    //private static final String eFireAvoidanceBufferForVehicles = "fireAvoidanceBufferForVehicles";
+    //private static final String eFireAvoidanceBufferForEmergencyVehicles = "fireAvoidanceBufferForEmergencyVehicles";
+    //private static final String eRoutingAlgorithmType = "routingAlgorithmType";
     public enum EvacuationRoutingAlgorithmType {MATSimDefault, ExampleRoutingAlgorithm}
-
     MonitorPersonsInDangerZone monitorPersonsEnteringDangerZones;
-
     // Defaults
-
-    private double optMaxDistanceForFireVisual = 1000;
-    private double optMaxDistanceForSmokeVisual = 3000;
-    private double optFireAvoidanceBufferForVehicles = 10000;
-    private double optFireAvoidanceBufferForEmergencyVehicles = 1000;
+    //private double optMaxDistanceForFloodVisual = 100;
+    //private double optMaxDistanceForCycloneVisual = 100;
+    //private double optMaxDistanceForFireVisual = 1000;
+    //private double optMaxDistanceForSmokeVisual = 3000;
+    //private double optFireAvoidanceBufferForVehicles = 10000;
+    //private double optFireAvoidanceBufferForEmergencyVehicles = 1000;
     private EvacuationRoutingAlgorithmType optRoutingAlgorithmType =
             EvacuationRoutingAlgorithmType.MATSimDefault;
 
     public MATSimEvacModel(Map<String, String> opts, DataServer server) {
         matsimModel = new MATSimModel(opts, server);
         registerDataServer(server);
-        this.fireWriter = new Shape2XyWriter( matsimModel.getConfig(), "fire" ) ;
-        this.emberWriter = new Shape2XyWriter( matsimModel.getConfig(), "ember" ) ;
-        this.disruptionWriter = new DisruptionWriter( matsimModel.getConfig() ) ;
-        this.monitorPersonsEnteringDangerZones = new MonitorPersonsInDangerZone(getAgentManager());
+      //  this.fireWriter = new Shape2XyWriter( matsimModel.getConfig(), "fire" ) ;
+      //  this.emberWriter = new Shape2XyWriter( matsimModel.getConfig(), "ember" ) ;
+      //  this.cycloneWriter = new Shape2XyWriter( matsimModel.getConfig(), "cyclone" ) ;
+      //  this.floodWriter = new Shape2XyWriter( matsimModel.getConfig(), "flood" ) ;
+      //  this.disruptionWriter = new DisruptionWriter( matsimModel.getConfig() ) ;
+         this.monitorPersonsEnteringDangerZones = new MonitorPersonsInDangerZone(getAgentManager()); //wichtig -oemer
 
         if (opts == null) {
             return;
         }
         for (String opt : opts.keySet()) {
             log.info("Found option: {}={}", opt, opts.get(opt));
+          /*
             switch(opt) {
                 case eMaxDistanceForFireVisual:
                     optMaxDistanceForFireVisual = Double.parseDouble(opts.get(opt));
+                    break;
+                case eMaxDistanceForCycloneVisual:
+                    optMaxDistanceForCycloneVisual = Double.parseDouble(opts.get(opt));
                     break;
                 case eMaxDistanceForSmokeVisual:
                     optMaxDistanceForSmokeVisual = Double.parseDouble(opts.get(opt));
@@ -143,9 +149,11 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
                     optRoutingAlgorithmType =
                             EvacuationRoutingAlgorithmType.valueOf(opts.get(opt));
                     break;
-                default:
+
+           */
+             //   default:
                     log.warn("Ignoring option: " + opt + "=" + opts.get(opt));
-            }
+         //   }
         }
     }
 
@@ -172,21 +180,25 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
     }
 
     private void registerDataServer( DataServer server ) {
-        server.subscribe(this, Constants.FIRE_DATA);
-        server.subscribe(this, Constants.EMBERS_DATA);
-        server.subscribe(this, Constants.DISRUPTION);
-        server.subscribe(this, Constants.EMERGENCY_MESSAGE);
+       //   server.subscribe(this, Constants.FIRE_DATA);
+       //   server.subscribe(this, Constants.EMBERS_DATA);
+       //   server.subscribe(this, Constants.DISRUPTION);
+       //   server.subscribe(this, Constants.EMERGENCY_MESSAGE);
+       //   server.subscribe(this, Constants.CYCLONE_DATA);
+       //   server.subscribe(this, Constants.FLOOD_DATA);
     }
 
     @Override
     public void receiveData(double time, String dataType, Object data) {
         switch( dataType ) {
-            case Constants.FIRE_DATA:
-            case Constants.EMBERS_DATA:
-            case Constants.DISRUPTION:
-            case Constants.EMERGENCY_MESSAGE:
-                dataListeners.get(dataType).receiveData(time, dataType, data);
-                break;
+         //   case Constants.CYCLONE_DATA:
+         //   case Constants.FLOOD_DATA:
+         //   case Constants.FIRE_DATA:
+         //   case Constants.EMBERS_DATA:
+         //   case Constants.DISRUPTION:
+         //   case Constants.EMERGENCY_MESSAGE:
+         //      dataListeners.get(dataType).receiveData(time, dataType, data);
+         //      break;
             default:
                 matsimModel.receiveData(time, dataType, data);
         }
@@ -198,6 +210,12 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
      */
     private Map<String, DataClient> createDataListeners() {
         Map<String, DataClient> listeners = new  HashMap<>();
+/*
+        listeners.put(Constants.CYCLONE_DATA, (DataClient<Geometry[]>) (time, dataType, data)
+               -> processCycloneData(data, time, penaltyFactorsOfLinks, matsimModel.getScenario(), cycloneWriter));
+
+        listeners.put(Constants.FLOOD_DATA, (DataClient<Geometry[]>) (time, dataType, data)
+                -> processFloodData(data, time, penaltyFactorsOfLinks, matsimModel.getScenario(), floodWriter));
 
         listeners.put(Constants.FIRE_DATA, (DataClient<Geometry>) (time, dataType, data)
                 -> processFireData(data, time, penaltyFactorsOfLinks, matsimModel.getScenario(),
@@ -211,10 +229,41 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
 
         listeners.put(Constants.EMERGENCY_MESSAGE, (DataClient<Map<Double,EmergencyMessage>>) (time, dataType, data)
                 -> processEmergencyMessageData(data, time, matsimModel.getScenario()));
-
+*/
         return listeners;
     }
 
+
+    /*
+    private void processFloodData(Geometry[] dataList, double now, Map<Id<Link>, Double> penaltyFactorsOfLinks, Scenario scenario, Shape2XyWriter floodWriter) {
+
+        log.debug("received flood data: {}", dataList);
+        for(Geometry floodPolygon: dataList){
+           // Geometry buffer = floodPolygon.buffer(optMaxDistanceForFloodVisual);
+            monitorPersonsEnteringDangerZones.setFloodZone(getLinksWithin(scenario, floodPolygon));
+            floodWriter.write( now, floodPolygon);
+        }
+        penaltyFactorsOfLinks.clear();
+        Utils.reduceSpeed2(dataList, now, 0.000001, scenario);
+
+    }
+    */
+    /*
+        private void processCycloneData(Geometry[] polygonlist, double now, Map<Id<Link>, Double> penaltyFactorsOfLinks, Scenario scenario, Shape2XyWriter cycloneWriter){
+        log.debug("received cyclone data: {}", polygonlist);
+        for(Geometry poly: polygonlist) {
+            monitorPersonsEnteringDangerZones.setCycloneZone(getLinksWithin(scenario, poly));
+            cycloneWriter.write( now, poly);
+        }
+            {
+                Utils.reduceSpeed(polygonlist, now, 0.000001, scenario);
+            }
+
+    }
+
+*/
+
+    /*
     private void processEmbersData(Geometry data, double now, Scenario scenario, Shape2XyWriter emberWriter) {
         log.debug("received embers data: {}", data);
         Geometry buffer = data.buffer(optMaxDistanceForSmokeVisual);
@@ -236,6 +285,8 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         emberWriter.write( now, data);
     }
 
+     */
+/*
     private void processDisruptionData(Map<Double, Disruption> data, double now, Scenario scenario, DisruptionWriter disruptionWriter ) {
         log.info("receiving disruption data at time={}", now);
         log.info( "{}", new Gson().toJson(data) ) ;
@@ -281,6 +332,8 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         }
     }
 
+    */
+/*
     private void processEmergencyMessageData(Map<Double, EmergencyMessage> data, double now, Scenario scenario) {
         log.info("receiving emergency message data at time={}", now);
         log.info( "{}{}", new Gson().toJson(data).substring(0,Math.min(new Gson().toJson(data).length(),200)),
@@ -323,6 +376,8 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         }
     }
 
+    */
+    /*
     private void processFireData(Geometry data, double now, Map<Id<Link>, Double> penaltyFactorsOfLinks,
                                  Scenario scenario, Map<Id<Link>, Double> penaltyFactorsOfLinksForEmergencyVehicles,
                                  Shape2XyWriter fireWriter) {
@@ -365,6 +420,7 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         }
         fireWriter.write( now, data);
     }
+    */
 
     private List<Id<Person>> getPersonsWithin(Scenario scenario, Geometry shape) {
         List<Id<Person>> personsWithin = new ArrayList<>();
@@ -527,7 +583,7 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
     }
 
     public void finish() {
-        if ( fireWriter!=null ) {
+    /*    if ( fireWriter!=null ) {
             fireWriter.close();
         }
         if ( emberWriter !=null ) {
@@ -536,6 +592,14 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         if ( disruptionWriter!=null ) {
             disruptionWriter.finish(matsimModel.getTime());
         }
+        if ( cycloneWriter !=null ) {
+            cycloneWriter.close();
+        }
+        if ( floodWriter !=null ) {
+            floodWriter.close();
+        }
+
+     */
         matsimModel.finish();
     }
 
