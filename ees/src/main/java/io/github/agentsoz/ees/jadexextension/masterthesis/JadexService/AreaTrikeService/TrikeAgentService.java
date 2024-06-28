@@ -6,6 +6,7 @@ import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -76,6 +77,8 @@ public class TrikeAgentService implements IAreaTrikeService {
 				if (jobID.equals(trikeAgent.decisionTaskList.get(i).getJobID())) {
 					//  agentID+score dazu speichern
 					trikeAgent.decisionTaskList.get(i).setStatus("commit");
+					String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+					System.out.println("FINISHED Negotiation - JobID: " + trikeAgent.decisionTaskList.get(i).getJobID() + " TimeStamp: "+ timeStampBooked);
 					ArrayList<String> values = new ArrayList<>();
 					values.add(jobID);
 					trikeAgent.sendMessage(messageObj.getSenderId(), "inform", "confirmAccept", values);

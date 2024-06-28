@@ -79,7 +79,7 @@ public class Config {
 	static final String eModelMatsim = "matsim";
 	static final String eModelBdi = "bdi";
 	static final String eModelDiffusion = "diffusion";
-	static final String pathname = "C:\\Users\\Marcel\\IdeaProjects\\ees\\ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\masterthesis\\Run\\TrikeWorld.application.xml";
+	static final String pathname = "ees\\src\\main\\java\\io\\github\\agentsoz\\ees\\jadexextension\\masterthesis\\Run\\TrikeWorld.application.xml";
 
 
 	private Map<String, String> config;

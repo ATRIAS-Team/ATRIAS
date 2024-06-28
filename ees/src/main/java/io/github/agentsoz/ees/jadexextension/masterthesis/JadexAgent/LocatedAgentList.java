@@ -30,8 +30,7 @@ public class LocatedAgentList {
         else if (action.equals("update")){
             for (int i= 0; i<LocatedAgentList.size(); i++){
                 if(newAgent.getAgentID().equals(LocatedAgentList.get(i).getAgentID())){
-                    LocatedAgentList.get(i).updateLocatedAgent(newAgent.getLastPosition(),
-                            LocatedAgentList.get(i).getTimeOfLastUpdate() + simTime);
+                    LocatedAgentList.get(i).updateLocatedAgent(newAgent.getLastPosition(), simTime);
                 }
             }
         }

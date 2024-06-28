@@ -162,7 +162,7 @@ public class TrikeAgent implements SendtoMATSIM{
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
     Boolean CNP_ACTIVE = true;
-    Double THETA = 900.0; //allowed waiting time for customers.
+    Double THETA = 600.0; //allowed waiting time for customers.
     Boolean ALLOW_CUSTOMER_MISS = true; // customer will miss when delay > THETA
     Double DISTANCE_FACTOR = 3.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
 
@@ -610,6 +610,7 @@ public class TrikeAgent implements SendtoMATSIM{
             Double a = 1.0 / 3.0;
             Double b = 1.0 / 3.0;
             Double c = 1.0 / 3.0;
+
             Double uPunctuality = null;
             Double uBattery = null;
             Double uDistance = null;
