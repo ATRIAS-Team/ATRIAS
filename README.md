@@ -1,62 +1,137 @@
-# EES-Jadex Layer Installation 
+# BDI-ABM Integration Package
 
-In the following, the Installation for EES-Jadex is described, the Jadex integration layer that connects Jadex Agents with MATSim.
- 
- 1. Download/Clone this repository and process the Setup and Build package as described below. Also, note that one of the submodules is pointed to another forked repository [BDI-ABM Integration](https://github.com/oemer95/bdi-abm-integration).
+`master`![passing?](https://github.com/agentsoz/bdi-abm-integration/actions/workflows/ci.yml/badge.svg?branch=master) `dev`![passing?](https://github.com/agentsoz/bdi-abm-integration/actions/workflows/ci.yml/badge.svg?branch=dev)
 
- 2. The AMOD University Campus Scenario is in the following path: ees/scenarios/matsim-drt-frankfurt-campus-westend-example
- 
- 3. Update the path(s) in the following class(es):
-    - XmlJavaParse.java: In Line 23 the full path to the Jadex Config XML-File "TrikeWorld.application.xml" is needed
-    - Config.java: In Line 82 the full path to the Jadex Config XML-File "TrikeWorld.application.xml" is needed
+This software realises a mechanism for integrating
+Belief-Desire-Intention (BDI) reasoning into agents within an
+agent-based simulation (ABM). The concept is described
+in the following papers:
 
- 4. Create a run config with the following specifications: Java 11+, -cp eeslib, io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run;
-    program argument: --config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml 
+1. Dhirendra Singh, Lin Padgham, Kai Nagel.
+   [Using MATSim as a Component in Dynamic Agent-Based Micro-Simulations](https://link.springer.com/chapter/10.1007/978-3-030-51417-4_5)
+   International Workshop on Engineering Multi-Agent Systems (EMAS), pages 85-105, 2019.
+
+2. Dhirendra Singh, Lin Padgham, Brian Logan.
+   [Integrating BDI agents with Agent Based Simulation Platforms](https://link.springer.com/article/10.1007/s10458-016-9332-x).
+   Autonomous Agents and Multi-agent Systems 30, pages 1050–1071, 2016.
+
+3. Lin Padgham, Dhirendra Singh.
+   [Making MATSim Agents Smarter with the Belief-Desire-Intention Framework](http://matsim.org/the-book)
+   Horni, A., Nagel, K. and Axhausen, K.W. (eds.) The Multi-Agent Transport Simulation MATSim,
+   pages 201-210, 2016. Ubiquity Press London.
+
+4. Lin Padgham, Kai Nagel, Dhirendra Singh, Qingyu Chen.
+   [Integrating BDI Agents into a MATSim Simulation](https://ebooks.iospress.nl/volumearticle/37020).
+   Frontiers in Artificial Intelligence and Applications (ECAI) 263,
+   pages 681-686, 2014.
 
 
 
 
- 
+## How to use this software
+
+Examples of BDI-ABM applications are provided in the `./examples` directory.
+
+Any BDI-ABM application consists of three layers. A generic first layer
+(`./integrations/bdi-abm`) manages the high level interaction and message
+passing between the BDI and the ABM system. A second platform specific
+layer realises the connection between a specific BDI platform (such as
+JACK, i.e., `./integrations/abm-jack`), and a specific ABM system (such
+as MATSim, i.e., `./integrations/bdi-matsim`). Finally, a third application
+layer puts these together along with domain specific code (for instance
+`./examples/bushfire).
+
+Overall, the repository consists of *integrations* and *examples*. Integrations
+are platform specific and live in `./integrations`. Examples are domain
+specific, and live in `./examples`. The following integrations
+are provided:
+
+Integration   | Directory                   | Description
+:-------------|:----------------------------|:----------------------------
+BDI-ABM       | `./integrations/bdi-abm`    | BDI-ABM communication and data layer
+BDI-GAMS      | `./integrations/bdi-gams`   | Integration for GAMS (www.gams.com)
+BDI-MATSim    | `./integrations/bdi-matsim` | Integration for MATSim (www.matsim.org)
+ABM-JACK      | `./integrations/abm-jack`   | Integration for JACK (aosgrp.com/products/jack)
+ABM-Jill      | `./integrations/abm-jill`   | Integration for Jill (http://agentsoz.github.io/jill)
+ABM-Jadex     | `./integrations/abm-jadex`  | Integration for Jadex (http://www.activecomponents.org/bin/view/About/Features)
+
+Integrations are pulled together to build application examples. The following
+examples are provided:
+
+Example             | Directory                      | Description
+:-------------------|:-------------------------------|:----------------------------
+Bushfire            | `./examples/bushfire`          | Uses Jill and MATSim
+Bushfire Tutorial   | `./examples/bushfire-tutorial` | Uses JACK and MATSim
+Conservation Ethics | `./examples/conservation`      | Uses Jill and GAMS
+Child Vaccination   | `./examples/vaccination`       | Uses JACK and a custom Python-based ABM
+
+In addition to above, the repository consists of an *util* project. It lives in
+`./util` and contains the utility classes used by integration libraries and example
+applications in the repository.
+
+Project     | Directory      | Description
+:-----------|:---------------|:--------------------------------------------
+Util        | `./util`       | Contains utility classes for integration libraries and example applications
 
 
-# Emergency Evacuation Simulator
+
+<a name="Dependencies"></a>
+## Build Dependencies
 
 
-## Dependencies
+* Java Development Kit 1.8
+  http://en.wikipedia.org/wiki/Java_Development_Kit
 
-This program depends on the following projects:
-* [BDI-ABM Integration](https://github.com/agentsoz/bdi-abm-integration)
-* [Jill BDI Engine](https://github.com/agentsoz/jill)
-* [Social Network Diffusion Model](https://github.com/agentsoz/diffusion-model)
+* Apache Maven 3.3.*
+  http://maven.apache.org
 
-## Setup
+* Some of the integrations (e.g., JACK, GAMS) require third-party
+  libraries to be installed in your local Maven repository. See
+  the respective READMEs (`./integrations/*/README.md`) for details.
+  *The project will not build unless these dependencies have been
+   resolved.*
 
-Initialise and update the git submodules as below. This only has to be done once, when you first clone this repository.
 
-```
-git submodule update --init --recursive
-```
 
-## How to build
+## Compiling
 
-```
-mvn package
-```
 
-This will produce the EES release archive in `ees/target/ees-x.y.z-SNAPSHOT.zip`.
+### Bushfire example
 
-## How to run
+See [`examples/bushfire/README.md`](./examples/bushfire/README.md).
 
-To run the example scenario unzip the release archive and follow the instructions provided in the packaged README.md.
 
-## Known Issues
+### Conservation Example
 
-* See [GitHub Issues](https://github.com/agentsoz/ees/issues).
+1.  Build the bdi-abm-integration layer: In the source repository `/`, do
+    `mvn clean install -N`
+2.  Build the BDI-ABM library: See `/integrations/bdi-abm/README.md`
+    for instructions
+3.  Build the BDI-GAMS library: See `/integrations/bdi-gams/README.md`
+    for instructions
+4.  Build the ABM-Jill library: See `/integrations/abm-jill/README.md`
+    for instructions
+5.  Build the Conservation application: In `/examples/conservation`, do
+    `mvn clean install`
+
+
+### Vaccination Example (probably outdated as of 11/Sep/2018)
+
+1.  Build the bdi-abm-integration layer: In the source repository `/`, do
+    `mvn clean install -N`
+2.  Build the BDI-ABM library: See `/integrations/bdi-abm/README.md`
+    for instructions
+3.  Build the ABM-JACK library: See `/integrations/abm-jack/README.md`
+    for instructions
+4.  Build the Bushfire application: In `/examples/vaccination`, do
+    `mvn clean install`
+
+
 
 ## License
 
-Emergency Evacuation Simulator
-Copyright (C) 2014-2020 by its authors. See ees/AUTHORS file.
+BDI-ABM Integration Package
+Copyright (C) 2014, 2015 by its authors. See AUTHORS file.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -71,4 +146,4 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-For contact information, see ees/AUTHORS file.
+For contact information, see AUTHORS file.
