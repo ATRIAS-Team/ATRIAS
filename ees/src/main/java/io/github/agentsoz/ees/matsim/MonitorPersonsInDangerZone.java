@@ -4,7 +4,7 @@ package io.github.agentsoz.ees.matsim;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -45,6 +45,8 @@ public class MonitorPersonsInDangerZone implements LinkEnterEventHandler {
 
     private Set<Id<Link>> linksInFireBuffer = new HashSet<>();
     private Set<Id<Link>> linksInEmbersBuffer = new HashSet<>();
+    private Set<Id<Link>> linksInCycloneBuffer = new HashSet<>();
+    private Set<Id<Link>> linksInFloodBuffer = new HashSet<>();
 
     public MonitorPersonsInDangerZone(PAAgentManager agentManager) {
         this.agentManager = agentManager;
@@ -56,6 +58,13 @@ public class MonitorPersonsInDangerZone implements LinkEnterEventHandler {
 
     public void setEmbersZone(Set<Id<Link>> linksWithin) {
         linksInEmbersBuffer = linksWithin;
+    }
+
+    public void setCycloneZone(Set<Id<Link>> linksWithin) {
+        linksInCycloneBuffer = linksWithin;
+    }
+    public void setFloodZone(Set<Id<Link>> linksWithin) {
+        linksInFloodBuffer = linksWithin;
     }
 
     @Override
@@ -72,4 +81,6 @@ public class MonitorPersonsInDangerZone implements LinkEnterEventHandler {
             }
         }
     }
+
+
 }

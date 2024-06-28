@@ -4,7 +4,7 @@ package io.github.agentsoz.ees.matsim;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -53,7 +53,8 @@ public class EvacAgentTracker implements
 	private final Network network;
 	private final EventsManager events;
 	private final EvacConfig evacConfig;
-	private Map<Id<Vehicle>,VehicleTrackingData> linkEnterEventsMap = Collections.synchronizedMap( new LinkedHashMap<>() );
+	//made public -oemer
+	public Map<Id<Vehicle>,VehicleTrackingData> linkEnterEventsMap = Collections.synchronizedMap( new LinkedHashMap<>() );
 	private Vehicle2DriverEventHandler vehicle2Driver = new Vehicle2DriverEventHandler() ;
 	private DeckglTripsData deckglTripsData;
 
@@ -173,7 +174,7 @@ public class EvacAgentTracker implements
 
 	}
 
-	class VehicleTrackingData {
+	public class VehicleTrackingData {
 		private Id<Vehicle> vehicleIid;
 		private double trackingStartTime;
 		private double distanceSinceStart;

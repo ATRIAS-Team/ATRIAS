@@ -4,7 +4,7 @@ package io.github.agentsoz.ees.util;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -34,6 +34,8 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.mobsim.framework.MobsimAgent;
+import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -241,7 +243,57 @@ public final class Utils {
 
 
 	}
-	
+
+	// reduce speed on links by checking start/end nodes within any of the flood polygons
+	public static void reduceSpeed(Geometry[]  polygons,
+								   double effectiveTime,
+								   double effectiveSpeed,
+								   Scenario scenario) {
+
+		for (Geometry poly: polygons) {
+			for ( Node node : scenario.getNetwork().getNodes().values() ) {
+				Point point = GeometryUtils.createGeotoolsPoint(node.getCoord());
+				if (poly.contains(point)) {
+					for (Link link : node.getInLinks().values()) {
+						NetworkChangeEvent event = new NetworkChangeEvent( effectiveTime ) ;
+						event.setFreespeedChange(new NetworkChangeEvent.ChangeValue( NetworkChangeEvent.ChangeType.ABSOLUTE_IN_SI_UNITS,  effectiveSpeed ));
+						event.addLink(link);
+						NetworkUtils.addNetworkChangeEvent( scenario.getNetwork(),event);
+					}
+				}
+			}
+		}
+	}
+
+
+	// reduce speed on  links  that intersect with the flood polygons
+	public static void reduceSpeed2(Geometry[]  polygons,
+								   double effectiveTime,
+								   double effectiveSpeed,
+								   Scenario scenario) {
+		ArrayList<Link> intersectingLinks = new ArrayList<Link>();
+		int ct = 0;
+
+		for (Geometry poly: polygons) {
+			for ( Link link : scenario.getNetwork().getLinks().values() ) {
+				LineString line = GeometryUtils.createGeotoolsLineString(link);
+				//https://javadoc.io/static/org.locationtech.jts/jts-core/1.16.0/org/locationtech/jts/geom/Geometry.html#intersects-org.locationtech.jts.geom.Geometry-
+				if (poly.intersects(line) && !intersectingLinks.contains(link)) {
+//					for (Link link : node.getInLinks().values()) {
+						NetworkChangeEvent event = new NetworkChangeEvent( effectiveTime ) ;
+						event.setFreespeedChange(new NetworkChangeEvent.ChangeValue( NetworkChangeEvent.ChangeType.ABSOLUTE_IN_SI_UNITS,  effectiveSpeed ));
+						event.addLink(link);
+						NetworkUtils.addNetworkChangeEvent( scenario.getNetwork(),event);
+						intersectingLinks.add(link);
+						ct++;
+//					}
+				}
+			}
+		}
+		log.info("{} network change events added at time {} ", ct, effectiveTime);
+	}
+
+
 	public static void penaltyMethod2(Geometry fire, Geometry buffer, double bufferWidth,
 									  Map<Id<Link>, Double> penaltyFactorsOfLinks, Scenario scenario) {
 		// Starting thoughts:
@@ -290,7 +342,8 @@ public final class Utils {
 				for (Link link : node.getInLinks().values()) {
 					penaltyFactorsOfLinks.put( link.getId(), bufferWidth*bufferWidth) ;
 				}
-			} else if ( buffer.contains(point) ) {
+			}
+			else if ( buffer.contains(point) ) {
 				log.debug("node {} is IN buffer", node.getId());
 				// in links
 				for (Link link : node.getInLinks().values()) {
