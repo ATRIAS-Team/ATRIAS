@@ -4,7 +4,7 @@ package io.github.agentsoz.ees;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2022 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -44,6 +44,8 @@ public class Constants {
     public static final String EMBERS_DATA = "embers_data";
     public static final String FIRE_ALERT = "fire_alert";
     public static final String FIRE_DATA  = "fire_data";
+    public static final String CYCLONE_DATA  = "cylcone_data";
+    public static final String FLOOD_DATA  = "flood_data";
     public static final String SIGHTED_EMBERS= "embers";
     public static final String SIGHTED_FIRE= "fire";
     public static final String STUCK =io.github.agentsoz.util.PerceptList.STUCK;
