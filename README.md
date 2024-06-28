@@ -1,11 +1,32 @@
-# Emergency Evacuation Simulator
+# EES-Jadex Layer Installation 
+
+In the following, the Installation for EES-Jadex is described, the Jadex integration layer that connects Jadex Agents with MATSim.
  
-`master`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=master) `dev`![passing?](https://github.com/agentsoz/ees/actions/workflows/ci.yml/badge.svg?branch=dev)
+ 1. Download/Clone this repository and process the Setup and Build package as described below. Also, note that one of the submodules is pointed to another forked repository [BDI-ABM Integration](https://github.com/oemer95/bdi-abm-integration).
+
+ 2. The AMOD University Campus Scenario is in the following path: ees/scenarios/matsim-drt-frankfurt-campus-westend-example
+ 
+ 3. Update the path(s) in the following class(es):
+    - XmlJavaParse.java: In Line 23 the full path to the Jadex Config XML-File "TrikeWorld.application.xml" is needed
+    - Config.java: In Line 82 the full path to the Jadex Config XML-File "TrikeWorld.application.xml" is needed
+
+ 4. Create a run config with the following specifications: Java 11+, -cp eeslib, io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run;
+    program argument: --config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml 
+
+
+
+
+ 
+
+
+# Emergency Evacuation Simulator
+
 
 ## Dependencies
 
 This program depends on the following projects:
 * [BDI-ABM Integration](https://github.com/agentsoz/bdi-abm-integration)
+* [Jill BDI Engine](https://github.com/agentsoz/jill)
 * [Social Network Diffusion Model](https://github.com/agentsoz/diffusion-model)
 
 ## Setup
@@ -19,7 +40,7 @@ git submodule update --init --recursive
 ## How to build
 
 ```
-./mvnw package
+mvn package
 ```
 
 This will produce the EES release archive in `ees/target/ees-x.y.z-SNAPSHOT.zip`.
