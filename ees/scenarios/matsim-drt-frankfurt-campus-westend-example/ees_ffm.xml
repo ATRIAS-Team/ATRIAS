@@ -38,7 +38,7 @@
     <!-- simulation start time in HH:MM format -->
     <opt id="startHHMM">00:00</opt>
     <!-- Output file for trips written in DeckGL format -->
-    <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/trips.deckgl.json</opt>
+    <opt id="deckGlOutFile">ees/test/output-neu/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/trips.deckgl.json</opt>
    <!-- <opt id="deckGlOutFile">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/trips.deckgl.json</opt>-->
   </global>
 
@@ -68,7 +68,7 @@
     <model id="matsim">
       <!-- MATSim output directory relative to examples/bushfire directory (will overrule the setting in MATSim config) -->
       <!-- <opt id="outputDir">ees/test/output/io/github/agentsoz/ees/agents/archetype/MaldonExample/test/matsim</opt>-->
-      <opt id="outputDir">ees/test/output/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/matsim</opt>
+      <opt id="outputDir">ees/test/output-neu/io/github/agentsoz/ees/agents/archetype/FrankfurtCampusExample/test/matsim</opt>
 
       <!-- MATSim XML config XML file relative to examples/bushfire directory -->
       <opt id="configXml">ees/scenarios/matsim-drt-frankfurt-campus-westend-example/matsim_config.xml</opt>

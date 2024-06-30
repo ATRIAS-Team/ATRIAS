@@ -58,6 +58,7 @@ public class Constants {
     public static final String REQUEST_DRIVING_DISTANCE_TO = io.github.agentsoz.util.PerceptList.REQUEST_DRIVING_DISTANCE_TO;
     public static final String REQUEST_TEST = PerceptList.REQUEST_DESTINATION_COORDINATES_2;
     public static final String REQUEST_DRIVING_PATH_TO = PerceptList.REQUEST_DRIVING_PATH;
+    public static final String REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES = PerceptList.REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES;
 
     //Diffusion model percepts
     public static final String DIFFUSION = "diffusion";

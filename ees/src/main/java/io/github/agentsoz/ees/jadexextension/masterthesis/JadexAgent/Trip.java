@@ -22,6 +22,8 @@ public class Trip {
     public Location startPosition; // use this for trips with just one Geolocation
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
+    public LocalDateTime chargingEndTime;
+    public Double chargingTime;
 
     // NEW
     public LocalDateTime bookingTime;
@@ -100,8 +102,8 @@ public class Trip {
 
     //####################################################################################
     // method
-    //####################################################################################
 
+    //####################################################################################
     //short Trip
     public String tripForTransfer(){
         //List<Integer> messageTrip = new ArrayList<Integer>(String);
@@ -120,8 +122,8 @@ public class Trip {
 
     //####################################################################################
     // getter
-    //####################################################################################
 
+    //####################################################################################
     //@Marcel musste public machen
 
     public DecisionTask getDecisionTaskD() {
@@ -149,6 +151,14 @@ public class Trip {
 
     public String getProgress() {
         return this.progress;
+    }
+
+    public LocalDateTime getChargingEndTime() {
+        return chargingEndTime;
+    }
+
+    public Double getChargingTime() {
+        return chargingTime;
     }
 
     /**
@@ -187,4 +197,11 @@ public class Trip {
         this.progress = progress;
     }
 
+    public void setChargingEndTime(LocalDateTime chargingEndTime) {
+        this.chargingEndTime = chargingEndTime;
+    }
+
+    public void setChargingTime(Double chargingTime) {
+        this.chargingTime = chargingTime;
+    }
 }

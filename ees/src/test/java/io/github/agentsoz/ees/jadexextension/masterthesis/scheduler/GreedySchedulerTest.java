@@ -1,7 +1,10 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.enums.Strategy;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.MinMaxMetricsValues;
 import io.github.agentsoz.util.Location;
+import jadex.micro.annotation.AgentResult;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +35,7 @@ public class GreedySchedulerTest extends TestCase {
 
         Location currentVaLocation = new Location("", 0.0, 0.0);
 
-        scheduler = new GreedyScheduler(chargingStations, 0.4, null, null, null, null);
+        scheduler = new GreedyScheduler(chargingStations, 0.4, null, null, null, null, "1", 0.0);
 
         Trip trip1 = new Trip(
                 "1",
@@ -136,7 +139,9 @@ public class GreedySchedulerTest extends TestCase {
                 currentVaLocationSzenario1,
                 startSimulationTime.plusMinutes(1),
                 6.0,
-                600.0
+                600.0,
+                "AP001",
+                0.0
         );
         List<Trip> tripsSzenario1 = new ArrayList<>();
         Trip trip1Szenario1 = new Trip(
@@ -162,7 +167,7 @@ public class GreedySchedulerTest extends TestCase {
         tripsSzenario1.add(trip1Szenario1);
         tripsSzenario1.add(trip2Szenario1);
 
-        List<Trip> result = schedulerSzenario1.greedySchedule(tripsSzenario1);
+        List<Trip> result = schedulerSzenario1.greedySchedule(tripsSzenario1, Strategy.IGNORE_CUSTOMER);
 
     }
 
@@ -174,11 +179,13 @@ public class GreedySchedulerTest extends TestCase {
         Location currentVaLocationSzenario1 = new Location("VA", 0.0, 0.0);
         schedulerSzenario1 = new GreedyScheduler(
                 Collections.singletonList(chargingStationLocation),
-                0.011,
+                0.06,
                 currentVaLocationSzenario1,
                 startSimulationTime.plusMinutes(1),
                 6.0,
-                600.0
+                900.0,
+                "1",
+                0.0
         );
         List<Trip> tripsSzenario1 = new ArrayList<>();
         Trip trip1Szenario1 = new Trip(
@@ -204,8 +211,67 @@ public class GreedySchedulerTest extends TestCase {
         tripsSzenario1.add(trip1Szenario1);
         tripsSzenario1.add(trip2Szenario1);
 
-        List<Trip> result = schedulerSzenario1.greedySchedule(tripsSzenario1);
+        List<Trip> result = schedulerSzenario1.greedySchedule(tripsSzenario1, Strategy.IGNORE_CUSTOMER);
 
+        assertEquals("CH1", result.get(0).tripID);
+        assertEquals("2", result.get(1).tripID);
+        assertEquals("1", result.get(2).tripID);
+    }
+
+    @Test
+    public void testSimpleChargingTimeCalculation() {
+
+    }
+
+    @Test
+    public void testGetMinMaxMetricsValues() {
+        MetricsValues metricsValues = new MetricsValues();
+        metricsValues.setAllVaBreaksDownValues(Arrays.asList(false, false, false, false, false));
+        metricsValues.setAllOdrValues(Arrays.asList(1,3,5,7,9));
+        metricsValues.setAllTotalDistances(Arrays.asList(100.0, 300.0, 600.0, 330.0, 222.0));
+        metricsValues.setAllStopsValues(Arrays.asList(2,2,3,3,3));
+        metricsValues.setAllMinBatteryLevelValues(Arrays.asList(0.22, 0.032, 0.46, 0.322, 0.18));
+        metricsValues.setAllBatteryLevelValuesAfterAllTrips(Arrays.asList(0.0, 0.77, 0.654, 0.35, 0.387));
+
+        MinMaxMetricsValues minMaxMetricsValues = scheduler.getMinMaxMetricsValues(metricsValues);
+        assertEquals(1, minMaxMetricsValues.getMinOdr());
+        assertEquals(9, minMaxMetricsValues.getMaxOdr());
+        assertEquals(100.0, minMaxMetricsValues.getMinTotalDistance());
+        assertEquals(600.0, minMaxMetricsValues.getMaxTotalDistance());
+        assertEquals(2, minMaxMetricsValues.getMinStops());
+        assertEquals(3, minMaxMetricsValues.getMaxStops());
+        assertEquals(0.032, minMaxMetricsValues.getMinBatteryLevel());
+        assertEquals(0.46, minMaxMetricsValues.getMaxBatteryLevel());
+        assertEquals(0.0, minMaxMetricsValues.getMinBatteryLevelAfterAllTrips());
+        assertEquals(0.77, minMaxMetricsValues.getMaxBatteryLevelAfterAllTrips());
+    }
+
+    @Test
+    public void testNormalizationOfValues() {
+        MetricsValues metricsValues = new MetricsValues();
+        metricsValues.setAllVaBreaksDownValues(Arrays.asList(false, false, false, false, false));
+        metricsValues.setAllOdrValues(Arrays.asList(1,3,5,7,9));
+        metricsValues.setAllTotalDistances(Arrays.asList(100.0, 300.0, 600.0, 330.0, 222.0));
+        metricsValues.setAllStopsValues(Arrays.asList(2,2,3,3,3));
+        metricsValues.setAllMinBatteryLevelValues(Arrays.asList(0.01, 0.03, 0.02, 0.04, 0.05));
+        metricsValues.setAllBatteryLevelValuesAfterAllTrips(Arrays.asList(0.0, 0.8, 0.6, 0.2, 0.2));
+
+        MinMaxMetricsValues minMaxMetricsValues = scheduler.getMinMaxMetricsValues(metricsValues);
+
+        List<List<Number>> listOfNormalizedValues = scheduler.normalizeValues(metricsValues, minMaxMetricsValues);
+        List<Number> odrValues = listOfNormalizedValues.stream().map(l -> l.get(0)).collect(Collectors.toList());
+        List<Number> totalDistanceValues = listOfNormalizedValues.stream().map(l -> l.get(1)).collect(Collectors.toList());
+        List<Number> stopValues = listOfNormalizedValues.stream().map(l -> l.get(2)).collect(Collectors.toList());
+        List<Number> batteryLevelAfterAllTripsValues = listOfNormalizedValues.stream().map(l -> l.get(3)).collect(Collectors.toList());
+        List<Number> minBatteryLevelValues = listOfNormalizedValues.stream().map(l -> l.get(4)).collect(Collectors.toList());
+
+        assertEquals(Arrays.asList(0.0, 0.25, 0.5, 0.75, 1.0), odrValues);
+        // inverted values expected here
+        assertEquals(Arrays.asList(1.0, 0.6, 0.0, 0.54, 0.756), totalDistanceValues);
+        // inverted values expected here
+        assertEquals(Arrays.asList(1.0, 1.0, 0.0, 0.0, 0.0), stopValues);
+        assertEquals(Arrays.asList(0.0, 0.4999999999999999, 0.25, 0.75, 1.0), minBatteryLevelValues);
+        assertEquals(Arrays.asList(0.0, 1.0, 0.7499999999999999, 0.25, 0.25), batteryLevelAfterAllTripsValues);
     }
 
 }

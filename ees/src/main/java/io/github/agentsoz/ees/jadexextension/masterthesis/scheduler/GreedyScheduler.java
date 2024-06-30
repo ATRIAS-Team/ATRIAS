@@ -1,32 +1,52 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.enums.Strategy;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.Metrics;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.MinMaxMetricsValues;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.util.PrinterUtil;
 import io.github.agentsoz.util.Location;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class GreedyScheduler {
 
+    PrinterUtil printerUtil = new PrinterUtil();
     List<Trip> chargingTrips;
     double batteryLevel;
     Location currentVALocation;
     LocalDateTime simulationTime;
     Double THETA;
     Double DRIVING_SPEED;
+    // ToDo: Mit Setter von außen setzen, damit Scheduler nicht immer wieder instanziiert werden muss?
+    Double TIME_UNTIL_CURRENT_ACTION_IS_DONE;
+    //  What if current action is charging?
     // Determination of the load increase by 20% in 2 Minutes
     // A charging trip only makes sense if you can charge for at least this time
     // Charges by 10% in 1 minute
-    Double CHARGING_THRESHHOLD = 0.2;
-    Double MIN_CHARGING_TIME = CHARGING_THRESHHOLD * 10;
+    //  Meter, die durch CT erreicht werden können: CT / 0,0001 => 1km pro 1%
+    //  für 0,2 => 2km
+    Double CHARGING_THRESHHOLD = 0.02;
+    // 3,5h bei 400 Watt
+    // 12600 seconds for 0% - 100%
+    Double COMPLETE_CHARGING_TIME = 12600.0;
+    Double MIN_CHARGING_TIME = COMPLETE_CHARGING_TIME * CHARGING_THRESHHOLD;
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
+    String agentId;
 
     /**
      * Current batteryLevel is necessary to be able to evaluate the permutations and is necessary to determine whether
@@ -41,13 +61,30 @@ public class GreedyScheduler {
         this.THETA = theta;
     }
 
+    public GreedyScheduler(List<Location> chargingStations,
+                           double batteryLevel,
+                           Location currentVaLocation,
+                           LocalDateTime simulationTime,
+                           Double drivingSpeed, Double theta,
+                           String agentID,
+                           Double timeTillCurrentActionIsDone) {
+        chargingTrips = convertChargingStationsToTrips(chargingStations);
+        this.batteryLevel = batteryLevel;
+        this.currentVALocation = currentVaLocation;
+        this.simulationTime = simulationTime;
+        this.DRIVING_SPEED = drivingSpeed;
+        this.THETA = theta;
+        this.agentId = agentID;
+        this.TIME_UNTIL_CURRENT_ACTION_IS_DONE = timeTillCurrentActionIsDone;
+    }
+
     /**
      * Returns a list of trips with optimal order in which all n! possible permutations have been considered and the
      * best permutation is determined with the help of an evaluation function
      *
      * @return List of scheduled trips
      */
-    public List<Trip> greedySchedule(List<Trip> allTrips) {
+    public List<Trip> greedySchedule(List<Trip> allTrips, Strategy strategy) {
         /**
          * Requirements:
          *
@@ -63,98 +100,143 @@ public class GreedyScheduler {
          * e.g. if it is less than 5 minutes in total and more than Epsilon (e.g. 25% can be charged in this time).
          */
 
-        System.out.println("Greedy Schedule startet");
-        System.out.println("Current Simulation Time: " + this.simulationTime);
-        System.out.println("Booking Time of first trip: " + allTrips.get(0).bookingTime);
 
-        // Euclidian distance
-        // double distance = Location.distanceBetween(location1, location2);
+        printerUtil.startScheduler(agentId, batteryLevel, this.simulationTime);
 
-        // a permutation consists of trips and chargingTrips
-        // Trip chargingTrip = new Trip(tripID, "ChargingTrip", getNextChargingStation(), "NotStarted");
+        // ToDo: Is there a solution under all cirumstances? What happens if all rating results are 0? Is that possible?
         // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
-
         List<List<Trip>> permutations = getAllPermutations(allTrips);
 
-        //  ToDo: Berechne Metriken bevor der Iteration um korrekte min und max values zu haben
-        List<Integer> allOdrValues = new ArrayList<>();
-        List<Double> allBatteryLevelValues = new ArrayList<>();
-        List<Double> allTotalDistances = new ArrayList<>();
-        List<Integer> allStopsValues = new ArrayList<>();
-        for (int i = 0; i < permutations.size(); i++) {
-            List<Trip> permutation = permutations.get(i);
+        // if current trip is charging trip add as first element of each permutation and calculate the charging time
 
-            List<Number> odrAndMinBatteryLevel = validateBatteryLevelIsSufficientAndODR(permutation);
-            if (odrAndMinBatteryLevel.contains(-1)) {
-                allOdrValues.add(-1);
-                allBatteryLevelValues.add(-1.0);
-            } else {
-                allOdrValues.add((Integer) odrAndMinBatteryLevel.get(0));
-                allBatteryLevelValues.add((Double) odrAndMinBatteryLevel.get(1));
-            }
-            allTotalDistances.add(calculateTotalDistance(permutation));
-            allStopsValues.add(permutation.size());
-        }
+        MetricsValues metricsValues = getAllMetricsValuesForEachPermutation(permutations, strategy);
+        MinMaxMetricsValues minMaxMetricsValues = getMinMaxMetricsValues(metricsValues);
+        // List of List: [ODR, TOTAL_DISTANCE, STOPS, BATTERY_LEVEL_AFTER_ALL_TRIPS, MIN_BATTERY_LEVEL]
+        List<List<Number>> normalizedMetricsValues = normalizeValues(metricsValues, minMaxMetricsValues);
 
+        // ToDo: Get List of List with normalized values so that rating function only multiplies them with the
+        //  regarding factor
 
-        int minOdr = Integer.MAX_VALUE;
-        for (int i = 0; i < permutations.size(); i++) {
-            if (allOdrValues.get(i) >= 0) {
-                minOdr = Math.min(minOdr, allOdrValues.get(i));
-            }
-        }
-        int maxOdr = Collections.max(allOdrValues);
-        double minTotalDistance = Collections.min(allTotalDistances);
-        double maxTotalDistance = Collections.max(allTotalDistances);
-        int minStops = Collections.min(allStopsValues);
-        int maxStops = Collections.max(allStopsValues);
-        double minBatteryLevel = Collections.min(allBatteryLevelValues);
-        double maxBatteryLevel = Collections.max(allBatteryLevelValues);
+        printerUtil.metrics(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
+                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
+                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
 
-        List<List<String>> ids = permutations
-                .stream()
-                .map(p -> p.stream().map(t -> t.getTripID()).collect(Collectors.toList()))
-                .collect(Collectors.toList());
-        System.out.println("PERMUTATIONS: " + ids);
-        System.out.println("ODR: " + allOdrValues);
-        System.out.println("TOTAL DISTANCES: " + allTotalDistances);
-        System.out.println("BATTERY LEVELS: " + allBatteryLevelValues);
-        System.out.println("STOPS: " + allStopsValues);
+        // ToDo: Test rating function
+        List<Double> ratings = rating(
+                normalizedMetricsValues,
+                metricsValues.getAllTripsWithCharingTimes(),
+                metricsValues.getAllVaBreaksDownValues()
+        );
+        List<Trip> result = getPermutationWithHighestRating(ratings, permutations);
+        printerUtil.endScheduler(ratings);
+        System.out.println("Result for agent " + agentId + ": " + result.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
-        List<Double> allRatings = new ArrayList<>();
-        for (int i = 0; i < permutations.size(); i++) {
-            allRatings.add(
-                    rating(
-                            allOdrValues.get(i),
-                            allTotalDistances.get(i),
-                            allStopsValues.get(i),
-                            minOdr,
-                            maxOdr,
-                            minTotalDistance,
-                            maxTotalDistance,
-                            minStops,
-                            maxStops,
-                            allBatteryLevelValues.get(i),
-                            minBatteryLevel,
-                            maxBatteryLevel
-                    )
-            );
-        }
-
-        double minWert = Collections.min(allRatings);
-        int index = 0;
-        for (int i=0; i < allRatings.size(); i++) {
-            if (allRatings.get(i) == minWert) {
-                index = i;
-                break;
-            }
-        }
-
-        System.out.println("RATINGS: " + allRatings);
-
-        return permutations.get(index);
+        printerUtil.csv(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
+                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
+                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), ratings);
+        return result;
     }
 
+    public List<List<Number>> normalizeValues(MetricsValues metricsValues, MinMaxMetricsValues minMaxMetricsValues) {
+        List<List<Number>> normalized = new ArrayList<>();
+        for (int i = 0; i < metricsValues.getAllOdrValues().size(); i++) {
+            List<Number> intermediate = new ArrayList<>();
+
+            // Normalize ODR
+            double normalizedOdr;
+            if (minMaxMetricsValues.getMinOdr() == minMaxMetricsValues.getMaxOdr()) {
+                normalizedOdr = 0;
+            } else {
+                normalizedOdr = normalize(
+                        metricsValues.getAllOdrValues().get(i),
+                        minMaxMetricsValues.getMinOdr(),
+                        minMaxMetricsValues.getMaxOdr()
+                );
+            }
+            intermediate.add(normalizedOdr);
+
+            // Normalize TotalDistance
+            intermediate.add(1 - normalize(
+                    metricsValues.getAllTotalDistances().get(i),
+                    minMaxMetricsValues.getMinTotalDistance(),
+                    minMaxMetricsValues.getMaxTotalDistance()
+            ));
+
+            // Normalize Stops
+            intermediate.add(1 - normalize(
+                    metricsValues.getAllStopsValues().get(i),
+                    minMaxMetricsValues.getMinStops(),
+                    minMaxMetricsValues.getMaxStops())
+            );
+
+            // Normalize BatteryLevelAfterAllTrips
+            intermediate.add(normalize(
+                    metricsValues.getAllBatteryLevelValuesAfterAllTrips().get(i),
+                    minMaxMetricsValues.getMinBatteryLevelAfterAllTrips(),
+                    minMaxMetricsValues.getMaxBatteryLevelAfterAllTrips()
+            ));
+
+            // Normalize MinBatteryLevel (throughout the trips)
+            intermediate.add(normalize(
+                    metricsValues.getAllMinBatteryLevelValues().get(i),
+                    minMaxMetricsValues.getMinBatteryLevel(),
+                    minMaxMetricsValues.getMaxBatteryLevel())
+            );
+
+            normalized.add(intermediate);
+        }
+        return normalized;
+    }
+
+
+    public MetricsValues getAllMetricsValuesForEachPermutation(List<List<Trip>> permutations, Strategy strategy) {
+        MetricsValues metricsValues = new MetricsValues();
+        for (int i = 0; i < permutations.size(); i++) {
+            List<Trip> permutation = permutations.get(i);
+            Metrics metrics = simulateTripListAndCalculateMetrics(permutation, strategy);
+            if (metrics.isVaBreaksDown()) {
+                metricsValues.addOdr(-1);
+                metricsValues.addMinBatteryLevel(0.0);
+            } else {
+                metricsValues.addOdr(metrics.getOdr());
+                metricsValues.addMinBatteryLevel(metrics.getMinBatteryLevel());
+            }
+            Double chargingTime = permutation.stream()
+                    .filter(t -> isChargingTrip(t))
+                    .map(t -> t.getChargingTime())
+                    .collect(Collectors.summingDouble(Double::doubleValue));
+            metricsValues.addChargingTimes(chargingTime);
+            metricsValues.addTripsWithChargingTime(metrics.getTripsWithChargingTime());
+            metricsValues.addTotalDistance(metrics.getTotalDistance());
+            metricsValues.addStopps(permutation.size());
+            metricsValues.addBatteryLevelAfterAllTrips(metrics.getBatteryLevelAfterAllTrips());
+            metricsValues.addVaBreakDown(metrics.isVaBreaksDown());
+        }
+
+        return metricsValues;
+    }
+
+    public MinMaxMetricsValues getMinMaxMetricsValues(MetricsValues metricsValues) {
+        MinMaxMetricsValues minMaxMetricsValues = new MinMaxMetricsValues();
+        int minOdr = Integer.MAX_VALUE;
+        for (int i = 0; i < metricsValues.getAllVaBreaksDownValues().size(); i++) {
+            if (metricsValues.getAllOdrValues().get(i) >= 0) {
+                minOdr = Math.min(minOdr, metricsValues.getAllOdrValues().get(i));
+            }
+        }
+        minMaxMetricsValues.setMinOdr(minOdr);
+        minMaxMetricsValues.setMaxOdr(Collections.max(metricsValues.getAllOdrValues()));
+        minMaxMetricsValues.setMinTotalDistance(Collections.min(metricsValues.getAllTotalDistances()));
+        minMaxMetricsValues.setMaxTotalDistance(Collections.max(metricsValues.getAllTotalDistances()));
+        minMaxMetricsValues.setMinStops(Collections.min(metricsValues.getAllStopsValues()));
+        minMaxMetricsValues.setMaxStops(Collections.max(metricsValues.getAllStopsValues()));
+        minMaxMetricsValues.setMinBatteryLevel(Collections.min(metricsValues.getAllMinBatteryLevelValues()));
+        minMaxMetricsValues.setMaxBatteryLevel(Collections.max(metricsValues.getAllMinBatteryLevelValues()));
+        minMaxMetricsValues.setMinBatteryLevelAfterAllTrips(Collections.min(metricsValues.getAllBatteryLevelValuesAfterAllTrips()));
+        minMaxMetricsValues.setMaxBatteryLevelAfterAllTrips(Collections.max(metricsValues.getAllBatteryLevelValuesAfterAllTrips()));
+
+        return minMaxMetricsValues;
+    }
 
     // helper functions
     public List<List<Trip>> getAllPermutations(List<Trip> trips) {
@@ -206,11 +288,12 @@ public class GreedyScheduler {
 
     /**
      * Calculates the total distance traveled, taking into account the current position of the VA.
+     *
      * @param allTrips
      * @return totalDistance
      */
     public double calculateTotalDistance(List<Trip> allTrips) {
-        double totalDistance = Location.distanceBetween(allTrips.get(0).startPosition, currentVALocation);
+        double totalDistance = roundedLocationDistanceBetween(allTrips.get(0).startPosition, currentVALocation);
         List<Location> allLocations = allTrips.stream()
                 .map(trip -> {
                     if (trip.getTripID().equals("ChargingTrip")) {
@@ -222,7 +305,7 @@ public class GreedyScheduler {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         for (int i = 0; i < allLocations.size() - 1; i++) {
-            double distance = Location.distanceBetween(allLocations.get(i), allLocations.get(i + 1));
+            double distance = roundedLocationDistanceBetween(allLocations.get(i), allLocations.get(i + 1));
             totalDistance += distance;
         }
         return totalDistance;
@@ -247,7 +330,8 @@ public class GreedyScheduler {
         return result;
     }
 
-    public double rating(int odr, double totalDistance, int stops, int minOdr, int maxOdr, double minTotalDistance, double maxTotalDistance, int minStops, int maxStops, double batteryLevel, double minBatteryLevel, double maxBatteryLevel) {
+    public List<Double> rating(List<List<Number>> normalizedMetricsValues, List<List<Trip>> tripsWithChargingTime,
+                         List<Boolean> vaBreaksDown) {
         /**
          * 0 is the worst possible value, 1 is the best possible value
          *
@@ -275,37 +359,43 @@ public class GreedyScheduler {
          */
 
         // Vehicle Agent breaks down
-        if (odr == -1) { return 1.0; }
+        // or unnecessary charging trip is included in trip list
 
-        double normalizedOdr;
-        if (minOdr == maxOdr) {
-            normalizedOdr = 0;
-        } else {
-            normalizedOdr = normalize(odr, minOdr, maxOdr);
-        }
-        double normalizedTotalDistance = normalize(totalDistance, minTotalDistance, maxTotalDistance);
-        double normalizedStops = normalize(stops, minStops, maxStops);
-
-        // ToDo: Strafe für niedrigeren Akkustand bzw. Belohnung für höheren Akkustand
-        double normalizedBatteryLevel = normalize(batteryLevel, minBatteryLevel, maxBatteryLevel);
-        double invertedNormalizedBatteryLevel = 1 - normalizedBatteryLevel;
-        // Je größer alles desto schlechter => d.h. 0.0 ist der beste Wert
-        double totalDistanceFraction = 0.40;
+        double totalDistanceFraction = 0.30;
         double odrFraction = 0.30;
-        double batteryFraction = 0.20;
+        double batteryAfterAllTripsFraction = 0.2;
+        double batteryFraction = 0.10;
         double stopsFraction = 0.10;
+        List<Double> ratings = IntStream.range(0, normalizedMetricsValues.size())
+                .mapToObj(i -> {
+                    List<Number> metricValues = normalizedMetricsValues.get(i);
 
-        return odrFraction * normalizedOdr
-                + totalDistanceFraction * normalizedTotalDistance
-                + stopsFraction * normalizedStops
-                + batteryFraction * invertedNormalizedBatteryLevel;
+                    if (vaBreaksDown.get(i) || oneChargingTripHasZeroChargingTime(tripsWithChargingTime.get(i))) {
+                        return 0.0;
+                    }
+
+                    return odrFraction * (double) metricValues.get(0)
+                            + totalDistanceFraction * (double) metricValues.get(1)
+                            + stopsFraction * (double) metricValues.get(2)
+                            + batteryAfterAllTripsFraction * (double) metricValues.get(3)
+                            + batteryFraction * (double) metricValues.get(4);
+                }).collect(Collectors.toList());
+
+        return ratings;
+    }
+
+    private boolean oneChargingTripHasZeroChargingTime(List<Trip> tripList) {
+        boolean result = tripList.stream()
+                .filter(t -> {
+                    if (isChargingTrip(t)) {
+                        return t.getChargingTime() == 0.0;
+                    }
+                    return false;
+                }).count() > 0;
+        return result;
     }
 
     private double normalize(double value, double min, double max) {
-        return (value - min) / (max - min);
-    }
-
-    private double normalize(int value, int min, int max) {
         return (value - min) / (max - min);
     }
 
@@ -345,208 +435,401 @@ public class GreedyScheduler {
                 .getSeconds();
     }
 
-    private double calculateTravellingTime(double metersDriven) {
-        return (metersDriven / 1000) / DRIVING_SPEED;
-    }
-
     /**
      * Determines whether the battery level is sufficient. If the trip is possible, a list consisting of odr and the
      * minimum battery level during all trips is returned. If the trip is not possible a list of -1, -1 is returned.
+     *
      * @param trips
      * @return odr (if battery is sufficient otherwise returns -1), minBatteryLevel (if battery is sufficient otherwise returns -1)
      */
-    private List<Number> validateBatteryLevelIsSufficientAndODR(List<Trip> trips) {
+    private Metrics simulateTripListAndCalculateMetrics(List<Trip> trips, Strategy strategy) {
+        /**
+         * Explanation:
+         * 1. Set charging time for each chargingStation to minium charging time to ensure that the charging trip is
+         * worthwhile
+         *
+         * 2. Simulate tripList, determine Trips where THETA is exceeded and make a copy of the tripList without these
+         * trips
+         *
+         * 3. Calculate real charging time for trips (without the trips where theta is exceeded)
+         *
+         * 4. Calculate battery level after those trips
+         */
+        boolean vaBreaksDown = false;
+
+        // Step 1
+        setMinChargingTimeForAllChargingStations(trips);
+
+        // Step 2
+        List<Trip> copy = new ArrayList<>(trips);
+
         // get total distance driven for trip list
         // count charging trips and add battery level
         BatteryModel battery = new BatteryModel();
         battery.setMyChargestate(this.batteryLevel);
         Location vaLocation = this.currentVALocation;
 
+        double totalDistance = 0.0;
         double minBatteryLevel = 1.0;
-
-        double totalTravelTime = 0.0;
+        double totalTravelTimeSeconds = TIME_UNTIL_CURRENT_ACTION_IS_DONE;
         int odr = 0;
         try {
-            double distance = Location.distanceBetween(vaLocation, trips.get(0).startPosition);
+            // Drive to start of first trip
+            double distance = roundedLocationDistanceBetween(vaLocation, trips.get(0).startPosition);
             minBatteryLevel = Math.min(
                     minBatteryLevel,
                     makeTripAndDischargeBattery(battery, distance)
             );
+            totalDistance += distance;
             Trip firstTrip = trips.get(0);
-            if (firstTrip.getTripType().equals("ChargingTrip")) {
-                battery.setMyChargestate(battery.getMyChargestate() + CHARGING_THRESHHOLD);
-            }
-            vaLocation = firstTrip.startPosition;
-            totalTravelTime += calculateTravelTime(distance);
-            if (odr(totalTravelTime, firstTrip)) { odr++; };
 
+            vaLocation = firstTrip.startPosition;
+            totalTravelTimeSeconds += calculateTravelTime(distance);
+
+            if (odr(totalTravelTimeSeconds, firstTrip)) {
+                odr++;
+                if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(firstTrip); }
+                totalDistance -= distance;
+            }
+
+            // ToDo: Beim Löschen in Copy verschieben sich die Indices?
             for (int i = 0; i < trips.size() - 1; i++) {
                 Trip currentTrip = trips.get(i);
                 Trip nextTrip = trips.get(i + 1);
 
                 // Case Charging Trip
-                if (currentTrip.getTripType().equals("ChargingTrip")) {
-                    battery.setMyChargestate(battery.getMyChargestate() + CHARGING_THRESHHOLD);
+                if (isChargingTrip(currentTrip)) {
+                    double chargingTime = currentTrip.getChargingTime();
+                    chargeBattery(battery, chargingTime);
+                    totalTravelTimeSeconds += chargingTime;
 
-                    double distanceNextTripStart = Location.distanceBetween(vaLocation, nextTrip.startPosition);
+                    double distanceNextTripStart = roundedLocationDistanceBetween(vaLocation, nextTrip.startPosition);
                     minBatteryLevel = Math.min(
                             minBatteryLevel,
                             makeTripAndDischargeBattery(battery, distanceNextTripStart)
                     );
+                    totalDistance += distanceNextTripStart;
                     vaLocation = nextTrip.startPosition;
-                    totalTravelTime += calculateTravelTime(distanceNextTripStart);
-                    if (odr(totalTravelTime, nextTrip)) { odr++; };
+                    totalTravelTimeSeconds += calculateTravelTime(distanceNextTripStart);
+                    if (odr(totalTravelTimeSeconds, nextTrip)) {
+                        odr++;
+                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(nextTrip); }
+                        totalDistance -= distanceNextTripStart;
+                    }
                 } else {
                     // Case Customer Trip
                     // drive to endposition
-                    double distanceCurrentTripEnd = Location.distanceBetween(vaLocation, currentTrip.endPosition);
+                    double distanceCurrentTripEnd = roundedLocationDistanceBetween(vaLocation, currentTrip.endPosition);
                     minBatteryLevel = Math.min(
                             minBatteryLevel,
                             makeTripAndDischargeBattery(battery, distanceCurrentTripEnd)
                     );
+                    totalDistance += distanceCurrentTripEnd;
                     vaLocation = currentTrip.endPosition;
 
                     // drive to startposition of next trip
-                    double distanceNextTripStart = Location.distanceBetween(vaLocation, nextTrip.startPosition);
+                    double distanceNextTripStart = roundedLocationDistanceBetween(vaLocation, nextTrip.startPosition);
+                    totalDistance += distanceNextTripStart;
                     minBatteryLevel = Math.min(
                             minBatteryLevel,
                             makeTripAndDischargeBattery(battery, distanceNextTripStart)
                     );
                     vaLocation = nextTrip.startPosition;
-                    totalTravelTime += calculateTravelTime(distanceCurrentTripEnd + distanceNextTripStart);
-                    if (odr(totalTravelTime, nextTrip)) { odr++; };
+                    totalTravelTimeSeconds += calculateTravelTime(distanceCurrentTripEnd + distanceNextTripStart);
+                    if (odr(totalTravelTimeSeconds, nextTrip)) {
+                        odr++;
+                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(nextTrip); }
+                        totalDistance -= distanceCurrentTripEnd + distanceNextTripStart;
+                    }
+
+                    if (i == trips.size() - 2 && nextTrip.getTripType().equals("CustomerTrip")) {
+                        // drive to end position of last trip
+                        double distanceLastTripEnd = roundedLocationDistanceBetween(vaLocation, nextTrip.endPosition);
+                        minBatteryLevel = Math.min(
+                                minBatteryLevel,
+                                makeTripAndDischargeBattery(battery, distanceLastTripEnd)
+                        );
+                        totalDistance += distanceLastTripEnd;
+                        vaLocation = nextTrip.endPosition;
+                    }
                 }
+            }
 
-
+            // Case triplist consists only of one trip
+            if (trips.size() == 1 && !isChargingTrip(trips.get(0))) {
+                double distanceLastTripEnd = roundedLocationDistanceBetween(vaLocation, trips.get(0).endPosition);
+                minBatteryLevel = Math.min(
+                        minBatteryLevel,
+                        makeTripAndDischargeBattery(battery, distanceLastTripEnd)
+                );
+                totalDistance += distanceLastTripEnd;
             }
         } catch (RuntimeException e) {
-            return Collections.singletonList(-1);
+            vaBreaksDown = true;
         }
-        return Arrays.asList(odr, minBatteryLevel);
+
+        List<Trip> resultTrip = setChargingTimeForMultipleChargingStations(copy);
+        Double batteryLevelAfterTrips = vaBreaksDown ? 0.0 : calculateBatteryLevel(copy);
+
+        return new Metrics(
+                odr,
+                minBatteryLevel,
+                resultTrip,
+                batteryLevelAfterTrips,
+                totalDistance,
+                vaBreaksDown
+        );
+    }
+
+    // ToDo: If the last trip is a charging trip the battery model can load until 100%
+    // ToDo: What if after that a new trip will be added to the trip list? => The bike will load to long
+    //  currentTrip is ChargingTrip and chargingEndTime needs to be minimized
+    public Double calculateBatteryLevel(List<Trip> tripList) {
+        // Step 1: Get total distance between all trips and discharge battery
+        if (tripList.size() == 0) { return this.batteryLevel; }
+        List<Location> allLocation = tripList.stream()
+                .map(t -> {
+                    if (isChargingTrip(t)) { return Arrays.asList(t.startPosition); }
+                    return Arrays.asList(t.startPosition, t.endPosition);
+                })
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        Double totalDistance = roundedLocationDistanceBetween(this.currentVALocation, allLocation.get(0));
+        for (int i=0; i < allLocation.size() - 1; i++) {
+            totalDistance += roundedLocationDistanceBetween(
+                    allLocation.get(i),
+                    allLocation.get(i + 1)
+            );
+        }
+        BatteryModel model = new BatteryModel();
+        model.setMyChargestate(this.batteryLevel);
+        model.discharge(totalDistance, 0);
+
+
+        // Step 2: Get total charging time
+        Double totalChargingTime = tripList.stream()
+                .filter(t -> isChargingTrip(t))
+                .map(t -> t.getChargingTime())
+                .collect(Collectors.summingDouble(Double::doubleValue));
+
+        // Step 3: Charge battery
+        model.charge(totalChargingTime);
+
+        return model.getMyChargestate() <= 0 ? 0 : model.getMyChargestate();
     }
 
     /**
      * Determines whether a customer does not take their trip.
+     *
      * @param travelTime
      * @param trip
      * @return
      */
     private boolean odr(double travelTime, Trip trip) {
-        if (trip.getTripType().equals("ChargingTrip")) { return false; }
+        if (isChargingTrip(trip)) {
+            return false;
+        }
         double currentWaitingTimeOfTrip = calculateWaitingTime(trip);
         double totalWaitingTime = travelTime + currentWaitingTimeOfTrip;
 
         return totalWaitingTime > THETA ? true : false;
     }
 
-    private double makeTripAndDischargeBattery(BatteryModel battery, double distance) {
-        battery.discharge(distance, 0);
+    private void chargeBattery(BatteryModel battery, double chargingTime) {
+        battery.charge(chargingTime);
+    }
 
+    private double makeTripAndDischargeBattery(BatteryModel battery, double distance) {
+        battery.discharge(distance, 0, false);
         if (battery.my_chargestate <= 0.0) {
             throw new RuntimeException();
         }
-
         return battery.my_chargestate;
-    }
-
-    /**
-     * Calculates the maximum possible loading time. Based on the time required for the VA to reach the
-     * ChargingStation and the longest waiting customer.
-     * @param chargingTrip
-     * @param nextTrip
-     * @param currentMaxWaitingTime
-     * @return chargingTime
-     */
-    private double calculateChargingTime(Trip chargingTrip, Trip nextTrip, double currentMaxWaitingTime) {
-        double vaDistanceToChargingStation = Location.distanceBetween(
-                this.currentVALocation,
-                chargingTrip.startPosition
-        );
-        double distanceChargingStationAndNexTrip = Location.distanceBetween(
-                chargingTrip.startPosition,
-                nextTrip.startPosition
-        );
-        double totalDistance = vaDistanceToChargingStation + distanceChargingStationAndNexTrip;
-
-        double travelTimeForChargingTrip = calculateTravellingTime(totalDistance);
-
-        // ToDo: Wenn Ergebnis < 0, dann ist Tankfahrt nicht möglich
-        // Case 1: Kunde wird durch Tankfahrt nicht erreicht
-        // Case 2: Kunde wird auch ohne Tankfahrt nicht erreicht
-        // Bestimme, ob alle Kuden ohne Tankfahrt erreicht werden und Batteriestand reicht?
-        return THETA - currentMaxWaitingTime - travelTimeForChargingTrip;
     }
 
     private double calculateTravelTime(Double distance) {
         return ((distance / 1000) / DRIVING_SPEED) * 60 * 60;
     }
 
-    private void caclulateChargingTimeForEachChargingStation(List<Trip> allTrips) {
-        List<Double> distancesBetweenTrips = new ArrayList<>();
-        distancesBetweenTrips.add(Location.distanceBetween(
-                this.currentVALocation,
-                allTrips.get(0).startPosition
-        ));
-        for (int i = 0; i < allTrips.size() - 1; i++) {
-            distancesBetweenTrips.add(Location.distanceBetween(
-                    allTrips.get(i).endPosition,
-                    allTrips.get(i + 1).startPosition
-            ));
+    private boolean isChargingTrip(Trip trip) {
+        return trip.getTripType().equals("ChargingTrip");
+    }
+
+    private void setMinChargingTimeForAllChargingStations(List<Trip> tripList) {
+        // setze im ersten Schritte alle Charging Times auf die MIN_CHARGING_TIME (2 min)
+        // Wenn dadurch die ODR hochgeht, dann ignoriere den oder die Trips, die die ODR erhöhen
+        // Berechne dann die MWT und passe die Ladezeiten entsprechend an
+        for (int i=0; i < tripList.size(); i++) {
+            if (isChargingTrip(tripList.get(i))) {
+                tripList.get(i).setChargingTime(MIN_CHARGING_TIME);
+            }
+        }
+    }
+
+    private List<Trip> setChargingTimeForMultipleChargingStations(List<Trip> tripList) {
+        // if there is no charging station in the permutation skip this methode
+        // TripList can be empty if the permutation previously consisted only of CustomerTrips that cannot be reached
+        // in time
+        if (tripList.stream().filter(t -> isChargingTrip(t)).count() == 0 || tripList.size() == 0) {
+            return tripList;
+        }
+        // all trips are removed from previous function => permutation is bad
+        if (tripList.stream().filter(t -> isChargingTrip(t)).collect(Collectors.toList()).size() == tripList.size()) {
+            // Results in the rating of this permutation being 0
+            tripList.get(0).setChargingTime(0.0);
         }
 
-        // wie lange wartet jemand currSimTime - bookingTime?
-        // bestimme die Stellen an denen Tankfahrten stehen
-        List<Integer> positionOfChargingTrips = allTrips.stream()
-                .map(t -> {
-                    if (t.getTripID().equals("ChargingTrip")) {
-                        return 1;
-                    }
-                    return 0;
-                }).collect(Collectors.toList());
+        Location currentLocation = this.currentVALocation;
 
-        // split trip list in teile und bestimme warte zeiten
-        // derjenige mit der längsten Wartezeit ist am kritischsten
-
-        // fange beim letzten knoten an und berechne WT durch: WT(letzterKnoten) + Streckenzeit bis vorletzten Knoten
-        // Vergleiche WT des vorletzten Knoten mit dem vorvorletztzen Knoten und nehme das Maximum für die weitere
-        // Berechnung
-
-
-        // ToDo: Ziel gib Array mit Wartzeiten an, falls ChargingTrip dann Ladezeit?
-        // Aus 3 Trips (Trip 2 ist Charging) wird [3.0, 4.0, 8.0]
-        // Oder 2 Arrays Ladezeiten Array und Wartezeit Array => Je kleiner Summe von Wartezeit desto besser
-        // Je größer Ladezeit desto bessser?
-        double currentMaxWaitingTime = 0.0;
-        for (int i = allTrips.size() - 1; i > 1; i--) {
-            Trip currentTrip = allTrips.get(i);
-            Trip previousTrip = allTrips.get(i - 1);
-
-            if (previousTrip.getTripID().equals("ChargingTrip")) {
-                // ToDo: Case currentMaxWaitingTime > 10 bzw. Theta was dann?
-                double chargingTime = calculateChargingTime(previousTrip, currentTrip, currentMaxWaitingTime);
-
+        // Step 1: Calculate travel time to each customer trip
+        List<Double> distances = new ArrayList<>();
+        // calculate travel time to start position of first trip
+        double distance = roundedLocationDistanceBetween(currentLocation, tripList.get(0).startPosition);
+        currentLocation = tripList.get(0).startPosition;
+        for (int i = 0; i < tripList.size(); i++) {
+            Trip currentTrip = tripList.get(i);
+            Trip nextTrip = null;
+            if (!(i == tripList.size() - 1)) {
+                nextTrip = tripList.get(i + 1);
+            }
+            if (nextTrip == null) {
+                distances.add(distance);
+                break;
             }
 
-            long waitingTime = calculateWaitingTime(currentTrip);
+            if (isChargingTrip(currentTrip)) {
+                distances.add(0.0);
+                distance += roundedLocationDistanceBetween(currentLocation, nextTrip.startPosition);
+                currentLocation = nextTrip.startPosition;
+            } else {
+                distances.add(distance);
 
-            // calc distance bewteen start of current to end of previous and end of previous to start of previous
-            double distanceToPreviousTrip = Location.distanceBetween(
-                    previousTrip.endPosition,
-                    currentTrip.startPosition
-            );
-            distanceToPreviousTrip += Location.distanceBetween(
-                    previousTrip.startPosition,
-                    previousTrip.endPosition
-            );
-            // Wie hoch ist die Geschwindigkeit des VA?
-            // waiting time with distance between previous und current trip
-            double timeToTravelToCurrentTrip = calculateTravellingTime(distanceToPreviousTrip);
-            double totalWaitingTimeCurrentTrip = waitingTime + timeToTravelToCurrentTrip;
+                distance += roundedLocationDistanceBetween(currentLocation, currentTrip.endPosition);
+                currentLocation = currentTrip.endPosition;
 
-            double waitingTimePrevTrip = calculateWaitingTime(previousTrip);
-            double maxWaitingTimeOfTrips = Math.max(waitingTimePrevTrip, totalWaitingTimeCurrentTrip);
-            currentMaxWaitingTime = Math.max(currentMaxWaitingTime, maxWaitingTimeOfTrips);
-
+                distance += roundedLocationDistanceBetween(currentLocation, nextTrip.startPosition);
+                currentLocation = nextTrip.startPosition;
+            }
         }
+
+        // convert travel distance in travel time
+        List<Double> travelTimes = distances.stream().map(d -> calculateTravelTime(d)).collect(Collectors.toList());
+        List<Integer> indecesOfChargingStations = getIndecesOfChargingStation(tripList);
+
+        // Step 2: Add travel time to current waiting time of each trip and MIN_CHARGING_TIME for each preceeding
+        // charging station
+        for (int i=0; i < travelTimes.size(); i++) {
+            Trip currentTrip = tripList.get(i);
+            if (!isChargingTrip(currentTrip)) {
+                double travelAndWaitingTime = travelTimes.get(i) + calculateWaitingTime(currentTrip);
+                Integer chargingStationCounter = countChargingStations(i, indecesOfChargingStations);
+                // add MIN_CHARGING_TIME for every charging station on the way
+                travelAndWaitingTime += chargingStationCounter * MIN_CHARGING_TIME;
+                travelTimes.set(i, travelAndWaitingTime);
+            }
+        }
+
+
+        // Step 3: Iterate through charging stations
+        Integer maxIndex = -1;
+        for (Integer index: indecesOfChargingStations) {
+            if (maxIndex < index) {
+                if (index == tripList.size() - 1) {
+                    // charging trip is at last position
+                    tripList.get(index).setChargingTime(-1.0);
+                }
+                // Step 4: Specify all trips that are after current charging station
+                List<Double> waitingTimeAfterChargingStation = travelTimes.subList(index, tripList.size());
+                // Step 4: Get maximum of those trips and calculate charging time through difference to theta
+                Double maxWaitingTime = Collections.max(waitingTimeAfterChargingStation);
+                maxIndex = maxIndex(waitingTimeAfterChargingStation) + index + 1;
+                Double additionalChargingTime = THETA - maxWaitingTime > 0 ? THETA - maxWaitingTime : 0;
+                Double totalChargingTime = tripList.get(index).getChargingTime() + additionalChargingTime;
+                tripList.get(index).setChargingTime(roundToOneDecimalPlace(totalChargingTime));
+
+                // Step 5: Add charging time to all trips after the current charging station and get back to Step 3
+                for (int i = index + 1; i < travelTimes.size(); i++) {
+                    travelTimes.set(i, travelTimes.get(i) + additionalChargingTime);
+                }
+            }
+        }
+
+        return tripList;
+    }
+
+    private List<Integer> getIndecesOfChargingStation(List<Trip> tripList) {
+        List<Integer> result = new ArrayList<>();
+        for (int i=0; i < tripList.size(); i++) {
+            if (isChargingTrip(tripList.get(i))) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    private Integer countChargingStations(int i, List<Integer> chargingStationIndeces) {
+        Integer result = 0;
+        for (Integer index: chargingStationIndeces) {
+            if (i > index) {
+                result++;
+            }
+        }
+        return result;
+    }
+
+    private Integer maxIndex(List<Double> waitingTime) {
+        double max = 0.0;
+        Integer index = -1;
+        for (int i=0; i < waitingTime.size(); i++) {
+            if (max < waitingTime.get(i)) {
+                max = waitingTime.get(i);
+                index = i;
+            }
+        }
+        return index;
+    }
+
+    private Double roundToOneDecimalPlace(Double value) {
+        return Math.round(value * 10.0) / 10.0;
+    }
+
+    private List<Trip> getPermutationWithHighestRating(List<Double> allRatings, List<List<Trip>> permutations) {
+        double maxWert = Collections.max(allRatings);
+        int index = 0;
+        for (int i = 0; i < allRatings.size(); i++) {
+            if (allRatings.get(i) == maxWert) {
+                index = i;
+                break;
+            }
+        }
+        return permutations.get(index);
+    }
+
+    private Double roundedLocationDistanceBetween(Location a, Location b) {
+        return (double) Math.round(
+                Location.distanceBetween(a, b)
+        );
+    }
+
+
+    // SETTER
+    public void setBatteryLevel(double batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
+
+    public void setCurrentVALocation(Location currentVALocation) {
+        this.currentVALocation = currentVALocation;
+    }
+
+    public void setSimulationTime(LocalDateTime simulationTime) {
+        this.simulationTime = simulationTime;
+    }
+
+    public void setTHETA(Double THETA) {
+        this.THETA = THETA;
+    }
+
+    public void setTIME_UNTIL_CURRENT_ACTION_IS_DONE(Double TIME_UNTIL_CURRENT_ACTION_IS_DONE) {
+        this.TIME_UNTIL_CURRENT_ACTION_IS_DONE = TIME_UNTIL_CURRENT_ACTION_IS_DONE;
     }
 }

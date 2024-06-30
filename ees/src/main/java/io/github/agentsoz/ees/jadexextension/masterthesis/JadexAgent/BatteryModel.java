@@ -1,18 +1,11 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.matsim.EvacAgentTracker;
-import io.github.agentsoz.ees.matsim.EvacAgentTracker.VehicleTrackingData;
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.runtime.IPlan;
 import jadex.commons.future.DelegationResultListener;
 import jadex.commons.future.Future;
 import jadex.commons.future.IFuture;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.Id;
-import org.matsim.core.mobsim.jdeqsim.Vehicle;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
-import java.util.List;
 
 public class BatteryModel {
 
@@ -27,7 +20,11 @@ public class BatteryModel {
     //private double lastUpdateTime = 0.0; //why here???
     public final double DEFAULT_TOLERANCE = 0.001;
     public double my_chargestate = 0.9; // TrikeAgent.java
-    protected boolean daytime = true; // TrikeAgent.java
+    protected boolean daytime = true;
+    // 12600sekunden für 1.0 (100%) bei einem 400 Watt Akku
+    // => 0.000079 pro Sekunde
+    protected double CHARGE_INCREASE_COEFFICIENT = 0.000079;
+    // TrikeAgent.java
     //protected static TrikeAgent.AchieveMoveTo goal;
 
     //Methode 1: Batterieverbrauch -oemer
@@ -43,7 +40,12 @@ public class BatteryModel {
     // }
     //private static void decreaseBattery(BatteryModel batteryModel, Id<Vehicle> specificVehicleId) {
 
-    public void discharge(double metersDriven, int carriedcustomer){
+    public void discharge(double metersDriven, int carriedcustomer) {
+        discharge(metersDriven, carriedcustomer, true);
+    }
+
+    // to prevent the greedy scheduler from generating too much output during the simulation of all permutations
+    public void discharge(double metersDriven, int carriedcustomer, boolean printMetersDriven){
 
         // EvacAgentTracker evacAgentTracker = null;
         // VehicleTrackingData trackingData = evacAgentTracker.linkEnterEventsMap.get(specificVehicleId);
@@ -54,7 +56,9 @@ public class BatteryModel {
         //distanceTraveled = tripLink.getLength();
 
         //   distanceTraveled = trackingData.getDistanceSinceStart();
-        System.out.println("Distance traveled by the specific vehicle: " + metersDriven + " meters");
+        if (printMetersDriven) {
+            System.out.println("Distance traveled by the specific vehicle: " + metersDriven + " meters");
+        }
         //  } else {
         //     System.out.println("Tracking data not found for the specific vehicle.");
         // }
@@ -67,7 +71,7 @@ public class BatteryModel {
         double chargeDecreaseCoefficient = 0.0001;
         double chargeDecrease = chargeDecreaseCoefficient * metersDriven;
         double newChargingState = getMyChargestate() - chargeDecrease;
-        setMyChargestate(newChargingState);
+            setMyChargestate(newChargingState);
 
 
     }
@@ -77,6 +81,14 @@ public class BatteryModel {
         double chargeDecrease = chargeDecreaseCoefficient * metersDriven; //TODO: paper
         //double newChargingState = getMyChargestate() - chargeDecrease;
         return chargeDecrease;
+    }
+
+    public void charge(Double chargingTime) {
+        Double newChargingState = getMyChargestate() + CHARGE_INCREASE_COEFFICIENT * chargingTime;
+        if (newChargingState > 1.0) {
+            newChargingState = 1.0;
+        }
+        setMyChargestate(newChargingState);
     }
 
     //Methode 2 added -oemer
