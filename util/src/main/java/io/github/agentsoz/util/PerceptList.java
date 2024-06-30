@@ -45,7 +45,7 @@ public final class PerceptList {
     public static final String REQUEST_LOCATION = "request_location";
 	public static final String REQUEST_DESTINATION_COORDINATES = "request_destination_coordinates";
 	public static final String REQUEST_DESTINATION_COORDINATES_2 = "request_destination_coordinates_2";
-	public static final String REQUEST_PATH_FOR_TWO_NODES = "request_path_for_two_nodes";
+	public static final String REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES = "request_driving_distance_between_two_nodes";
 
 
 	/**

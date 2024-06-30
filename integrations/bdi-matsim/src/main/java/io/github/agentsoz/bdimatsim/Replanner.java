@@ -60,6 +60,7 @@ public final class Replanner {
 	private EditTrips editTrips ;
 	private EditPlans editPlans ;
 	LeastCostPathCalculator pathCalculator;
+	public TripRouter tripRouter;
 	
 	@Inject
 	Replanner(QSim qSim2, TripRouter tripRouter, Map<String,TravelTime> travelTimes ) {
@@ -73,6 +74,7 @@ public final class Replanner {
 		}
 		this.editTrips = new EditTrips(tripRouter, qSim2.getScenario(), null ) ;
 		this.editPlans = new EditPlans(qSim2, tripRouter, editTrips, scenario.getPopulation().getFactory() ) ;
+		this.tripRouter = tripRouter;
 	}
 
 	@Deprecated // yyyy but I don't have an easy replacement yet

@@ -13,12 +13,14 @@ import io.github.agentsoz.nonmatsim.PAAgentManager;
 import io.github.agentsoz.util.Location;
 import io.github.agentsoz.util.ActionList;
 import io.github.agentsoz.util.PerceptList;
+import org.matsim.api.core.v01.BasicLocation;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -43,10 +45,13 @@ import org.matsim.core.mobsim.qsim.qnetsimengine.*;
 import org.matsim.core.network.NetworkChangeEvent;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.ActivityFacilityImpl;
+import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.vehicles.Vehicle;
-import org.matsim.vehicles.VehicleUtils;
 import org.matsim.withinday.mobsim.MobsimDataProvider;
 import org.matsim.withinday.utils.EditPlans;
 import org.slf4j.Logger;
@@ -602,20 +607,6 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 			throw new AgentNotFoundException("MobsimAgent " + agentID + " not found");
 		}
 
-		System.out.println("");
-		System.out.println("#############################################################################");
-		System.out.println("Current time: " + getTime() / 60);
-		System.out.println("");
-//		System.out.println("AgentID: " + agentID + " is currently at: ");
-//		System.out.println("X: " + mobsimAgent.getCurrentFacility().getCoord().getX());
-//		System.out.println("Y: " + mobsimAgent.getCurrentFacility().getCoord().getY());
-		System.out.println("");
-		System.out.println("AgentID: " + agentID + " drives to: ");
-//		Coord coord1 = mobsimAgent.getDestinationFacility().getCoord();
-//		System.out.println("X: " + coord1.getX() + " Y: " + coord1.getY());
-		System.out.println("");
-		System.out.println("#############################################################################");
-
 		switch(perceptID) {
 			case PerceptList.REQUEST_LOCATION:
 				final Link link = scenario.getNetwork().getLinks().get( mobsimAgent.getCurrentLinkId() );
@@ -664,34 +655,68 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 				}
 				return cords;
 
-			case PerceptList.REQUEST_PATH_FOR_TWO_NODES:
-				if (args == null || !(args instanceof Node[])) {
+			// @Tim
+			case PerceptList.REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES:
+				if (args == null) {
 					throw new RuntimeException("Query percept '"+perceptID+"' expecting Node[], but found: " + args);
 				}
-				Node[] nodes = (Node[]) args;
-				Node start = nodes[0];
-				Node end = nodes[0];
 
-				Person person = (Person) mobsimAgent;
-				Vehicle vehicle;
+				// [startCoords, endCoords, time]
+				List<Double> coordsAndTime = (List<Double>) args;
+
+				Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
+				Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
+
+				Node startNode = getNearestNodeFromCoord(startCoord);
+				Node endNode = getNearestNodeFromCoord(endCoord);
+
+				Link startLink = getNearestLinkFromCoord(startCoord);
+				Link endLink = getNearestLinkFromCoord(endCoord);
+				// Parameter: startNode, endNode, departureTime, person and vehicle
+				// ToDo: Determination of the time (v), v => startTime
+
+				System.out.println("-                -          -              -        -");
+				System.out.println("StartCoord: " + startCoord);
+				System.out.println("EndCoord: " + endCoord);
+				System.out.println("StartNode: " + startNode);
+				System.out.println("EndNode: " + endNode);
+				System.out.println("Time: " + coordsAndTime.get(4));
+				System.out.println("Beeeeeeeeeeeeeeeeeeeeeeeeefore Path Calc ");
+				TripRouter tripRouter = this.getReplanner().tripRouter;
+				Location location = new Location("d", startLink.getCoord().getX(), startLink.getCoord().getY());
+//				List<Leg> legs = tripRouter.calcRoute(
+//						"bike",
+//						location,
+//						endLink,
+//						coordsAndTime.get(4),
+//						null
+//				);
+
+				LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
+						startNode,
+						endNode,
+						coordsAndTime.get(4),
+						null,
+						null
+				);
+				System.out.println("Aaaaaaaaaaaaaaaaaaaafter Path Calc");
+				System.out.println("-                -          -              -        -");
+
+			// ToDo: Class cast exception?
+//				Vehicle vehicle;
 
 				Id<Person> id = mobsimAgent.getId();
-				Map<String, Id<Vehicle>> vehicleIds = VehicleUtils.getVehicleIds(person);
 
-				if (vehicleIds != null && !vehicleIds.isEmpty()) {
-					Id<Vehicle> vehicleId = vehicleIds.values().iterator().next();
-					vehicle = scenario.getVehicles().getVehicles().get(vehicleId);
+//				Map<String, Id<Vehicle>> vehicleIds = VehicleUtils.getVehicleIds(person);
 
-					// Parameter: startNode, endNode, departureTime, person and vehicle
-					// ToDo: Determination of the time (v)
-					return this.getReplanner().pathCalculator.calcLeastCostPath(
-							start,
-							end,
-							500.0,
-							person,
-							vehicle
-					);
-				}
+//				if (vehicleIds != null && !vehicleIds.isEmpty()) {
+//					Id<Vehicle> vehicleId = vehicleIds.values().iterator().next();
+//					vehicle = scenario.getVehicles().getVehicles().get(vehicleId);
+
+
+
+//				}
+				return path;
 			case PerceptList.REQUEST_DESTINATION_COORDINATES_2 :
 				double[] cords2= {-1,-1};
 				if(this.getReplanner().editPlans().isAtRealActivity(mobsimAgent)){ // if agent is currently in an activity
@@ -722,6 +747,23 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 			default:
 				throw new RuntimeException("Unknown query percept '"+perceptID+"' received from agent "+agentID+" with args " + args);
 		}
+	}
+
+	// @Tim
+	private Node getNearestNodeFromCoord(Coord coord) {
+		Link nearestLink = NetworkUtils.getNearestLink(scenario.getNetwork(), coord);
+		Node startNodeOfLink = nearestLink.getFromNode();
+		Node endNodeOfLink = nearestLink.getToNode();
+
+		double distanceToFromNode = NetworkUtils.getEuclideanDistance(startNodeOfLink.getCoord(), coord);
+		double distanceToToNode = NetworkUtils.getEuclideanDistance(endNodeOfLink.getCoord(), coord);
+
+		return distanceToFromNode < distanceToToNode ? startNodeOfLink : endNodeOfLink;
+	}
+
+	// @Tim
+	private Link getNearestLinkFromCoord(Coord coord) {
+		return NetworkUtils.getNearestLink(scenario.getNetwork(), coord);
 	}
 
 	public PAAgentManager getAgentManager() {
