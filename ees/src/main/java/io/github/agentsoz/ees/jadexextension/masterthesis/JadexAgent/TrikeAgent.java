@@ -6,10 +6,13 @@
  *
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
+import com.google.api.core.ApiFuture;
+import com.google.firebase.database.*;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.TrikeAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
@@ -173,12 +176,18 @@ public class TrikeAgent implements SendtoMATSIM{
     public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33,5553197.70), new Location("", 476172.65,5552839.64),new Location("", 476482.10,5552799.06),new Location("", 476659.13,5553054.12),new Location("", 476787.10,5552696.95),new Location("", 476689.45,5552473.11),new Location("", 476405.41,5552489.17),new Location("", 476100.86,5552372.79));
 
 
+    //  FIREBASE
+    private FirebaseHandler<TrikeAgent, Trip> firebaseHandler;
+    private HashMap<String, ChildEventListener> listenerHashMap;
 
     /**
      * The agent body.
      */
     @OnStart
     public void body() {
+        firebaseHandler = new FirebaseHandler<>(this, tripList);
+        listenerHashMap = new HashMap<>();
+
         System.out.println("TrikeAgent sucessfully started;");
         SimActuator = new SimActuator();
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
@@ -194,18 +203,6 @@ public class TrikeAgent implements SendtoMATSIM{
         //sendMessage("area:0", "request", "");
 
         //csvLogger csvLogger;// = new csvLogger(agentID);
-    }
-
-    @Goal(recur=true, recurdelay=1000) //in ms
-    class ManageFlutter {
-    }
-
-    @Plan(trigger=@Trigger(goals=ManageFlutter.class))
-    private void WriteFlutter()
-    {
-        /** TODO: @Mariam look for open questions in the firebase database and write answers into it
-         *
-         */
     }
 
     /**
@@ -362,6 +359,7 @@ public class TrikeAgent implements SendtoMATSIM{
              * agentID
              * TODO: @Mariam Trike will commit a Trip here. write into firebase
              */
+            //FirebaseConnection.checkAndAssignTripRequest(agentID);
 
             /**
 
@@ -369,8 +367,6 @@ public class TrikeAgent implements SendtoMATSIM{
              tripIDList.add("1");
              jobList.remove(0);
              */
-
-
         }
 
     }
@@ -403,6 +399,71 @@ public class TrikeAgent implements SendtoMATSIM{
             Trip newTrip = new Trip(decisionTaskList.get(position), dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
             //TODO: create a unique tripID
             tripList.add(newTrip);
+
+            //  listen to the new child in firebase
+            ChildEventListener childEventListener = firebaseHandler.childAddedListener("trips/"+newTrip.tripID, (dataSnapshot, previousChildName, list)->{
+                System.out.println(dataSnapshot);
+                // Iterate through messages under this trip
+                for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
+                    String message = (String) messageSnapshot.child("message").getValue();
+
+                    // Check if the message is the specific question
+                    if ("How many trips are scheduled before mine?".equals(message)) {
+                        DatabaseReference parent = dataSnapshot.getRef().getParent();
+                        String tripId = parent.getKey();
+                        int numberOfTrips = 0;
+                        System.out.println(list);
+                        for(int i = 0; i < list.size(); i++){
+                            if(list.get(i).getTripID().equals(tripId)){
+                                numberOfTrips = i;
+                                break;
+                            }
+                        }
+
+
+                        // Push a new message node under the 'messages' node
+                        DatabaseReference newMessageRef = dataSnapshot.getRef().push();
+
+                        // Set the message content
+                        newMessageRef.child("message").setValueAsync("Number of trips before yours: " + numberOfTrips);
+
+                        // Add other necessary fields, e.g., sender and timestamp if needed
+                        newMessageRef.child("sender").setValueAsync("agent");
+
+
+                        // Remove the question message from Firebase
+                        messageSnapshot.getRef().removeValue(new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                if (databaseError != null) {
+                                    // Handle the error
+                                    System.err.println("Error removing question message: " + databaseError.getMessage());
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            listenerHashMap.put(newTrip.getTripID(), childEventListener);
+
+
+            //test
+            DatabaseReference tripRef = FirebaseDatabase.getInstance().getReference().child("trips").child(newTrip.tripID).child("messages");
+
+            // Push a new message node under the 'messages' node
+            DatabaseReference newMessageRef = tripRef.push();
+
+            // Set the message content synchronously
+            try {
+                ApiFuture<Void> messageFuture = newMessageRef.child("message").setValueAsync("How many trips are scheduled before mine?");
+                messageFuture.get(); // Wait for the setValueAsync operation to complete
+                System.out.println("Message set successfully.");
+            } catch (Exception e) {
+                System.err.println("Error setting message: " + e.getMessage());
+            }
+
+
             tripIDList.add("1");
             estimateBatteryAfterTIP();
 
@@ -421,6 +482,9 @@ public class TrikeAgent implements SendtoMATSIM{
              * agentID
              * TODO: @Mariam Trike will commit a Trip here. write into firebase
              */
+            // assign trike agent in Firebase tripRequests
+            FirebaseHandler.assignAgentToTripRequest(newTrip.getTripID(), agentID);
+
             changes += 1;
         }
         else if (decisionTaskList.get(position).getStatus().equals("delegate")){
@@ -1002,6 +1066,11 @@ public class TrikeAgent implements SendtoMATSIM{
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
                     SendPerceivetoAdc();
 
+                    /**
+                     * @Author: Rahimi, Mariam
+                     */
+
+
                     if (agentID.equals("0")){
                         agentLocation = new Location("", 476693.70,5553399.74);
                         sendAreaAgentUpdate("register");
@@ -1130,6 +1199,13 @@ public class TrikeAgent implements SendtoMATSIM{
                         agentLocation = new Location("", 476276.6184, 5553043.434);
                         sendAreaAgentUpdate("register");
                     }
+
+                    // Print the initial location for verification
+                    System.out.println("Agent " + agentID + " initial location: " + agentLocation);
+
+                    //update the location of the agent
+                    FirebaseHandler.updateAgentLocation(agentID, agentLocation);
+
                     //**/
                     /**
                      * TODO: @Mariam initiale anmeldung an firebase hier
@@ -1279,6 +1355,7 @@ public class TrikeAgent implements SendtoMATSIM{
             String batteryBefore = Double.toString(trikeBattery.getMyChargestate()); //todo: vorher schieben
             trikeBattery.discharge(metersDriven, 1);
             String batteryAfter = Double.toString(trikeBattery.getMyChargestate());
+            FirebaseHandler.removeChildEventListener("trips/"+currentTrip.get(0).getTripID(), listenerHashMap.get(currentTrip.get(0).getTripID()));
             //String arrivedAtLocation = "true";
             if (trikeBattery.getMyChargestate() < 0.0){
                 arrivedAtLocation = "false";
@@ -1294,13 +1371,20 @@ public class TrikeAgent implements SendtoMATSIM{
         }
 
 
+        // Update Firebase with the current progress
+        FirebaseHandler.sendTripProgress(CurrentTripUpdate.getTripID(), CurrentTripUpdate.getProgress());
 
         /**
          * TODO: @Mariam update firebase after every MATSim action: location of the agent
          */
+
+
+        System.out.println("Neue Position:" + agentLocation);
+        FirebaseHandler.updateAgentLocation(agentID, agentLocation);
+
+
         System.out.println("Neue Position: " + agentLocation);
         sendAreaAgentUpdate("update");
-
 
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent
