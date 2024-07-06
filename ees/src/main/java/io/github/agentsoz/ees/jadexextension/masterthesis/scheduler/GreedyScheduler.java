@@ -26,41 +26,18 @@ public class GreedyScheduler {
     Double DRIVING_SPEED;
     // ToDo: Mit Setter von außen setzen, damit Scheduler nicht immer wieder instanziiert werden muss?
     Double TIME_UNTIL_CURRENT_ACTION_IS_DONE;
-    //  What if current action is charging?
-    // Determination of the load increase by 20% in 2 Minutes
-    // A charging trip only makes sense if you can charge for at least this time
-    // Charges by 10% in 1 minute
-    //  Meter, die durch CT erreicht werden können: CT / 0,0001 => 1km pro 1%
-    //  für 0,2 => 2km
-    Double CHARGING_THRESHHOLD = 0.02;
-    // 3,5h bei 400 Watt
-    // 12600 seconds for 0% - 100%
+    // A charging trip only makes sense if you can charge for at least this amount
+    Double CHARGING_THRESHHOLD = 0.05;
+    // 12600 seconds for 0% - 100% (400 Watt Battery)
     Double COMPLETE_CHARGING_TIME = 12600.0;
     Double MIN_CHARGING_TIME = COMPLETE_CHARGING_TIME * CHARGING_THRESHHOLD;
-
-    public String getAgentId() {
-        return agentId;
-    }
-
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
-    }
-
+    Double BATTERY_THRESHHOLD = 0.5;
     String agentId;
 
     /**
      * Current batteryLevel is necessary to be able to evaluate the permutations and is necessary to determine whether
      * the battery level is sufficient or whether the vehicle will break down
      */
-    public GreedyScheduler(List<Location> chargingStations, double batteryLevel, Location currentVaLocation, LocalDateTime simulationTime, Double drivingSpeed, Double theta) {
-        chargingTrips = convertChargingStationsToTrips(chargingStations);
-        this.batteryLevel = batteryLevel;
-        this.currentVALocation = currentVaLocation;
-        this.simulationTime = simulationTime;
-        this.DRIVING_SPEED = drivingSpeed;
-        this.THETA = theta;
-    }
-
     public GreedyScheduler(List<Location> chargingStations,
                            double batteryLevel,
                            Location currentVaLocation,
@@ -85,55 +62,39 @@ public class GreedyScheduler {
      * @return List of scheduled trips
      */
     public List<Trip> greedySchedule(List<Trip> allTrips, Strategy strategy) {
-        /**
-         * Requirements:
-         *
-         * Position of ChargingStations
-         * Start and Endposition of all Trips
-         *
-         * A function that validates the feasibility of a permutation (in relation to the battery level)
-         *
-         * A score for every permutation (higher score if the total distance is low)
-         *
-         * Time between trips until theta is exceeded (time that the charging trip including charging may take)
-         * => Perhaps just a threshold that indicates when a charging trip is made,
-         * e.g. if it is less than 5 minutes in total and more than Epsilon (e.g. 25% can be charged in this time).
-         */
-
-
         printerUtil.startScheduler(agentId, batteryLevel, this.simulationTime);
 
         // ToDo: Is there a solution under all cirumstances? What happens if all rating results are 0? Is that possible?
         // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
         List<List<Trip>> permutations = getAllPermutations(allTrips);
 
-        // if current trip is charging trip add as first element of each permutation and calculate the charging time
-
         MetricsValues metricsValues = getAllMetricsValuesForEachPermutation(permutations, strategy);
+        // Determine the minimum and maximum values for each metric. These are used for normalization right after.
         MinMaxMetricsValues minMaxMetricsValues = getMinMaxMetricsValues(metricsValues);
-        // List of List: [ODR, TOTAL_DISTANCE, STOPS, BATTERY_LEVEL_AFTER_ALL_TRIPS, MIN_BATTERY_LEVEL]
         List<List<Number>> normalizedMetricsValues = normalizeValues(metricsValues, minMaxMetricsValues);
-
-        // ToDo: Get List of List with normalized values so that rating function only multiplies them with the
-        //  regarding factor
 
         printerUtil.metrics(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
                 metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
                 metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
 
-        // ToDo: Test rating function
+        // ToDo: Optimize rating function
         List<Double> ratings = rating(
                 normalizedMetricsValues,
                 metricsValues.getAllTripsWithCharingTimes(),
                 metricsValues.getAllVaBreaksDownValues()
         );
-        List<Trip> result = getPermutationWithHighestRating(ratings, permutations);
-        printerUtil.endScheduler(ratings);
-        System.out.println("Result for agent " + agentId + ": " + result.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
+        List<Trip> result = getPermutationWithHighestRating(ratings, metricsValues.getAllTripsWithCharingTimes());
 
-        printerUtil.csv(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
-                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
-                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), ratings);
+        printerUtil.endScheduler(ratings);
+
+        /**
+         * Kann genutzt werden, um die Ausgabe in eine CSV zu kopieren mit folgenden Spalten:
+         * IDs, ODR, Total Distance, MinBattery, BatteryAfterAllTrips, Stops, ChargingTimes, BatteryLevel, Rating
+         **/
+        // printerUtil.csv(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
+        //         metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
+        //         metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), batteryLevel, ratings);
+
         return result;
     }
 
@@ -147,7 +108,7 @@ public class GreedyScheduler {
             if (minMaxMetricsValues.getMinOdr() == minMaxMetricsValues.getMaxOdr()) {
                 normalizedOdr = 0;
             } else {
-                normalizedOdr = normalize(
+                normalizedOdr = 1 - normalize(
                         metricsValues.getAllOdrValues().get(i),
                         minMaxMetricsValues.getMinOdr(),
                         minMaxMetricsValues.getMaxOdr()
@@ -193,7 +154,9 @@ public class GreedyScheduler {
         MetricsValues metricsValues = new MetricsValues();
         for (int i = 0; i < permutations.size(); i++) {
             List<Trip> permutation = permutations.get(i);
+            // Simulate the ride of the trip list for each permutation and determine the metrics in the process
             Metrics metrics = simulateTripListAndCalculateMetrics(permutation, strategy);
+
             if (metrics.isVaBreaksDown()) {
                 metricsValues.addOdr(-1);
                 metricsValues.addMinBatteryLevel(0.0);
@@ -205,6 +168,11 @@ public class GreedyScheduler {
                     .filter(t -> isChargingTrip(t))
                     .map(t -> t.getChargingTime())
                     .collect(Collectors.summingDouble(Double::doubleValue));
+
+            if (agentId.equals("8")) {
+                System.out.println("GetallMetrics tripLIst: " + metrics.getTripsWithChargingTime().stream().filter(t -> isChargingTrip(t)).map(t -> t.getChargingTime()).collect(Collectors.toList()));
+            }
+
             metricsValues.addChargingTimes(chargingTime);
             metricsValues.addTripsWithChargingTime(metrics.getTripsWithChargingTime());
             metricsValues.addTotalDistance(metrics.getTotalDistance());
@@ -361,11 +329,33 @@ public class GreedyScheduler {
         // Vehicle Agent breaks down
         // or unnecessary charging trip is included in trip list
 
-        double totalDistanceFraction = 0.30;
-        double odrFraction = 0.30;
-        double batteryAfterAllTripsFraction = 0.2;
-        double batteryFraction = 0.10;
-        double stopsFraction = 0.10;
+        // Wenn es unter den Battery Threshhold fällt muss auf jeden Fall getankt werden
+        boolean tendencyToCharge = batteryLevel < BATTERY_THRESHHOLD ? true : false;
+        List<Double> chargingTime;
+        if (tendencyToCharge) {
+            chargingTime = tripsWithChargingTime.stream()
+                    .map(listTrip -> listTrip.stream()
+                            .map(t -> {
+                                if (isChargingTrip(t)) {
+                                    return t.getChargingTime();
+                                } else {
+                                    return 0.0;
+                                }
+                            })
+                            .reduce(0.0, Double::sum))
+                    .collect(Collectors.toList());
+        } else {
+            chargingTime = new ArrayList<>();
+        }
+
+        // Trips mit möglichst viele ChargingTime (mit möglichst wenig Stops?) sollten den höchsten Score bekommen
+        double chargingImportanceFraction = 0.25;
+        double totalDistanceFraction = 0.25;
+        double odrFraction = 0.25;
+        double batteryAfterAllTripsFraction = 0.15;
+        double batteryFraction = 0.05;
+        double stopsFraction = 0.05;
+        System.out.println("Tendency to charge: " + tendencyToCharge);
         List<Double> ratings = IntStream.range(0, normalizedMetricsValues.size())
                 .mapToObj(i -> {
                     List<Number> metricValues = normalizedMetricsValues.get(i);
@@ -374,14 +364,35 @@ public class GreedyScheduler {
                         return 0.0;
                     }
 
-                    return odrFraction * (double) metricValues.get(0)
-                            + totalDistanceFraction * (double) metricValues.get(1)
-                            + stopsFraction * (double) metricValues.get(2)
-                            + batteryAfterAllTripsFraction * (double) metricValues.get(3)
-                            + batteryFraction * (double) metricValues.get(4);
+                    double normalizedChargingTime = 0.0;
+                    if (tendencyToCharge && oneOrMoreTripIsChargingTrip(tripsWithChargingTime.get(i))) {
+                        normalizedChargingTime = normalize(
+                                chargingTime.get(i) == -1 ? 600.0 : chargingTime.get(i),
+                                Collections.min(chargingTime) == -1 ? 0.0 : Collections.min(chargingTime),
+                                Collections.max(chargingTime));
+                    }
+
+
+                    Double odr = odrFraction * (double) metricValues.get(0);
+                    Double distance = totalDistanceFraction * (double) metricValues.get(1);
+                    Double stops = stopsFraction * (double) metricValues.get(2);
+                    Double battAfterAll = batteryAfterAllTripsFraction * (double) metricValues.get(3);
+                    Double batt = batteryFraction * (double) metricValues.get(4);
+                    Double chargeImp = chargingImportanceFraction * normalizedChargingTime;
+
+                    Double rating = odr + distance + stops + battAfterAll + batt + chargeImp;
+
+                    return rating;
                 }).collect(Collectors.toList());
 
         return ratings;
+    }
+
+    private boolean oneOrMoreTripIsChargingTrip(List<Trip> trips) {
+        return trips.stream()
+                .filter(t -> isChargingTrip(t))
+                .collect(Collectors.toList())
+                .size() > 0;
     }
 
     private boolean oneChargingTripHasZeroChargingTime(List<Trip> tripList) {
@@ -435,29 +446,26 @@ public class GreedyScheduler {
                 .getSeconds();
     }
 
-    /**
-     * Determines whether the battery level is sufficient. If the trip is possible, a list consisting of odr and the
-     * minimum battery level during all trips is returned. If the trip is not possible a list of -1, -1 is returned.
-     *
-     * @param trips
-     * @return odr (if battery is sufficient otherwise returns -1), minBatteryLevel (if battery is sufficient otherwise returns -1)
-     */
     private Metrics simulateTripListAndCalculateMetrics(List<Trip> trips, Strategy strategy) {
         /**
          * Explanation:
-         * 1. Set charging time for each chargingStation to minium charging time to ensure that the charging trip is
-         * worthwhile
+         * Step 1: Set charging time for each chargingStation to minium charging time to ensure that each charging trip
+         * is worthwhile.
          *
-         * 2. Simulate tripList, determine Trips where THETA is exceeded and make a copy of the tripList without these
-         * trips
+         * Step 2: Simulate tripList, determine Trips where THETA is exceeded and make a copy of the tripList without
+         * these trips, if strategy is equal to IGNORE_CUSTOMER. If the Agent breaks down, stop the simulation.
          *
-         * 3. Calculate real charging time for trips (without the trips where theta is exceeded)
+         * Step 3: Calculate real charging time for trips (without the trips where theta is exceeded)
          *
-         * 4. Calculate battery level after those trips
+         * Step 4: Calculate battery level after all trips
          */
         boolean vaBreaksDown = false;
 
-        // Step 1
+        /** Step 1
+         * Set all charging times to MIN_CHARGING_TIME. IFthis increases the ODR, then ignore the trip(s) that increase
+         * the ODR, if the strategy is equal to IGNORE_CUSTOMER. Then calculate the MaximumWaitingTime and adjust the
+         * charging times accordingly.
+         */
         setMinChargingTimeForAllChargingStations(trips);
 
         // Step 2
@@ -488,8 +496,10 @@ public class GreedyScheduler {
 
             if (odr(totalTravelTimeSeconds, firstTrip)) {
                 odr++;
-                if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(firstTrip); }
-                totalDistance -= distance;
+                if (strategy.equals(Strategy.IGNORE_CUSTOMER)) {
+                    copy.remove(firstTrip);
+                    totalDistance -= distance;
+                }
             }
 
             // ToDo: Beim Löschen in Copy verschieben sich die Indices?
@@ -513,12 +523,13 @@ public class GreedyScheduler {
                     totalTravelTimeSeconds += calculateTravelTime(distanceNextTripStart);
                     if (odr(totalTravelTimeSeconds, nextTrip)) {
                         odr++;
-                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(nextTrip); }
-                        totalDistance -= distanceNextTripStart;
+                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) {
+                            copy.remove(nextTrip);
+                            totalDistance -= distanceNextTripStart;
+                        }
                     }
                 } else {
                     // Case Customer Trip
-                    // drive to endposition
                     double distanceCurrentTripEnd = roundedLocationDistanceBetween(vaLocation, currentTrip.endPosition);
                     minBatteryLevel = Math.min(
                             minBatteryLevel,
@@ -538,20 +549,22 @@ public class GreedyScheduler {
                     totalTravelTimeSeconds += calculateTravelTime(distanceCurrentTripEnd + distanceNextTripStart);
                     if (odr(totalTravelTimeSeconds, nextTrip)) {
                         odr++;
-                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) { copy.remove(nextTrip); }
-                        totalDistance -= distanceCurrentTripEnd + distanceNextTripStart;
+                        if (strategy.equals(Strategy.IGNORE_CUSTOMER)) {
+                            copy.remove(nextTrip);
+                            totalDistance -= distanceCurrentTripEnd + distanceNextTripStart;
+                        }
                     }
+                }
 
-                    if (i == trips.size() - 2 && nextTrip.getTripType().equals("CustomerTrip")) {
-                        // drive to end position of last trip
-                        double distanceLastTripEnd = roundedLocationDistanceBetween(vaLocation, nextTrip.endPosition);
-                        minBatteryLevel = Math.min(
-                                minBatteryLevel,
-                                makeTripAndDischargeBattery(battery, distanceLastTripEnd)
-                        );
-                        totalDistance += distanceLastTripEnd;
-                        vaLocation = nextTrip.endPosition;
-                    }
+                if (i == trips.size() - 2 && nextTrip.getTripType().equals("CustomerTrip")) {
+                    // drive to end position of last trip
+                    double distanceLastTripEnd = roundedLocationDistanceBetween(vaLocation, nextTrip.endPosition);
+                    minBatteryLevel = Math.min(
+                            minBatteryLevel,
+                            makeTripAndDischargeBattery(battery, distanceLastTripEnd)
+                    );
+                    totalDistance += distanceLastTripEnd;
+                    vaLocation = nextTrip.endPosition;
                 }
             }
 
@@ -568,7 +581,17 @@ public class GreedyScheduler {
             vaBreaksDown = true;
         }
 
-        List<Trip> resultTrip = setChargingTimeForMultipleChargingStations(copy);
+        List<Trip> resultTrip = trips;
+        /**
+         * After the trip list has been simulated and the vehicle has not broken down, calculate the actual possible
+         * charging times. This is only done at this point, as the trip list can change if the strategy is equal to
+         * IGNORE_CUSTOMER and therefore also the possible landing times.
+         * If a customer could not be reached either way and a charging station is scheduled in the trip list, the
+         * calculation would result in the charging time being 0 seconds and the charging trip would still be run.
+         **/
+         if (!vaBreaksDown) {
+            resultTrip = setChargingTimeForMultipleChargingStations(copy);
+        }
         Double batteryLevelAfterTrips = vaBreaksDown ? 0.0 : calculateBatteryLevel(copy);
 
         return new Metrics(
@@ -603,7 +626,7 @@ public class GreedyScheduler {
         }
         BatteryModel model = new BatteryModel();
         model.setMyChargestate(this.batteryLevel);
-        model.discharge(totalDistance, 0);
+        model.discharge(totalDistance, 0, false);
 
 
         // Step 2: Get total charging time
@@ -656,9 +679,6 @@ public class GreedyScheduler {
     }
 
     private void setMinChargingTimeForAllChargingStations(List<Trip> tripList) {
-        // setze im ersten Schritte alle Charging Times auf die MIN_CHARGING_TIME (2 min)
-        // Wenn dadurch die ODR hochgeht, dann ignoriere den oder die Trips, die die ODR erhöhen
-        // Berechne dann die MWT und passe die Ladezeiten entsprechend an
         for (int i=0; i < tripList.size(); i++) {
             if (isChargingTrip(tripList.get(i))) {
                 tripList.get(i).setChargingTime(MIN_CHARGING_TIME);
@@ -667,7 +687,7 @@ public class GreedyScheduler {
     }
 
     private List<Trip> setChargingTimeForMultipleChargingStations(List<Trip> tripList) {
-        // if there is no charging station in the permutation skip this methode
+        // If there is no charging station in the permutation skip this method
         // TripList can be empty if the permutation previously consisted only of CustomerTrips that cannot be reached
         // in time
         if (tripList.stream().filter(t -> isChargingTrip(t)).count() == 0 || tripList.size() == 0) {
@@ -733,24 +753,23 @@ public class GreedyScheduler {
         // Step 3: Iterate through charging stations
         Integer maxIndex = -1;
         for (Integer index: indecesOfChargingStations) {
-            if (maxIndex < index) {
-                if (index == tripList.size() - 1) {
-                    // charging trip is at last position
-                    tripList.get(index).setChargingTime(-1.0);
-                }
-                // Step 4: Specify all trips that are after current charging station
-                List<Double> waitingTimeAfterChargingStation = travelTimes.subList(index, tripList.size());
-                // Step 4: Get maximum of those trips and calculate charging time through difference to theta
-                Double maxWaitingTime = Collections.max(waitingTimeAfterChargingStation);
-                maxIndex = maxIndex(waitingTimeAfterChargingStation) + index + 1;
-                Double additionalChargingTime = THETA - maxWaitingTime > 0 ? THETA - maxWaitingTime : 0;
-                Double totalChargingTime = tripList.get(index).getChargingTime() + additionalChargingTime;
-                tripList.get(index).setChargingTime(roundToOneDecimalPlace(totalChargingTime));
+            if (index == tripList.size() - 1) {
+                // charging trip is at last position => -1 means, load until a new CustomerTrip is available
+                tripList.get(index).setChargingTime(-1.0);
+            } else if (maxIndex < index) {
+                    // Step 4: Specify all trips that are after current charging station
+                    List<Double> waitingTimeAfterChargingStation = travelTimes.subList(index, tripList.size());
+                    // Step 5: Get maximum of those trips and calculate charging time through difference to theta
+                    Double maxWaitingTime = Collections.max(waitingTimeAfterChargingStation);
+                    maxIndex = maxIndex(waitingTimeAfterChargingStation) + index + 1;
+                    Double additionalChargingTime = THETA - maxWaitingTime > 0 ? THETA - maxWaitingTime : 0;
+                    Double totalChargingTime = tripList.get(index).getChargingTime() + additionalChargingTime;
+                    tripList.get(index).setChargingTime(roundToOneDecimalPlace(totalChargingTime));
 
-                // Step 5: Add charging time to all trips after the current charging station and get back to Step 3
-                for (int i = index + 1; i < travelTimes.size(); i++) {
-                    travelTimes.set(i, travelTimes.get(i) + additionalChargingTime);
-                }
+                    // Step 6: Add charging time to all trips after the current charging station and get back to Step 3
+                    for (int i = index + 1; i < travelTimes.size(); i++) {
+                        travelTimes.set(i, travelTimes.get(i) + additionalChargingTime);
+                    }
             }
         }
 
@@ -813,6 +832,11 @@ public class GreedyScheduler {
 
 
     // SETTER
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
     public void setBatteryLevel(double batteryLevel) {
         this.batteryLevel = batteryLevel;
     }

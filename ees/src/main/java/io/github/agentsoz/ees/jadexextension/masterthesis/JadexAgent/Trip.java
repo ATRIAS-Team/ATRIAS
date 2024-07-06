@@ -22,10 +22,9 @@ public class Trip {
     public Location startPosition; // use this for trips with just one Geolocation
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
-    public LocalDateTime chargingEndTime;
     public Double chargingTime;
 
-    // NEW
+    // @Tim
     public LocalDateTime bookingTime;
 
     //####################################################################################
@@ -59,6 +58,7 @@ public class Trip {
         this.progress = progress;
     }
 
+    // @Tim
     public Trip(DecisionTask decisionTask, String tripID, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress, LocalDateTime bookingTime){
         this.decisionTask = decisionTask;
         this.tripID = tripID;
@@ -153,10 +153,6 @@ public class Trip {
         return this.progress;
     }
 
-    public LocalDateTime getChargingEndTime() {
-        return chargingEndTime;
-    }
-
     public Double getChargingTime() {
         return chargingTime;
     }
@@ -195,10 +191,6 @@ public class Trip {
 
     public void setProgress(String progress) {
         this.progress = progress;
-    }
-
-    public void setChargingEndTime(LocalDateTime chargingEndTime) {
-        this.chargingEndTime = chargingEndTime;
     }
 
     public void setChargingTime(Double chargingTime) {

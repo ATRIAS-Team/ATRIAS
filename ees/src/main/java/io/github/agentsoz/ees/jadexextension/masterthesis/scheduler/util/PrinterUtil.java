@@ -29,23 +29,9 @@ public class PrinterUtil {
         System.out.println("BATTERY LEVEL AFTER ALL TRIPS : " + allBatteryLevelValuesAfterAllTrips);
         System.out.println("STOPS: " + allStopsValues);
         System.out.println("CHARGING TIMES: " + allChargingTimes);
-
-        for (int i = 0; i < allStopsValues.size(); i++) {
-            System.out.println(
-                    String.join(
-                            ",",
-                            allOdrValues.get(i).toString(),
-                            allTotalDistances.get(i).toString(),
-                            allMinBatteryLevelValues.get(i).toString(),
-                            allBatteryLevelValuesAfterAllTrips.get(i).toString(),
-                            allStopsValues.get(i).toString(),
-                            allChargingTimes.get(i).toString()
-                    )
-            );
-        }
     }
 
-    public void csv(List<List<Trip>> permutations, List<Integer> allOdrValues, List<Double> allTotalDistances, List<Double> allMinBatteryLevelValues, List<Double> allBatteryLevelValuesAfterAllTrips, List<Integer> allStopsValues, List<Double> allChargingTimes, List<Double> allRatings) {
+    public void csv(List<List<Trip>> permutations, List<Integer> allOdrValues, List<Double> allTotalDistances, List<Double> allMinBatteryLevelValues, List<Double> allBatteryLevelValuesAfterAllTrips, List<Integer> allStopsValues, List<Double> allChargingTimes, Double currBatteryLevel, List<Double> allRatings) {
         List<List<String>> ids = permutations
                 .stream()
                 .map(p -> p.stream().map(t -> t.getTripID()).collect(Collectors.toList()))
@@ -56,13 +42,15 @@ public class PrinterUtil {
             System.out.println(
                     String.join(
                             ",",
+                            ids.get(i).toString().replace(",", " "),
                             allOdrValues.get(i).toString(),
-                            allTotalDistances.get(i).toString(),
-                            allMinBatteryLevelValues.get(i).toString(),
-                            allBatteryLevelValuesAfterAllTrips.get(i).toString(),
-                            allStopsValues.get(i).toString(),
-                            allChargingTimes.get(i).toString(),
-                            allRatings.get(i).toString()
+                            String.valueOf(Math.round(allTotalDistances.get(i))),
+                            String.valueOf(Math.round(allMinBatteryLevelValues.get(i))),
+                            String.valueOf(Math.round(allBatteryLevelValuesAfterAllTrips.get(i))),
+                            String.valueOf(Math.round(allStopsValues.get(i))),
+                            String.valueOf(Math.round(allChargingTimes.get(i))),
+                            String.valueOf(Math.round(currBatteryLevel * 100)),
+                            String.valueOf(Math.round(allRatings.get(i) * 100.0))
                     )
             );
         }

@@ -21,6 +21,7 @@ public class BatteryModel {
     public final double DEFAULT_TOLERANCE = 0.001;
     public double my_chargestate = 0.9; // TrikeAgent.java
     protected boolean daytime = true;
+    // @Tim
     // 12600sekunden für 1.0 (100%) bei einem 400 Watt Akku
     // => 0.000079 pro Sekunde
     protected double CHARGE_INCREASE_COEFFICIENT = 0.000079;
@@ -40,6 +41,7 @@ public class BatteryModel {
     // }
     //private static void decreaseBattery(BatteryModel batteryModel, Id<Vehicle> specificVehicleId) {
 
+    // @Tim
     public void discharge(double metersDriven, int carriedcustomer) {
         discharge(metersDriven, carriedcustomer, true);
     }
@@ -83,6 +85,7 @@ public class BatteryModel {
         return chargeDecrease;
     }
 
+    // @Tim
     public void charge(Double chargingTime) {
         Double newChargingState = getMyChargestate() + CHARGE_INCREASE_COEFFICIENT * chargingTime;
         if (newChargingState > 1.0) {
