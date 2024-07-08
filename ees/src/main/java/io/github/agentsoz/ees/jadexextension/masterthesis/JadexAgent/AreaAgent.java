@@ -186,7 +186,7 @@ public class AreaAgent {
                         JadexModel.simulationtime,
                         messageContent
                 );
-
+                String jobId = toHandle.getID();
                 IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
                 service.trikeReceiveJob(message.serialize());
 

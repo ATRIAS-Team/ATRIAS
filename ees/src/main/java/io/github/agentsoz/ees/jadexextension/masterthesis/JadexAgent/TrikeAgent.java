@@ -44,6 +44,7 @@ import java.time.Duration;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
@@ -122,6 +123,9 @@ public class TrikeAgent implements SendtoMATSIM {
     public boolean sent = false;
     @Belief
     public String write = null;
+
+    @Belief
+    public Double time = JadexModel.simulationtime;
 
 
     public Integer chargingTripCounter = 0;
@@ -207,6 +211,7 @@ public class TrikeAgent implements SendtoMATSIM {
 
         // @Tim
         bdiFeature.dispatchTopLevelGoal(new HandleChargingTrips());
+//        bdiFeature.dispatchTopLevelGoal(new Schedule());
 
         // bdiFeature.dispatchTopLevelGoal(new AchieveMoveTo()); //Battery -oemer
 
@@ -244,6 +249,34 @@ public class TrikeAgent implements SendtoMATSIM {
     @Belief
     public boolean erzeugt = false;
 
+//    @Goal()
+//    class Schedule {
+//        @GoalCreationCondition(factchanged = "tempTripList")
+//        public Schedule() {}
+//    }
+//
+//    @Plan(trigger = @Trigger(goals = Schedule.class))
+//    public void schedule() {
+//        GreedyScheduler greedyScheduler2 = new GreedyScheduler(
+//                CHARGING_STATION_LIST,
+//                trikeBattery.getMyChargestate(),
+//                agentLocation,
+//                getCurrentSimulationTimeAsDate(),
+//                DRIVING_SPEED,
+//                THETA,
+//                agentID,
+//                determineTimeTillEndpositionIsReach()
+//        );
+//
+//        List<Trip> merged = Stream.concat(tempTripList.stream(), tripList.stream()).collect(Collectors.toList());
+//        List<Trip> greedyResult = greedyScheduler2.greedySchedule(merged, Strategy.DRIVE_TO_CUSTOMER);
+//        if (greedyResult.stream().filter(t -> t.getTripType().equals("ChargingTrip")).collect(Collectors.toList()).size() > 0) {
+//            chargingTripAvailable = "1";
+//        }
+//        tripList = greedyResult;
+//        tripIDList.add("1");
+//        tempTripList.clear();
+//    }
 
     @Goal(recur = true, recurdelay = 300)
     class testGoal {
@@ -312,67 +345,82 @@ public class TrikeAgent implements SendtoMATSIM {
 //        }
 //    }
 
+//    @Belief
     // @New @Tim
     @Goal(recur = true, recurdelay = 100)
     public class HandleChargingTrips { }
-
+    
+    Double oldSimTime = 0.0;
     Double previousBatteryLevel = null;
 
     // @New @Tim
     @Plan(trigger = @Trigger(goals = HandleChargingTrips.class))
     public void LoadBatteryIfCurrentTripIsChargingTrip() {
-        if (currentTrip.size() > 0 && currentTrip.get(0).getTripType().equals("ChargingTrip")
-                && currentTrip.get(0).getProgress().equals("AtStartLocation")) {
+        if (oldSimTime != JadexModel.simulationtime) {
+            if (currentTrip.size() > 0 && currentTrip.get(0).getTripType().equals("ChargingTrip")
+                    && currentTrip.get(0).getProgress().equals("AtStartLocation")) {
 
-            Trip trip = currentTrip.get(0);
-            // currentTrip contains a maximum of one element
-            if (trip.getChargingTime() > 0.0) {
+                Trip trip = currentTrip.get(0);
+                // currentTrip contains a maximum of one element
+                if (trip.getChargingTime() > 0.0) {
 
-                if (previousBatteryLevel == null) {
-                    previousBatteryLevel = trikeBattery.getMyChargestate();
+                    if (previousBatteryLevel == null) {
+                        previousBatteryLevel = trikeBattery.getMyChargestate();
+                    }
+                    trikeBattery.charge(10.0);
+
+                    // charging time is in seconds
+                    Double newChargingTime = (trip.getChargingTime() - 10.0) <= 0.0
+                            ? 0.0
+                            : trip.getChargingTime() - 10.0;
+                    trip.setChargingTime(newChargingTime);
+                    System.out.println("Agent " + agentID + "" +
+                            " - Remaining charging time: " + trip.getChargingTime() +
+                            " - Battery Level: " + trikeBattery.getMyChargestate() +
+                            " - JadexSimTime: " + JadexModel.simulationtime);
                 }
-                trikeBattery.charge(10.0);
 
-                // charging time is in seconds
-                Double newChargingTime = (trip.getChargingTime() - 10.0) <= 0.0
-                        ? 0.0
-                        : trip.getChargingTime() - 10.0;
-                trip.setChargingTime(newChargingTime);
-                System.out.println("Agent " + agentID + "" +
-                        " - Remaining charging time: " + trip.getChargingTime() +
-                        " - Battery Level: " + trikeBattery.getMyChargestate() +
-                        " - JadexSimTime: " + JadexModel.simulationtime);
-            }
+                if (trip.getChargingTime() == 0.0) {
+                    System.out.println("FINISHED CHARGING TRIP " + trip.getTripID() + " FROM AGENT "+ agentID);
+                    prepareLog(
+                            trip,
+                            previousBatteryLevel.toString(),
+                            String.valueOf(trikeBattery.getMyChargestate()),
+                            "true",
+                            "0.0"
+                    );
+                    updateCurrentTripProgress("Finished");
+                    previousBatteryLevel = null;
+                    ExecuteTrips();
+                }
 
-            if (trip.getChargingTime() == 0.0) {
-                System.out.println("FINISHED CHARGING TRIP " + trip.getTripID() + " FROM AGENT "+ agentID);
-                prepareLog(
-                        trip,
-                        previousBatteryLevel.toString(),
-                        String.valueOf(trikeBattery.getMyChargestate()),
-                        "true",
-                        "0.0"
-                );
-                updateCurrentTripProgress("Finished");
-                previousBatteryLevel = null;
-                ExecuteTrips();
-            }
+                // ChargingTime equals -1 means charge until new trips are available
+                if (trip.getChargingTime() == -1.0 && tripList.size() == 0) {
+                    trikeBattery.charge(10.0);
+                    System.out.println("Agent " + agentID + "" +
+                            " - Remaining charging time: " + trip.getChargingTime() +
+                            " - Battery Level: " + trikeBattery.getMyChargestate() +
+                            " - JadexSimTime: " + JadexModel.simulationtime);
 
-            // ChargingTime equals -1 means charge until new trips are available
-            if (trip.getChargingTime() == -1.0 && tripList.size() == 0) {
-                trikeBattery.charge(10.0);
-                System.out.println("Agent " + agentID + "" +
-                        " - Remaining charging time: " + trip.getChargingTime() +
-                        " - Battery Level: " + trikeBattery.getMyChargestate() +
-                        " - JadexSimTime: " + JadexModel.simulationtime);
-            }
+                    if (trikeBattery.getMyChargestate() == 1.0) {
+                        // Finish charging because new trips are available
+                        trip.setChargingTime(0.0);
+                        updateCurrentTripProgress("Finished");
+                        previousBatteryLevel = null;
+                        ExecuteTrips();
+                    }
 
-            if (trip.getChargingTime() == -1.0 && tripList.size() > 0) {
-                // Finish charging because new trips are available
-                trip.setChargingTime(0.0);
-                updateCurrentTripProgress("Finished");
-                previousBatteryLevel = null;
-                ExecuteTrips();
+                }
+
+                if (trip.getChargingTime() == -1.0 && tripList.size() > 0) {
+                    // Finish charging because new trips are available
+                    trip.setChargingTime(0.0);
+                    updateCurrentTripProgress("Finished");
+                    previousBatteryLevel = null;
+                    ExecuteTrips();
+                }
+
+                oldSimTime = JadexModel.simulationtime;
             }
         }
     }
@@ -525,7 +573,7 @@ public class TrikeAgent implements SendtoMATSIM {
             tripList.add(newTrip);
 //            tempTripList.add(newTrip);
             // merge temp und triplist
-//            List<Trip> merged = new ArrayList<>();
+//            List<Trip> merged = Stream.concat(tempTripList.stream(), tripList.stream()).collect(Collectors.toList());
             List<Trip> greedyResult = greedyScheduler2.greedySchedule(tripList, Strategy.DRIVE_TO_CUSTOMER);
             if (greedyResult.stream().filter(t -> t.getTripType().equals("ChargingTrip")).collect(Collectors.toList()).size() > 0) {
                 chargingTripAvailable = "1";

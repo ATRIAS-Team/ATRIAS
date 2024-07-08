@@ -25,8 +25,8 @@ public class PrinterUtil {
         System.out.println("PERMUTATIONS: " + ids);
         System.out.println("ODR: " + allOdrValues);
         System.out.println("TOTAL DISTANCES: " + allTotalDistances);
-        System.out.println("MINIMUM BATTERY LEVEL ACROSS ALL TRIPS : " + allMinBatteryLevelValues);
-        System.out.println("BATTERY LEVEL AFTER ALL TRIPS : " + allBatteryLevelValuesAfterAllTrips);
+        System.out.println("MINIMUM BATTERY LEVEL ACROSS ALL TRIPS : " + allMinBatteryLevelValues.stream().map(d -> String.format("%.4f", d)).collect(Collectors.toList()));
+        System.out.println("BATTERY LEVEL AFTER ALL TRIPS : " + allBatteryLevelValuesAfterAllTrips.stream().map(d -> String.format("%.4f", d)).collect(Collectors.toList()));
         System.out.println("STOPS: " + allStopsValues);
         System.out.println("CHARGING TIMES: " + allChargingTimes);
     }
@@ -57,7 +57,7 @@ public class PrinterUtil {
     }
 
     public void endScheduler(List<Double> allRatings) {
-        System.out.println("RATINGS: " + allRatings);
+        System.out.println("RATINGS: " + allRatings.stream().map(d -> String.format("%.4f", d)).collect(Collectors.toList()));
         System.out.println("Greedy Schedule End...");
         System.out.println("*******************************************************************************************");
     }

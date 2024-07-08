@@ -31,7 +31,7 @@ public class GreedyScheduler {
     // 12600 seconds for 0% - 100% (400 Watt Battery)
     Double COMPLETE_CHARGING_TIME = 12600.0;
     Double MIN_CHARGING_TIME = COMPLETE_CHARGING_TIME * CHARGING_THRESHHOLD;
-    Double BATTERY_THRESHHOLD = 0.5;
+    Double BATTERY_THRESHHOLD = 0.8;
     String agentId;
 
     /**
@@ -86,6 +86,8 @@ public class GreedyScheduler {
         List<Trip> result = getPermutationWithHighestRating(ratings, metricsValues.getAllTripsWithCharingTimes());
 
         printerUtil.endScheduler(ratings);
+
+        System.out.println("IDs: " + result.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
         /**
          * Kann genutzt werden, um die Ausgabe in eine CSV zu kopieren mit folgenden Spalten:
@@ -169,10 +171,6 @@ public class GreedyScheduler {
                     .map(t -> t.getChargingTime())
                     .collect(Collectors.summingDouble(Double::doubleValue));
 
-            if (agentId.equals("8")) {
-                System.out.println("GetallMetrics tripLIst: " + metrics.getTripsWithChargingTime().stream().filter(t -> isChargingTrip(t)).map(t -> t.getChargingTime()).collect(Collectors.toList()));
-            }
-
             metricsValues.addChargingTimes(chargingTime);
             metricsValues.addTripsWithChargingTime(metrics.getTripsWithChargingTime());
             metricsValues.addTotalDistance(metrics.getTotalDistance());
@@ -217,7 +215,10 @@ public class GreedyScheduler {
         ).collect(Collectors.toList());
         // permutations with charging trips
         for (List<Trip> tripSubset : allChargingTripsSubsets) {
-            List<Trip> merged = Stream.concat(tripSubset.stream(), trips.stream()).collect(Collectors.toList());
+            // Otherwise, when calculating the charging time, the time for different permutations is set to the same
+            // for one trip, as all subsets reference the same trips
+            List<Trip> copyOfChargingTrips = createDeepCopyOfSubset(tripSubset);
+            List<Trip> merged = Stream.concat(copyOfChargingTrips.stream(), trips.stream()).collect(Collectors.toList());
             List<List<Trip>> allPermutationsOfMerged = getAllPermutationsOfATripList(merged);
             mergedTripListWithChargingTripSubset = Stream.concat(
                     mergedTripListWithChargingTripSubset.stream(),
@@ -828,6 +829,20 @@ public class GreedyScheduler {
         return (double) Math.round(
                 Location.distanceBetween(a, b)
         );
+    }
+
+    private List<Trip> createDeepCopyOfSubset(List<Trip> chargingTrips) {
+        List<Trip> result = new ArrayList<>();
+        for (Trip chargingTrip: chargingTrips) {
+            result.add(
+                    new Trip(
+                            chargingTrip.tripID,
+                            chargingTrip.tripType,
+                            chargingTrip.startPosition,
+                            "NotStarted")
+            );
+        }
+        return result;
     }
 
 
