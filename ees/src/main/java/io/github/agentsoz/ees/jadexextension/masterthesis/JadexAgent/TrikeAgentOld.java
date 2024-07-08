@@ -601,9 +601,10 @@ public class TrikeAgentOld implements SendtoMATSIM{
             newTask.getEndPositionFromJob();
             newTask.getVATimeFromJob();
 
-            Double a = 1.0 / 3.0;
-            Double b = 1.0 / 3.0;
-            Double c = 1.0 / 3.0;
+            Double a = 0.75; //1.0 / 3.0;
+            Double b = 0.125; //1.0 / 3.0;
+            Double c = 0.125; //1.0 / 3.0;
+
             Double uPunctuality = null;
             Double uBattery = null;
             Double uDistance = null;
