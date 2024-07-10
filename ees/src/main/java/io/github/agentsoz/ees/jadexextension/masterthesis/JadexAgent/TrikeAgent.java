@@ -6,6 +6,7 @@
  *
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
+
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
@@ -14,19 +15,15 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.DisruptionComponent.Di
 import io.github.agentsoz.ees.jadexextension.masterthesis.DisruptionComponent.DisruptionInjectorUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.TrikeAgentService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.util.Location;
-
-import java.text.SimpleDateFormat;
-import java.time.*;
-
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -41,6 +38,8 @@ import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -159,7 +158,6 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
-    @Belief(dynamic = true)
     Boolean CNP_ACTIVE = true;
 
     boolean batteryLoadingBeforeEmergencyTrip = false;
@@ -179,13 +177,16 @@ public class TrikeAgent implements SendtoMATSIM{
 
     //Ab hier Robustheit
     boolean trikeIsBroken = false;
-    @Belief(dynamic = true)
-    Boolean areaAgentCommunication = true;
-    @Belief(dynamic = true)
+
+    Boolean communication = true;
+
     List<DisruptionInjector> toDisruptAgents;
 
     boolean signalDisrupt = false;
     boolean emergencyTrip = false;
+
+    //Emergency location: Boston Chinatown for now.
+    Location emergencyLocation = new Location("", 330085.431, 4690792.550);
 
     //Threshold for timeout of "waitingForProposal"
     Double TIMEOUT_THRESHOLD_WFP = 1000.0;
@@ -316,14 +317,10 @@ public class TrikeAgent implements SendtoMATSIM{
             if(currentAgent.getDisruptionTime() <= JadexModel.simulationtime  ) {
                 if(currentAgent.getDisruptionType().equals("CommunicationDisruption") ) {
                     if(!batteryLoadingBeforeEmergencyTrip) {
-						//TODO: Do not use CNP_ACTIVE
-                        this.CNP_ACTIVE = false;
-                        this.areaAgentCommunication = false;
+                        this.communication = false;
                         sendAreaAgentUpdate("deregister");
                         if (!emergencyTrip) {
                             System.out.println("Communication NOT ACTIVE for Trike: " + this.agentID);
-                            //Emergency location: Boston Chinatown for now.
-                            Location emergencyLocation = new Location("", 330085.431, 4690792.550);
                             Job job = new Job("99", "EMERGENCY", Instant.ofEpochMilli((long) JadexModel.simulationtime).atZone(ZoneId.systemDefault()).toLocalDateTime(), Instant.ofEpochMilli((long) JadexModel.simulationtime).atZone(ZoneId.systemDefault()).toLocalDateTime(), agentLocation, emergencyLocation);
                             DecisionTask decisionTask = new DecisionTask(job, "Emergency", "emergency");
                             decisionTaskList.add(decisionTask);
@@ -332,11 +329,46 @@ public class TrikeAgent implements SendtoMATSIM{
                     }
 
 
-                //TODO: Implement breakdown
                 }else if(currentAgent.getDisruptionType().equals("Breakdown")){
-                    
+                    if(!trikeIsBroken) {
+                        trikeIsBroken = true;
+                        sendAreaAgentUpdate("deregister");
+                        System.out.println("Trike " + this.agentID + " broke down. Terminating Trips...");
+                        breakdownChargingBlocker = true;
+
+                        //All current trips are set to failed, also all except the one at index 0 are deleted. This is
+                        //to prevent a failure of the system. The most current trip still fails.
+                        if (currentTrip.size() > 0) {
+                            prepareLog(currentTrip.get(0), "0.0", "0.0", "false", "0.0");
+                            currentTrip.get(0).setProgress("Failed");
+                            while (currentTrip.size() > 1) {
+                                prepareLog(currentTrip.get(1), "0.0", "0.0", "false", "0.0");
+                                currentTrip.get(1).setProgress("Failed");
+                                currentTrip.remove(1);
+                            }
+
+                        }
+                        //All trips are set to failed and are deleted
+                        if (tripList.size() > 0) {
+                            while (tripList.size() > 0) {
+                                prepareLog(tripList.get(0), "0.0", "0.0", "false", "0.0");
+                                tripList.get(0).setProgress("Failed");
+                                tripList.remove(0);
+                            }
+                        }
+                        System.out.println("Trike " + this.agentID + " broke down. Delegating Tasks...");
+                        //Tasks are delegated due to failure of trike
+                        if (decisionTaskList.size() > 0) {
+                            for (DecisionTask dt : decisionTaskList) {
+                                dt.setStatus("delegate");
+                            }
+                        }
+
+                        csvLogger.addLog(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR, "trike:" + agentID, "Breakdown", "-", "-", "-", "-", "-", "0.0", "-", "-");
+
+                    }
                 }else{
-                    System.out.println("Wrong Disruption Type found");
+                    System.out.println("Wrong Disruption-Type found");
                 }
             }
         }
@@ -461,7 +493,7 @@ public class TrikeAgent implements SendtoMATSIM{
             Double ownScore = calculateUtility(decisionTaskList.get(position));
             //ownScore = 0.0; //todo: delete this line after the implementation of the cnp
             decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
-            if (ownScore < commitThreshold && CNP_ACTIVE){
+            if ((ownScore < commitThreshold && CNP_ACTIVE) || !communication){
                 decisionTaskList.get(position).setStatus("delegate");
             }
             else{
@@ -514,20 +546,14 @@ public class TrikeAgent implements SendtoMATSIM{
             DecisionTask dTaToTrip = decisionTaskList.get(position);
             //The Trip start location is set to getNextChargingStation(), because this will be the actual current location of the trike when the emergency trip starts.
             Trip newTrip = new Trip(decisionTaskList.get(position), dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), getNextChargingStation(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
+            //TODO: create a unique tripID
             tripList.add(newTrip);
             tripIDList.add("1");
             estimateBatteryAfterTIP();
 
-            //For Now: Increasing Theta when emergency trip is created, so it won`t fail. In future an separate "emergency"
-            //tripType should be created to get rid of this.
-			//TODO: Do not modify THETA
-            THETA = 40000.0;
-
             decisionTaskList.get(position).setStatus("committed");
             FinishedDecisionTaskList.add(dTaToTrip);
-
-            decisionTaskList.remove(position.intValue()); 
-
+            decisionTaskList.remove(position.intValue());
 
             changes += 1;
         }
@@ -987,6 +1013,10 @@ public class TrikeAgent implements SendtoMATSIM{
             // calculate the total score
 
             utillityScore = Math.max(0.0, (a * uPunctuality + b * uBattery + c * uDistance));
+        }
+        //Robustheit: Wenn Trike im "BreakDown" ist, setze utilityScore auf 0.0
+        if(trikeIsBroken){
+            utillityScore = 0.0;
         }
         System.out.println("agentID: " + agentID + "utillity: " + utillityScore);
         return utillityScore;
@@ -1820,7 +1850,7 @@ public class TrikeAgent implements SendtoMATSIM{
          */
         System.out.println("Neue Position: " + agentLocation);
         //disruption component - AreaAgent
-        if(areaAgentCommunication) {
+        if(communication) {
             sendAreaAgentUpdate("update");
         }
 
@@ -2031,7 +2061,7 @@ public class TrikeAgent implements SendtoMATSIM{
         //Double vaTimeSec = timeInSeconds(currentTrip.get(0).getVATime());
         double curr = (JadexModel.simulationtime) * 1000;
         double diff = curr - (vaTimeMilli - offset) ;
-        if (diff > (THETA*1000) && ALLOW_CUSTOMER_MISS){
+        if (diff > (THETA*1000) && ALLOW_CUSTOMER_MISS && !trip.getTripID().equals("EMERGENCY")){
             return isMissed = true;
         }
         return isMissed;
@@ -2206,7 +2236,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
         //calls trikeMessage methods of TrikeAgentService class
         //Robustheit
-        if (areaAgentCommunication) {
+        if (communication) {
             service.trikeReceiveTrikeMessage(testMessage.serialize());
         }else{
             System.out.println("Communication not available.");
@@ -2224,7 +2254,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
         //calls trikeMessage methods of TrikeAgentService class
         //Robustheit
-        if (areaAgentCommunication) {
+        if (communication) {
             service.trikeReceiveTrikeMessage(testMessage.serialize());
         }else{
             System.out.println("Communication not available for Trike: " + agentID);
@@ -2243,7 +2273,7 @@ public class TrikeAgent implements SendtoMATSIM{
         IAreaTrikeService service = messageToService(agent, testMessage);
 
         //disruption component - AreaAgent
-        if (areaAgentCommunication) {
+        if (communication) {
             service.trikeReceiveTrikeMessage(testMessage.serialize());
         }else{
             System.out.println("Communication not available for Trike: " + agentID);

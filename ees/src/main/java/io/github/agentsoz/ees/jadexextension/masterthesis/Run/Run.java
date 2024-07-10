@@ -132,7 +132,7 @@ public class Run implements DataClient {
 
 
         //Robustheit
-        DisruptionInjector disruptionOfAgent11 = new DisruptionInjector("11", "CommunicationDisruption",10000);
+        DisruptionInjector disruptionOfAgent11 = new DisruptionInjector("11", "Breakdown",10000);
         DisruptionInjector disruptionOfAgent15 = new DisruptionInjector("15", "CommunicationDisruption",10000);
         DisruptionInjector disruptionOfAgent0 = new DisruptionInjector("0", "CommunicationDisruption",10000);
         DisruptionInjector disruptionOfAgent1 = new DisruptionInjector("1", "CommunicationDisruption",10000);
@@ -140,7 +140,7 @@ public class Run implements DataClient {
         DisruptionInjector disruptionOfAgent17 = new DisruptionInjector("17", "CommunicationDisruption",10000);
 
         JadexModel.disruptionToggle = true;
-        JadexModel.toDisruptAgents = Arrays.asList(disruptionOfAgent11,disruptionOfAgent15,disruptionOfAgent0,disruptionOfAgent1,disruptionOfAgent16,disruptionOfAgent17);
+        JadexModel.toDisruptAgents = Arrays.asList(disruptionOfAgent11,disruptionOfAgent15,disruptionOfAgent0,disruptionOfAgent1);//,disruptionOfAgent16,disruptionOfAgent17);
 
 
         while (true) {

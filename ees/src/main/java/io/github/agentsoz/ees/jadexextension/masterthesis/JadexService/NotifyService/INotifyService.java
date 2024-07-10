@@ -12,6 +12,7 @@ import java.util.List;
 public interface INotifyService
 {
 	//Robustheit
+	//used to send information about to disrupt agents to all Agents.
 	public void toDisruptAgents(List<DisruptionInjector> agentID);
 	public void NotifyotherAgent(List<ActionContent> ActionContentList, List<PerceptContent> PerceptContent, boolean activestatus);
 

@@ -28,6 +28,7 @@ public class TrikeAgentReceiveService implements INotifyService {
 	//-------- attributes --------
 
 	//Robustheit
+	//call the setter of the trike agents, to set the information of to disrupt agents in all trike agents.
 	public void toDisruptAgents(List<DisruptionInjector> toDisruptAgents){
 		final TrikeAgent TrikeAgent = (io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		TrikeAgent.setToDisruptAgents(toDisruptAgents);
