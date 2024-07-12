@@ -40,6 +40,7 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
@@ -58,7 +59,7 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.Ar
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
 })
 
-public class TrikeAgentOld implements SendtoMATSIM{
+public class TrikeAgentThread implements SendtoMATSIM{
 
     /**
      * The bdi agent. Automatically injected
@@ -397,6 +398,19 @@ public class TrikeAgentOld implements SendtoMATSIM{
             Trip newTrip = new Trip(decisionTaskList.get(position), dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
             //TODO: create a unique tripID
             tripList.add(newTrip);
+
+            Thread thread = new Thread(() -> {
+                try {
+                    System.out.println("<<<<<<<<<<<<<<<<<< " + new Date(System.currentTimeMillis()));
+                    TimeUnit.SECONDS.sleep(5);
+                    System.out.println("<<<<<<<<<<<<<<<<<< SLEEEEEEEPT >>>>>>>>>>>>>>>>>>>>>>");
+                    System.out.println("<<<<<<<<<<<<<<<<<< " + new Date(System.currentTimeMillis()));
+                } catch (InterruptedException e) {
+                    System.out.println("SLEEEEEEEEEEEEEEEEEEP DOOOOOOOOOOOOOOOEEEEEEEEEEEEEEEEEESSSSSSSSSSNNNNNNNNNNNNNT WWWWWWWWWWWWWWWWWWWOOOOOOOOORK");
+                }
+            });
+            thread.start();
+
             tripIDList.add("1");
             estimateBatteryAfterTIP();
 
@@ -553,8 +567,48 @@ public class TrikeAgentOld implements SendtoMATSIM{
         return changes;
     }
 
+    public void threadMagic() {
+        // Step 1 Get current thread
+        Thread currentThread = Thread.currentThread();
 
+        // Step 2 Get all threads
+        Thread[] allThreads = new Thread[Thread.activeCount()];
+        Thread.enumerate(allThreads);
 
+        // Step 3 suspend all threads except current thread
+        for (Thread thread: allThreads) {
+            if (thread != currentThread) {
+                try {
+                    thread.wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                System.out.println("<<<<<<<<<<<<<<<<<< " + new Date(System.currentTimeMillis()));
+                TimeUnit.SECONDS.sleep(5);
+                System.out.println("<<<<<<<<<<<<<<<<<< SLEEEEEEEPT >>>>>>>>>>>>>>>>>>>>>>");
+                System.out.println("<<<<<<<<<<<<<<<<<< " + new Date(System.currentTimeMillis()));
+
+                // notify all threads after waiting
+                for (Thread supsended: allThreads) {
+                    supsended.notify();
+                }
+            } catch (InterruptedException e) {
+                System.out.println("SLEEEEEEEEEEEEEEEEEEP DOOOOOOOOOOOOOOOEEEEEEEEEEEEEEEEEESSSSSSSSSSNNNNNNNNNNNNNT WWWWWWWWWWWWWWWWWWWOOOOOOOOORK");
+            }
+        });
+        thread.start();
+
+        try {
+            currentThread.wait();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Double timeInSeconds(LocalDateTime time) {
         // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer

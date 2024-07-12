@@ -192,7 +192,7 @@ public class AreaAgent {
 
                 //remove job from list
                 jobList1.remove(0);
-                System.out.println("AREA AGENT: JOB was SENT");
+                System.out.println("AREA AGENT: JOB was SENT - " + jobId);
             }
         }
     }

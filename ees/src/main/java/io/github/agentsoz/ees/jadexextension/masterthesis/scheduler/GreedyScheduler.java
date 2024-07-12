@@ -27,11 +27,11 @@ public class GreedyScheduler {
     // ToDo: Mit Setter von außen setzen, damit Scheduler nicht immer wieder instanziiert werden muss?
     Double TIME_UNTIL_CURRENT_ACTION_IS_DONE;
     // A charging trip only makes sense if you can charge for at least this amount
-    Double CHARGING_THRESHHOLD = 0.05;
+    Double CHARGING_THRESHHOLD = 0.15;
     // 12600 seconds for 0% - 100% (400 Watt Battery)
     Double COMPLETE_CHARGING_TIME = 12600.0;
     Double MIN_CHARGING_TIME = COMPLETE_CHARGING_TIME * CHARGING_THRESHHOLD;
-    Double BATTERY_THRESHHOLD = 0.8;
+    Double BATTERY_THRESHHOLD = 0.9;
     String agentId;
 
     /**
@@ -62,20 +62,24 @@ public class GreedyScheduler {
      * @return List of scheduled trips
      */
     public List<Trip> greedySchedule(List<Trip> allTrips, Strategy strategy) {
+        Date startTime = new Date(System.currentTimeMillis());
         printerUtil.startScheduler(agentId, batteryLevel, this.simulationTime);
+        System.out.println("TripList size: " +  allTrips.size() + " - " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
         // ToDo: Is there a solution under all cirumstances? What happens if all rating results are 0? Is that possible?
         // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
         List<List<Trip>> permutations = getAllPermutations(allTrips);
+
+        System.out.println("Size of permutations: " + permutations.size());
 
         MetricsValues metricsValues = getAllMetricsValuesForEachPermutation(permutations, strategy);
         // Determine the minimum and maximum values for each metric. These are used for normalization right after.
         MinMaxMetricsValues minMaxMetricsValues = getMinMaxMetricsValues(metricsValues);
         List<List<Number>> normalizedMetricsValues = normalizeValues(metricsValues, minMaxMetricsValues);
 
-        printerUtil.metrics(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
-                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
-                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
+//        printerUtil.metrics(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
+//                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
+//                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
 
         // ToDo: Optimize rating function
         List<Double> ratings = rating(
@@ -83,9 +87,14 @@ public class GreedyScheduler {
                 metricsValues.getAllTripsWithCharingTimes(),
                 metricsValues.getAllVaBreaksDownValues()
         );
-        List<Trip> result = getPermutationWithHighestRating(ratings, metricsValues.getAllTripsWithCharingTimes());
+        int idx = idx(ratings, metricsValues.getAllTripsWithCharingTimes());
 
-        printerUtil.endScheduler(ratings);
+        printerUtil.metricsOfIndex(idx, permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
+                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
+                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
+//        printerUtil.endScheduler(ratings);
+
+        List<Trip> result = permutations.get(idx);
 
         System.out.println("IDs: " + result.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
@@ -96,6 +105,8 @@ public class GreedyScheduler {
         // printerUtil.csv(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
         //         metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
         //         metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), batteryLevel, ratings);
+
+        System.out.println("End time with schedule time: " + ((new Date(System.currentTimeMillis()).getTime() - startTime.getTime()) / 1000));
 
         return result;
     }
@@ -356,6 +367,12 @@ public class GreedyScheduler {
         double batteryAfterAllTripsFraction = 0.15;
         double batteryFraction = 0.05;
         double stopsFraction = 0.05;
+        List<Double> chargingTripRatings;
+        if (tendencyToCharge) {
+            chargingTripRatings = normalizedAndRatedChargingTimes(tripsWithChargingTime);
+        } else {
+            chargingTripRatings = new ArrayList<>();
+        }
         System.out.println("Tendency to charge: " + tendencyToCharge);
         List<Double> ratings = IntStream.range(0, normalizedMetricsValues.size())
                 .mapToObj(i -> {
@@ -365,12 +382,9 @@ public class GreedyScheduler {
                         return 0.0;
                     }
 
-                    double normalizedChargingTime = 0.0;
-                    if (tendencyToCharge && oneOrMoreTripIsChargingTrip(tripsWithChargingTime.get(i))) {
-                        normalizedChargingTime = normalize(
-                                chargingTime.get(i) == -1 ? 600.0 : chargingTime.get(i),
-                                Collections.min(chargingTime) == -1 ? 0.0 : Collections.min(chargingTime),
-                                Collections.max(chargingTime));
+                    double chargingRating = 0.0;
+                    if (tendencyToCharge && oneOrMoreTripIsChargingTrip(tripsWithChargingTime.get(i)) && !vaBreaksDown.get(i)) {
+                        chargingRating = chargingTripRatings.get(i);
                     }
 
 
@@ -379,7 +393,7 @@ public class GreedyScheduler {
                     Double stops = stopsFraction * (double) metricValues.get(2);
                     Double battAfterAll = batteryAfterAllTripsFraction * (double) metricValues.get(3);
                     Double batt = batteryFraction * (double) metricValues.get(4);
-                    Double chargeImp = chargingImportanceFraction * normalizedChargingTime;
+                    Double chargeImp = chargingImportanceFraction * chargingRating;
 
                     Double rating = odr + distance + stops + battAfterAll + batt + chargeImp;
 
@@ -387,6 +401,41 @@ public class GreedyScheduler {
                 }).collect(Collectors.toList());
 
         return ratings;
+    }
+
+    private List<Double> normalizedAndRatedChargingTimes(List<List<Trip>> trips) {
+        List<Double> ratings = new ArrayList<>();
+
+        for (int i = 0; i < trips.size(); i++) {
+            List<Trip> tripList = trips.get(i);
+            Double rating = rateChargingTripList(tripList);
+            ratings.add(rating);
+        }
+
+        // normalize ratings
+        Double minRating = Collections.min(ratings);
+        Double maxRating = Collections.max(ratings);
+        ratings = ratings.stream().map(r -> normalize(r, minRating, maxRating)).collect(Collectors.toList());
+
+        return ratings;
+    }
+
+    private Double rateChargingTripList(List<Trip> trips) {
+        Double rating = 0.0;
+        List<Trip> chargingTrips = trips.stream().filter(t -> isChargingTrip(t)).collect(Collectors.toList());
+        if (chargingTrips.size() > 0) {
+            Double totalChargingTime = chargingTrips.stream()
+                    .map(t -> {
+                        if (t.getChargingTime() == -1) {
+                            return 6000.0;
+                        } else {
+                            return t.getChargingTime();
+                        }
+                    })
+                    .reduce(0.0, Double::sum);
+            rating = totalChargingTime / chargingTrips.size();
+        }
+        return rating;
     }
 
     private boolean oneOrMoreTripIsChargingTrip(List<Trip> trips) {
@@ -821,8 +870,20 @@ public class GreedyScheduler {
                 index = i;
                 break;
             }
-        }
+        };
         return permutations.get(index);
+    }
+
+    private int idx(List<Double> allRatings, List<List<Trip>> permutations) {
+        double maxWert = Collections.max(allRatings);
+        int index = 0;
+        for (int i = 0; i < allRatings.size(); i++) {
+            if (allRatings.get(i) == maxWert) {
+                index = i;
+                break;
+            }
+        };
+        return index;
     }
 
     private Double roundedLocationDistanceBetween(Location a, Location b) {

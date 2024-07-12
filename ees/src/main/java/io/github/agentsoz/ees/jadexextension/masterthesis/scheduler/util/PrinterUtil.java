@@ -31,6 +31,15 @@ public class PrinterUtil {
         System.out.println("CHARGING TIMES: " + allChargingTimes);
     }
 
+    public void metricsOfIndex(int i, List<List<Trip>> permutations, List<Integer> allOdrValues, List<Double> allTotalDistances, List<Double> allMinBatteryLevelValues, List<Double> allBatteryLevelValuesAfterAllTrips, List<Integer> allStopsValues, List<Double> allChargingTimes) {
+        System.out.println("ODR: " + allOdrValues.get(i));
+        System.out.println("TOTAL DISTANCES: " + allTotalDistances.get(i));
+        System.out.println("MINIMUM BATTERY LEVEL ACROSS ALL TRIPS : " + allMinBatteryLevelValues.get(i));
+        System.out.println("BATTERY LEVEL AFTER ALL TRIPS : " + allBatteryLevelValuesAfterAllTrips.get(i));
+        System.out.println("STOPS: " + allStopsValues.get(i));
+        System.out.println("CHARGING TIMES: " + allChargingTimes.get(i));
+    }
+
     public void csv(List<List<Trip>> permutations, List<Integer> allOdrValues, List<Double> allTotalDistances, List<Double> allMinBatteryLevelValues, List<Double> allBatteryLevelValuesAfterAllTrips, List<Integer> allStopsValues, List<Double> allChargingTimes, Double currBatteryLevel, List<Double> allRatings) {
         List<List<String>> ids = permutations
                 .stream()
