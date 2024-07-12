@@ -27,6 +27,7 @@ import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
 import io.github.agentsoz.dataInterface.DataClient;
 import io.github.agentsoz.dataInterface.DataServer;
+import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.matsim.*;
 import io.github.agentsoz.ees.util.Utils;
 import io.github.agentsoz.util.Global;
@@ -60,6 +61,7 @@ public class Run implements DataClient {
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");
 
+        FirebaseHandler.init();
         // Read the config
         Config cfg = new Config();
         Map<String,String> opts = cfg.parse(args);
