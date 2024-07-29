@@ -6,7 +6,6 @@
  *
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
-
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
@@ -15,15 +14,19 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.DisruptionComponent.Di
 import io.github.agentsoz.ees.jadexextension.masterthesis.DisruptionComponent.DisruptionInjectorUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.TrikeAgentService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.WritingIDService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.MappingService.IMappingAgentsService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.util.Location;
+
+import java.text.SimpleDateFormat;
+import java.time.*;
+
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -38,8 +41,6 @@ import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -158,47 +159,46 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
+
     Boolean CNP_ACTIVE = true;
 
     boolean batteryLoadingBeforeEmergencyTrip = false;
 
     boolean breakdownChargingBlocker = false;
 
-    Double THETA = 420.0; //allowed waiting time for customers.
+    Double THETA = 900.0; //allowed waiting time for customers.
 
     Boolean ALLOW_CUSTOMER_MISS = true; // customer will miss when delay > THETA
-    Double DISTANCE_FACTOR = 3.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
+    Double DISTANCE_FACTOR = 1.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
 
     Double CHARGING_THRESHOLD = 0.4; // Threshold to determine when a ChargingTrip should be generated
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
-    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 330329.982,4691004.502), new Location("", 329500.968,4689608.566),new Location("", 329009.729,4685852.086),new Location("", 329162.199,4684764.072),new Location("", 328910.006,4690734.396),new Location("", 331788.174,4690016.691),new Location("", 330528.560,4686886.286),new Location("", 327446.856,4686884.905));
+    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 330129.503,4690968.364), new Location("", 329969.702, 4690968.243),new Location("", 330226.178, 4690808.802),new Location("", 330394.635, 4691190.930),new Location("", 330019.125, 4690675.274),new Location("", 329830.824, 4690748.290),new Location("", 330061.408, 4691249.231),new Location("", 330085.391, 4690790.884),new Location("", 330376.760, 4691775.234),new Location("", 329510.461, 4690211.875),new Location("", 329947.761, 4690811.336));
 
     //Ab hier Robustheit
     boolean trikeIsBroken = false;
-
     Boolean communication = true;
-
     List<DisruptionInjector> toDisruptAgents;
 
     boolean signalDisrupt = false;
     boolean emergencyTrip = false;
 
     //Emergency location: Boston Chinatown for now.
-    Location emergencyLocation = new Location("", 330085.431, 4690792.550);
+    private Location emergencyLocation = new Location("", 330163.754, 4691113.085);
 
     //Threshold for timeout of "waitingForProposal"
-    Double TIMEOUT_THRESHOLD_WFP = 1000.0;
+    Double TIMEOUT_THRESHOLD_WFP = 100.0;
 
     //Threshold for timeout of "waitingForManager"
-    Double TIMEOUT_THRESHOLD_WFM = 500.0;
+    Double TIMEOUT_THRESHOLD_WFM = 100.0;
 
     //Threshold for timeout of "waitingForNeighbours"
-    Double TIMEOUT_THRESHOLD_WFN = 1000.0;
+    Double TIMEOUT_THRESHOLD_WFN = 50.0;
 
     //Threshold for timeout of "waitingForConfirmation"
-    Double TIMEOUT_THRESHOLD_WFC = 1000.0;
+    Double TIMEOUT_THRESHOLD_WFC = 100.0;
 
     //Robustheit
     public void setToDisruptAgents(List<DisruptionInjector> toDisruptAgents) {
@@ -329,6 +329,7 @@ public class TrikeAgent implements SendtoMATSIM{
                     }
 
 
+                    //TODO: Implement breakdown
                 }else if(currentAgent.getDisruptionType().equals("Breakdown")){
                     if(!trikeIsBroken) {
                         trikeIsBroken = true;
@@ -493,7 +494,7 @@ public class TrikeAgent implements SendtoMATSIM{
             Double ownScore = calculateUtility(decisionTaskList.get(position));
             //ownScore = 0.0; //todo: delete this line after the implementation of the cnp
             decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
-            if ((ownScore < commitThreshold && CNP_ACTIVE) || !communication){
+            if (ownScore < commitThreshold && CNP_ACTIVE && communication){
                 decisionTaskList.get(position).setStatus("delegate");
             }
             else{
@@ -534,6 +535,15 @@ public class TrikeAgent implements SendtoMATSIM{
         }
         //Robustheit
         else if (decisionTaskList.get(position).getStatus().equals("emergency")){
+            //Sometimes it can happen that even though the emergency trip should be last, the timeout thresholds causes
+            //tasks to get commited even though no communication is up anymore. Following if case keeps the EMERGENCY-Trip at last place.
+            if(position != decisionTaskList.size()-1){
+                DecisionTask dt = decisionTaskList.get(position);
+                decisionTaskList.remove(position.intValue());
+                decisionTaskList.add(dt);
+            }
+            else{
+
             //Charge the battery before doing the Emergency Trip. This will help in the future, when the Trike gets activated again.
             chargingTripCounter+=1;
             String tripID = "EM-Charge";
@@ -556,6 +566,7 @@ public class TrikeAgent implements SendtoMATSIM{
             decisionTaskList.remove(position.intValue());
 
             changes += 1;
+            }
         }
         else if (decisionTaskList.get(position).getStatus().equals("delegate")){
             /**
@@ -602,9 +613,9 @@ public class TrikeAgent implements SendtoMATSIM{
             decisionTaskList.get(position).setTimeStampWFP(JadexModel.simulationtime);
             decisionTaskList.get(position).setStatus("waitingForProposals");
             changes += 1;
-        //Robustheit
+            //Robustheit
         }else if (decisionTaskList.get(position).getStatus().equals("waitingForNeighbours")){
-            if (decisionTaskList.get(position).getTimeStampWFP()+TIMEOUT_THRESHOLD_WFN <= JadexModel.simulationtime){
+            if (decisionTaskList.get(position).getTimeStampWFN()+TIMEOUT_THRESHOLD_WFN <= JadexModel.simulationtime){
                 decisionTaskList.get(position).setStatus("commit");
             }
         }
@@ -615,7 +626,7 @@ public class TrikeAgent implements SendtoMATSIM{
             if (decisionTaskList.get(position).testAllProposalsReceived() == true){
                 //System.out.println("");
                 decisionTaskList.get(position).setStatus("readyForDecision");
-            //Robustheit
+                //Robustheit
             }else if (decisionTaskList.get(position).getTimeStampWFP()+ TIMEOUT_THRESHOLD_WFP <= JadexModel.simulationtime){
                 if(!decisionTaskList.get(position).getNeighbourIDs().isEmpty()){
                     decisionTaskList.get(position).setStatus("readyForDecision");
@@ -980,8 +991,10 @@ public class TrikeAgent implements SendtoMATSIM{
             } else {
                 if (estBatterylevelTotal > 0.8) {
                     bFactor = 1.0;
-                } else if (estBatterylevelTotal >= 0.3) {
+                } else if (estBatterylevelTotal >= 0.65) {
                     bFactor = 0.75;
+                } else if (estBatterylevelTotal >= 0.3) {
+                    bFactor = 0.5;
                 } else if (estBatterylevelTotal < 0.3) {
                     bFactor = 0.1;
                 }
@@ -1169,133 +1182,134 @@ public class TrikeAgent implements SendtoMATSIM{
                     SendPerceivetoAdc();
 
                     if (agentID.equals("0")){
-                        agentLocation = new Location("", 329861.114,4690511.672);
+                        agentLocation = new Location("", 330129.503,4690968.364);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("1")){
-                        agentLocation = new Location("", 330558.816, 4691946.597);
+                        agentLocation = new Location("", 330130.503, 4690969.364);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("2")){
-                        agentLocation = new Location("", 328334.214, 4686304.690);
+                        agentLocation = new Location("", 330131.503, 4690970.364);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("3")){
-                        agentLocation = new Location("", 328909.473, 4689717.320);
+                        agentLocation = new Location("", 330132.503, 4690971.364);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("4")){
-                        agentLocation = new Location("", 330116.529, 4685661.860);
+                        agentLocation = new Location("", 329969.702, 4690968.243);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("5")){
-                        agentLocation = new Location("", 332331.418, 4689031.823);
+                        agentLocation = new Location("", 329970.702, 4690969.243);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("6")){
-                        agentLocation = new Location("", 331369.527, 4689488.447);
+                        agentLocation = new Location("", 329971.702, 4690970.243);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("7")){
-                        agentLocation = new Location("", 328549.314, 4691045.880);
+                        agentLocation = new Location("", 329972.702, 4690971.243);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("8")){
-                        agentLocation = new Location("", 328403.376, 4690286.468);
+                        agentLocation = new Location("", 330226.178, 4690808.802);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("9")){
-                        agentLocation = new Location("", 329379.471, 4689906.517);
+                        agentLocation = new Location("", 330227.178, 4690809.802);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("10")){
-                        agentLocation = new Location("", 330743.810, 4689891.080);
+                        agentLocation = new Location("", 330228.178, 4690810.802);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("11")){
-                        agentLocation = new Location("", 330836.656, 4691397.006);
+                        agentLocation = new Location("", 330229.178, 4690811.802);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("12")){
-                        agentLocation = new Location("", 329934.713, 4691699.073);
+                        agentLocation = new Location("", 330394.635, 4691190.930);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("13")){
-                        agentLocation = new Location("", 329982.630, 4692067.121);
+                        agentLocation = new Location("", 330395.635, 4691191.930);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("14")){
-                        agentLocation = new Location("", 328395.333, 4692731.850);
+                        agentLocation = new Location("", 330396.635, 4691192.930);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("15")){
-                        agentLocation = new Location("", 330248.355, 4690724.156);
+                        agentLocation = new Location("", 330397.635, 4691193.930);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("16")){
-                        agentLocation = new Location("", 329541.587, 4690674.550);
+                        agentLocation = new Location("", 330019.125, 4690675.274);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("17")){
-                        agentLocation = new Location("", 330664.230, 4692567.359);
+                        agentLocation = new Location("", 330020.125, 4690676.274);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("18")){
-                        agentLocation = new Location("", 328659.301, 4692710.827);
+                        agentLocation = new Location("", 330021.125, 4690677.274);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("19")){
-                        agentLocation = new Location("", 327438.488, 4687881.430);
+                        agentLocation = new Location("", 330022.125, 4690678.274);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("20")){
-                        agentLocation = new Location("", 329452.517, 4686760.274);
+                        agentLocation = new Location("", 329830.824, 4690748.290);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("21")){
-                        agentLocation = new Location("", 328570.172, 4687414.778);
+                        agentLocation = new Location("", 329831.824, 4690749.290);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("22")){
-                        agentLocation = new Location("", 326946.879, 4688741.432);
+                        agentLocation = new Location("", 329832.824, 4690750.290);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("23")){
-                        agentLocation = new Location("", 329909.806, 4685000.340);
+                        agentLocation = new Location("", 329833.824, 4690751.290);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("24")){
-                        agentLocation = new Location("", 329205.623, 4685761.426);
+                        agentLocation = new Location("", 330061.408, 4691249.231);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("25")){
-                        agentLocation = new Location("", 329141.197, 4687178.842);
+                        agentLocation = new Location("", 330062.408, 4691250.231);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("26")){
-                        agentLocation = new Location("", 330648.494, 4688781.536);
+                        agentLocation = new Location("", 330063.408, 4691251.231);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("27")){
-                        agentLocation = new Location("", 331416.452, 4689568.203);
+                        agentLocation = new Location("", 330064.408, 4691252.231);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("28")){
-                        agentLocation = new Location("", 330997.342, 4692266.983);
+                        agentLocation = new Location("", 330085.391, 4690790.884);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("29")){
-                        agentLocation = new Location("", 332784.342, 4692463.604);
+                        agentLocation = new Location("", 330086.391, 4690791.884);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("30")){
-                        agentLocation = new Location("", 329065.509, 4686688.813);
+                        agentLocation = new Location("", 330087.391, 4690792.884);
                         sendAreaAgentUpdate("register");
                     }
                     else if (agentID.equals("31")){
-                        agentLocation = new Location("", 330274.417, 4686920.322);
+                        agentLocation = new Location("", 330088.391, 4690793.884);
                         sendAreaAgentUpdate("register");
                     }
+                    /*
                     else if (agentID.equals("32")){
                         agentLocation = new Location("", 329865.114, 4690515.672);
                         sendAreaAgentUpdate("register");
@@ -1680,6 +1694,8 @@ public class TrikeAgent implements SendtoMATSIM{
                         agentLocation = new Location("", 330282.417, 4686928.322);
                         sendAreaAgentUpdate("register");
                     }
+                    */
+
                     //**/
                     /**
                      * TODO: @Mariam initiale anmeldung an firebase hier
