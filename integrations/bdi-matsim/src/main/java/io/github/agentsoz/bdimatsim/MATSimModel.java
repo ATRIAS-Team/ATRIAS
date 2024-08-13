@@ -442,10 +442,15 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 	}
 
 	public final void runUntilV2( long newTime , AgentDataContainer inAdc) {
-		log.trace("Received {} ", inAdc);
-		agentManager.updateActions(inAdc, adc);
-		playPause.doStep( (int) (newTime) );
-		agentManager.addTimePerceptForLapsedTimers(adc, newTime);
+		try {
+			log.trace("Received {} ", inAdc);
+			agentManager.updateActions(inAdc, adc);
+			playPause.doStep( (int) (newTime) );
+			agentManager.addTimePerceptForLapsedTimers(adc, newTime);
+		} catch (Exception e) {
+			System.out.println("Caught exception");
+			e.printStackTrace();
+		}
 	}
 
 	@Override
