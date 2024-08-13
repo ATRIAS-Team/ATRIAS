@@ -7,6 +7,7 @@ public class csvLogger {
     //public String filename;
     public String delimiter = ";";
 
+    static String mode = System.getenv("scheduler_mode");
     public boolean created = false;
 
     public csvLogger(){}
@@ -33,7 +34,7 @@ public class csvLogger {
         //this.delimiter = ";";
         FileWriter writer = null;
         try {
-            writer = new FileWriter("LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", false);
+            writer = new FileWriter("SchedulerMode-" + mode + " LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", false);
             //writer.append(String.join(delimiter, row) + "\n");
             //writer.flush();
             addHeader(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR);
@@ -46,7 +47,7 @@ public class csvLogger {
     public static void addHeader(String agentID, Boolean CNP_ACTIVE, Double THETA, Boolean ALLOW_CUSTOMER_MISS, Double CHARGING_THRESHOLD, Double commitThreshold, Double DISTANCE_FACTOR){
         FileWriter writer = null;
         try {
-            writer = new FileWriter("LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
+            writer = new FileWriter("SchedulerMode-" + mode + " LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
             writer.append(String.join( ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
                     "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "arrivalTime", "Origin") + "\n");
             writer.flush();
@@ -85,7 +86,7 @@ public class csvLogger {
     public static void addLog(String agentID, Boolean CNP_ACTIVE, Double THETA, Boolean ALLOW_CUSTOMER_MISS, Double CHARGING_THRESHOLD, Double commitThreshold, Double DISTANCE_FACTOR, String... row){
         FileWriter writer = null;
         try {
-            writer = new FileWriter("LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
+            writer = new FileWriter("SchedulerMode-" + mode + " LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
             writer.append(String.join(";", row) + "\n");
             writer.flush();
             writer.close();

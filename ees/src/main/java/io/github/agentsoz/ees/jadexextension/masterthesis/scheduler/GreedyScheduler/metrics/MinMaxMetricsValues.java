@@ -1,6 +1,4 @@
-package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics;
-
-import java.util.Collections;
+package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.metrics;
 
 public class MinMaxMetricsValues {
     private int minOdr;

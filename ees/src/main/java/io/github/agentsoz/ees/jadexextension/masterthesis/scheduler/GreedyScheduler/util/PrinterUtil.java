@@ -1,4 +1,4 @@
-package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.util;
+package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.util;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
 

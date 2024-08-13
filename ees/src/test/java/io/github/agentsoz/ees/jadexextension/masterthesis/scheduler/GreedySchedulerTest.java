@@ -1,10 +1,11 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.enums.Strategy;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.MinMaxMetricsValues;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.GreedyScheduler;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.MetricsValues;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.enums.Strategy;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.metrics.MinMaxMetricsValues;
 import io.github.agentsoz.util.Location;
-import jadex.micro.annotation.AgentResult;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;

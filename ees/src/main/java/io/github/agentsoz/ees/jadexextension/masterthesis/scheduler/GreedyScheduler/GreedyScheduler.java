@@ -1,11 +1,12 @@
-package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler;
+package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.enums.Strategy;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.Metrics;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.metrics.MinMaxMetricsValues;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.util.PrinterUtil;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.enums.Strategy;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.metrics.Metrics;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.metrics.MinMaxMetricsValues;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GreedyScheduler.util.PrinterUtil;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils;
 import io.github.agentsoz.util.Location;
 
 import java.time.Duration;
@@ -33,6 +34,7 @@ public class GreedyScheduler {
     Double MIN_CHARGING_TIME = COMPLETE_CHARGING_TIME * CHARGING_THRESHHOLD;
     Double BATTERY_THRESHHOLD = 0.9;
     String agentId;
+    int chargingTripCounter = 1;
 
     /**
      * Current batteryLevel is necessary to be able to evaluate the permutations and is necessary to determine whether
@@ -70,7 +72,7 @@ public class GreedyScheduler {
         // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
         List<List<Trip>> permutations = getAllPermutations(allTrips);
 
-        System.out.println("Size of permutations: " + permutations.size());
+        System.out.println("Size of permutations: " + permutations.size() + " origin trip list: " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
         MetricsValues metricsValues = getAllMetricsValuesForEachPermutation(permutations, strategy);
         // Determine the minimum and maximum values for each metric. These are used for normalization right after.
@@ -106,8 +108,14 @@ public class GreedyScheduler {
         //         metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
         //         metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), batteryLevel, ratings);
 
-        System.out.println("End time with schedule time: " + ((new Date(System.currentTimeMillis()).getTime() - startTime.getTime()) / 1000));
+        System.out.println("End time with schedule time: " + ((new Date(System.currentTimeMillis()).getTime() - startTime.getTime()) / 1000) + " Permutations size: " + permutations.size());
 
+        for (int i = 0; i < result.size(); i++) {
+            if (isChargingTrip(result.get(i))) {
+                result.get(i).tripID = "CH" + chargingTripCounter;
+                chargingTripCounter++;
+            }
+        }
         return result;
     }
 
@@ -343,22 +351,6 @@ public class GreedyScheduler {
 
         // Wenn es unter den Battery Threshhold fällt muss auf jeden Fall getankt werden
         boolean tendencyToCharge = batteryLevel < BATTERY_THRESHHOLD ? true : false;
-        List<Double> chargingTime;
-        if (tendencyToCharge) {
-            chargingTime = tripsWithChargingTime.stream()
-                    .map(listTrip -> listTrip.stream()
-                            .map(t -> {
-                                if (isChargingTrip(t)) {
-                                    return t.getChargingTime();
-                                } else {
-                                    return 0.0;
-                                }
-                            })
-                            .reduce(0.0, Double::sum))
-                    .collect(Collectors.toList());
-        } else {
-            chargingTime = new ArrayList<>();
-        }
 
         // Trips mit möglichst viele ChargingTime (mit möglichst wenig Stops?) sollten den höchsten Score bekommen
         double chargingImportanceFraction = 0.25;
@@ -490,12 +482,6 @@ public class GreedyScheduler {
         return true;
     }
 
-    private long calculateWaitingTime(Trip trip) {
-        return Duration
-                .between(trip.bookingTime, this.simulationTime)
-                .getSeconds();
-    }
-
     private Metrics simulateTripListAndCalculateMetrics(List<Trip> trips, Strategy strategy) {
         /**
          * Explanation:
@@ -542,7 +528,7 @@ public class GreedyScheduler {
             Trip firstTrip = trips.get(0);
 
             vaLocation = firstTrip.startPosition;
-            totalTravelTimeSeconds += calculateTravelTime(distance);
+            totalTravelTimeSeconds += SchedulerUtils.calculateTravelTime(distance, DRIVING_SPEED);
 
             if (odr(totalTravelTimeSeconds, firstTrip)) {
                 odr++;
@@ -570,7 +556,7 @@ public class GreedyScheduler {
                     );
                     totalDistance += distanceNextTripStart;
                     vaLocation = nextTrip.startPosition;
-                    totalTravelTimeSeconds += calculateTravelTime(distanceNextTripStart);
+                    totalTravelTimeSeconds += SchedulerUtils.calculateTravelTime(distanceNextTripStart, DRIVING_SPEED);
                     if (odr(totalTravelTimeSeconds, nextTrip)) {
                         odr++;
                         if (strategy.equals(Strategy.IGNORE_CUSTOMER)) {
@@ -596,7 +582,10 @@ public class GreedyScheduler {
                             makeTripAndDischargeBattery(battery, distanceNextTripStart)
                     );
                     vaLocation = nextTrip.startPosition;
-                    totalTravelTimeSeconds += calculateTravelTime(distanceCurrentTripEnd + distanceNextTripStart);
+                    totalTravelTimeSeconds += SchedulerUtils.calculateTravelTime(
+                            distanceCurrentTripEnd + distanceNextTripStart,
+                            DRIVING_SPEED
+                    );
                     if (odr(totalTravelTimeSeconds, nextTrip)) {
                         odr++;
                         if (strategy.equals(Strategy.IGNORE_CUSTOMER)) {
@@ -702,7 +691,7 @@ public class GreedyScheduler {
         if (isChargingTrip(trip)) {
             return false;
         }
-        double currentWaitingTimeOfTrip = calculateWaitingTime(trip);
+        double currentWaitingTimeOfTrip = SchedulerUtils.calculateWaitingTime(trip.bookingTime, this.simulationTime);
         double totalWaitingTime = travelTime + currentWaitingTimeOfTrip;
 
         return totalWaitingTime > THETA ? true : false;
@@ -718,10 +707,6 @@ public class GreedyScheduler {
             throw new RuntimeException();
         }
         return battery.my_chargestate;
-    }
-
-    private double calculateTravelTime(Double distance) {
-        return ((distance / 1000) / DRIVING_SPEED) * 60 * 60;
     }
 
     private boolean isChargingTrip(Trip trip) {
@@ -783,7 +768,7 @@ public class GreedyScheduler {
         }
 
         // convert travel distance in travel time
-        List<Double> travelTimes = distances.stream().map(d -> calculateTravelTime(d)).collect(Collectors.toList());
+        List<Double> travelTimes = distances.stream().map(d -> SchedulerUtils.calculateTravelTime(d, DRIVING_SPEED)).collect(Collectors.toList());
         List<Integer> indecesOfChargingStations = getIndecesOfChargingStation(tripList);
 
         // Step 2: Add travel time to current waiting time of each trip and MIN_CHARGING_TIME for each preceeding
@@ -791,7 +776,10 @@ public class GreedyScheduler {
         for (int i=0; i < travelTimes.size(); i++) {
             Trip currentTrip = tripList.get(i);
             if (!isChargingTrip(currentTrip)) {
-                double travelAndWaitingTime = travelTimes.get(i) + calculateWaitingTime(currentTrip);
+                double travelAndWaitingTime = travelTimes.get(i) + SchedulerUtils.calculateWaitingTime(
+                        currentTrip.bookingTime,
+                        this.simulationTime
+                );
                 Integer chargingStationCounter = countChargingStations(i, indecesOfChargingStations);
                 // add MIN_CHARGING_TIME for every charging station on the way
                 travelAndWaitingTime += chargingStationCounter * MIN_CHARGING_TIME;

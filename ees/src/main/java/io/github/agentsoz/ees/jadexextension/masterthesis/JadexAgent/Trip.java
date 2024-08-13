@@ -38,6 +38,14 @@ public class Trip {
         this.progress = progress;
     }
 
+    public Trip(String tripID, String tripType, Location startPosition, String progress, Double chargingTime){
+        this.tripID = tripID;
+        this.tripType = tripType;
+        this.startPosition = startPosition;
+        this.progress = progress;
+        this.chargingTime = chargingTime;
+    }
+
 
     public Trip(String tripID, String tripType, LocalDateTime vaTime, Location startPosition, Location endPosition, String progress){
         this.tripID = tripID;

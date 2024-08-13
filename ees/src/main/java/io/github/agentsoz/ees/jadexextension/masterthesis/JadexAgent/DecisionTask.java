@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class DecisionTask {
     //private String customerID;
@@ -65,6 +66,10 @@ public class DecisionTask {
                 highestScore = UTScoreList.get(i).getScore();
                 positionBestScore = i;
             }
+        }
+        // Wenn alle schedulen haben alle Score 0.0
+        if (highestScore.equals(0.0)) {
+            positionBestScore = new Random().nextInt(UTScoreList.size());
         }
         for (int i=0; i<UTScoreList.size(); i++) {
             UTScoreList.get(i).setTag("RejectProposal");
