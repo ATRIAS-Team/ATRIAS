@@ -939,7 +939,8 @@ public class TrikeAgentNew implements SendtoMATSIM {
                     DRIVING_SPEED,
                     THETA,
                     agentID,
-                    determineTimeTillEndpositionIsReach()
+                    determineTimeTillEndpositionIsReach(),
+                    null
             );
 
 //            List<Trip> merged = Stream.concat(tempTripList.stream(), tripList.stream()).collect(Collectors.toList());
