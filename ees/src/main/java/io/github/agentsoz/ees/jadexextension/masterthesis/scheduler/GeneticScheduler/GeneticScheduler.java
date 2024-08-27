@@ -1,7 +1,7 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler;
 
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
+import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities.Chromosome;
 import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities.Config;
 import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities.Gene;
 import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities.Population;
@@ -18,48 +18,51 @@ public class GeneticScheduler {
         this.config = config;
     }
 
-    // Es sollen Kanten und Punkte miteinander verbunden werden
-    // Kanten stellen Kundenfahrten dar, die von einem Start zu einem Endpunkt verlaufen
-    // Einzelne Punkte sind Ladestationen
-
-    // Wird ein Trip nicht mit in die Lösung aufgenommen ist das nicht schlimm odr würde steigen?
-
-    // Step 1 Generiere zuerste eine Menge von Chromosomen (mögliche Lösungen)
-    // Step 2 Crossover/ Mutation/ Inversion + evtl. weiter k Random erstelle Chromosome
-    // Evtl. starten mit Kruskal MST?
-
-
-    // Zuerst benötigt man eine initiale population (1), dann eine fitness funktion (2) die diese bewertet. Dann werden die
-    // besten x Chromosome aus der Population ausgewählt (3) und mit Hilfe von Crossover und Mutation verändert (4)
-    // Schritt 3 - 4 werden wiederholt bis eine akzeptabele Lösung gefunden wurde.
-
-    // Eine Aktion ist ein Gen, eine Menge von Genen ein Chromosom
     Population population;
     private int chargingStationsCounter = 0;
 
-    public List<Trip> start(List<Trip> tripsToSchedule, int iterations) {
+    public List<Trip> start(List<Trip> tripsToSchedule, int iterations, int runs) {
         try {
-            // initial population size in abhängigkeit von der anzahl der trip -> max (2n + 1)! Permutation
-            int n = tripsToSchedule.size() * 2 + 1;
-            int totalPermutations = 1;
-            for (int i = 1; i <= n; i++) {
-                totalPermutations *= i;
-            }
-            // Get 10% of amount or 1
-            int initialPopulationSize = (totalPermutations / 10) < 250 ? 250 : Math.min(totalPermutations / 10, 1000);
-
-            System.out.println("Gen Sched Trip to schedule: " + tripsToSchedule.stream().map(t -> t.getTripID()).collect(Collectors.toList()).toString());
-            System.out.println("Popsize " + initialPopulationSize);
-
-            population = new Population(initialPopulationSize, tripsToSchedule, this.config);
-
-            for (int i = 0; i < iterations; i++) {
-//            System.out.println("Iteration " + i);
-                population.update();
+            if (tripsToSchedule.size() == 1 && config.getBatteryLevel() >= 0.9) {
+                return tripsToSchedule;
             }
 
-            List<Gene> genes = population.getBestChromosome().mergeGenes();
-            return mapGenesBackToListOfTrip(genes, tripsToSchedule);
+            List<Double> scores = new ArrayList<>();
+            List<Chromosome> chromosomes = new ArrayList<>();
+            for (int i = 0; i < runs; i++) {
+                // initial population size in abhängigkeit von der anzahl der trip -> max (2n + 1)! Permutation
+                // oder feste populationsgröße
+                int n = tripsToSchedule.size() * 2 + 1;
+                int totalPermutations = 1;
+                for (int k = 1; k <= n; k++) {
+                    totalPermutations *= k;
+                }
+                // Get 10% of amount but maximum of 500
+                int initialPopulationSize = (totalPermutations / 10) < 100 ? 100 : Math.min(totalPermutations / 10, 300);
+
+                System.out.println("Gen Sched Trip to schedule: " + tripsToSchedule.stream().map(t -> t.getTripID()).collect(Collectors.toList()).toString());
+                System.out.println("Popsize " + initialPopulationSize);
+
+                population = new Population(initialPopulationSize, tripsToSchedule, this.config);
+
+                for (int j = 0; j < iterations; j++) {
+                    population.update();
+                }
+
+                Chromosome best = population.getBestChromosome();
+                scores.add(best.fitnessOld());
+                chromosomes.add(best);
+            }
+
+            int index = 0;
+            double maxVal = 0.0;
+            for (int i = 0; i < scores.size(); i++) {
+                if (scores.get(i) > maxVal) {
+                    index = i;
+                    maxVal = scores.get(i);
+                }
+            }
+            return mapGenesBackToListOfTrip(chromosomes.get(index).mergeGenes(), tripsToSchedule);
         } catch (Exception e) {
             System.out.println("Caught exception");
             e.printStackTrace();

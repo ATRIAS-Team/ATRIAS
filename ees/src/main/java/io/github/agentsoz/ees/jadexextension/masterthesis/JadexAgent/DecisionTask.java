@@ -69,7 +69,7 @@ public class DecisionTask {
         }
         // Wenn alle schedulen haben alle Score 0.0
         if (highestScore.equals(0.0)) {
-            positionBestScore = new Random().nextInt(UTScoreList.size());
+            positionBestScore = getIndexOfOwnAgent(UTScoreList, ownAgentID);
         }
         for (int i=0; i<UTScoreList.size(); i++) {
             UTScoreList.get(i).setTag("RejectProposal");
@@ -82,6 +82,15 @@ public class DecisionTask {
         }
     }
 
+    // @Tim
+    private Integer getIndexOfOwnAgent(ArrayList<UTScore> utScoreList, String agentId) {
+        for (int i = 0; i < utScoreList.size(); i++) {
+            if (utScoreList.get(i).getBidderID().equals(agentId)) {
+                return i;
+            }
+        }
+        return 0;
+    }
 
     public void setUtillityScore(String agentID, Double UTScore){
 

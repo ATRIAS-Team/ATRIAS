@@ -1,22 +1,62 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities;
 
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
 import io.github.agentsoz.util.Location;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class Config {
 
+    private LocalDateTime simulationTime;
     private Double DRIVING_SPEED;
     private Double MIN_CHARGING_TIME;
     private Double MAX_CHARGING_TIME;
+    private Double COMPLETE_CHARGING_TIME;
     private Double batteryLevel;
     private Location agentLocation;
     private Double THETA;
     private List<Location> chargingStations;
+    private Double DISTANCE_FACTOR;
+    private Double CHARGE_INCREASE;
+    private List<Trip> currentTrip;
+
+    public Double getCHARGE_DECREASE() {
+        return CHARGE_DECREASE;
+    }
+
+    public void setCHARGE_DECREASE(Double CHARGE_DECREASE) {
+        this.CHARGE_DECREASE = CHARGE_DECREASE;
+    }
+
+    public Double getCHARGE_INCREASE() {
+        return CHARGE_INCREASE;
+    }
+
+    public void setCHARGE_INCREASE(Double CHARGE_INCREASE) {
+        this.CHARGE_INCREASE = CHARGE_INCREASE;
+    }
+
+    private Double CHARGE_DECREASE;
 
     // to prevent instantiation
     public Config() { }
 
+    public Double getDISTANCE_FACTOR() {
+        return DISTANCE_FACTOR;
+    }
+
+    public void setDISTANCE_FACTOR(Double DISTANCE_FACTOR) {
+        this.DISTANCE_FACTOR = DISTANCE_FACTOR;
+    }
+
+    public LocalDateTime getSimulationTime() {
+        return simulationTime;
+    }
+
+    public void setSimulationTime(LocalDateTime simulationTime) {
+        this.simulationTime = simulationTime;
+    }
 
     public Double getDRIVING_SPEED() {
         return DRIVING_SPEED;
@@ -72,5 +112,21 @@ public class Config {
 
     public void setMAX_CHARGING_TIME(Double MAX_CHARGING_TIME) {
         this.MAX_CHARGING_TIME = MAX_CHARGING_TIME;
+    }
+
+    public Double getCOMPLETE_CHARGING_TIME() {
+        return COMPLETE_CHARGING_TIME;
+    }
+
+    public void setCOMPLETE_CHARGING_TIME(Double COMPLETE_CHARGING_TIME) {
+        this.COMPLETE_CHARGING_TIME = COMPLETE_CHARGING_TIME;
+    }
+
+    public List<Trip> getCurrentTrip() {
+        return currentTrip;
+    }
+
+    public void setCurrentTrip(List<Trip> currentTrip) {
+        this.currentTrip = currentTrip;
     }
 }

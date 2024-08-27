@@ -1,11 +1,19 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
 import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.utils.GeneticUtils;
+import io.github.agentsoz.util.Location;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils.calculateTravelTime;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils.calculateWaitingTime;
 
 public class Chromosome {
 
@@ -14,6 +22,7 @@ public class Chromosome {
     private final List<Gene> chargingChromosome;
     private final Random random;
     private final GeneticUtils geneticUtils;
+    private String representation;
 
     public Chromosome(List<Gene> customerChromosome, List<Gene> chargingChromosome, Config config) {
         this.customerChromosome = Collections.unmodifiableList(customerChromosome);
@@ -21,6 +30,8 @@ public class Chromosome {
         this.config = config;
         this.random = new Random();
         this.geneticUtils = new GeneticUtils(config);
+        this.representation = "";
+        updateRepresentation();
     }
 
     public List<Gene> mergeGenes() {
@@ -38,68 +49,462 @@ public class Chromosome {
             }
             return resultGene;
         } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
             System.out.println("what the...");
         }
         return resultGene;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        for (final Gene gene : mergeGenes()) {
-            sb.append(gene.toString()).append(" : ");
-        }
-        return sb.toString();
-    }
+    String filePath = "genetic3-3-3-1.csv";
+    String header = "ids,chTimes,distance,waitingTime,odr,battery,disFrac,waitingFrac,odrFrac,battFrac,fitness";
 
-    double fitness() {
+    public double fitnessOld() {
         // calculate fitness for merged genes
         List<Gene> chromosomeToEvaluate = mergeGenes();
 
         boolean vehicleBreaksDownRisk = false;
         BatteryModel model = new BatteryModel();
-        model.setMyChargestate(config.getBatteryLevel());
-        // distance is agentlocation to first gene => create gen for agentLocation
+        model.setMyChargestate(config.getBatteryLevel() + getCurrentTripChargingTime() * config.getCHARGE_INCREASE());
+        // distance to agentlocation of first gene => create gene for agentLocation
         // if end location is null the start location is used to determine the distance between two genes
-        Gene agentGene = new Gene(null, config.getAgentLocation(), null, null, null, config);
+        Gene agentGene = new Gene(null, geneticUtils.getStartLocation(), null, null, null, config);
         double distance = agentGene.distance(chromosomeToEvaluate.get(0));
+        double currWaitingTime = calculateTravelTime(distance, config.getDRIVING_SPEED());
         List<Double> waitingTimes = new ArrayList<>();
+        if (chromosomeToEvaluate.get(0).getEnd() != null) {
+            double diffToBookingTime = calculateWaitingTime(chromosomeToEvaluate.get(0).getBookingTime(), config.getSimulationTime());
+            waitingTimes.add(currWaitingTime + diffToBookingTime);
+        }
         for (int i = 0; i < chromosomeToEvaluate.size() - 1; i++) {
-            distance += chromosomeToEvaluate.get(i).distance(chromosomeToEvaluate.get(i + 1));
-            model.discharge(distance, 0, false);
+            // calc distance of trip (start to end)
+            double geneDistance = getGeneDistance(chromosomeToEvaluate.get(i));
+
+            // gene is charging gene if distance equals 0.0
+            if (geneDistance == 0.0) {
+                double chargingTime = chromosomeToEvaluate.get(i).getChargingTime();
+                currWaitingTime += chargingTime;
+                model.charge(chargingTime);
+            }
+
+            // calc distance to next trip
+            double distanceToNext = chromosomeToEvaluate.get(i).distance(chromosomeToEvaluate.get(i + 1)) ;
+            model.discharge(geneDistance + distanceToNext, 0, false);
             // battery level shouldn't get near 20%
-            if (model.getMyChargestate() <= 0.2) {
+            if (model.getMyChargestate() <= 0.3) {
                 vehicleBreaksDownRisk = true;
                 break;
             }
-            waitingTimes.add(
-                    chromosomeToEvaluate.get(i).calculateWaitingTime(chromosomeToEvaluate.subList(0, i + 1))
-            );
+            distance += geneDistance + distanceToNext;
+
+            // add time needed for the trip itself and time needed for the next trip
+            currWaitingTime += calculateTravelTime(geneDistance + distanceToNext, config.getDRIVING_SPEED());
+
+//                currWaitingTime += chromosomeToEvaluate.get(i).calculateWaitingTime(chromosomeToEvaluate.subList(0, i + 1));
+
+            // add waiting time if next trip is customer trip
+            if (chromosomeToEvaluate.get(i + 1).getEnd() != null) {
+                double diffToBookingTime = calculateWaitingTime(chromosomeToEvaluate.get(i + 1).getBookingTime(), config.getSimulationTime());
+                waitingTimes.add(currWaitingTime + diffToBookingTime);
+            }
         }
-        Double chargingTime = chromosomeToEvaluate.stream()
-                .map(g -> g.getChargingTime() == null ? 0.0 : g.getChargingTime())
-                .collect(Collectors.summingDouble(Double::doubleValue));
-        model.charge(chargingTime);
+
+        // last trip has not yet been considered
+        double lastGeneDistance =  getGeneDistance(chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1));
+        distance += lastGeneDistance;
+        if (lastGeneDistance == 0.0) {
+            double chargingTime = chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1).getChargingTime();
+            model.charge(chargingTime);
+        }
+        model.discharge(lastGeneDistance, 0, false);
+        // battery level shouldn't get near 20%
+        if (model.getMyChargestate() <= 0.3) {
+            vehicleBreaksDownRisk = true;
+        }
+
+//            Double chargingTime = chromosomeToEvaluate.stream()
+//                    .map(g -> g.getChargingTime() == null ? 0.0 : g.getChargingTime())
+//                    .collect(Collectors.summingDouble(Double::doubleValue));
+//            model.charge(chargingTime);
 
         // overall waiting time minimieren?
-        int odr = waitingTimes.stream().filter(wt -> wt > config.getTHETA()).collect(Collectors.toList()).size();
+        Double delay = 150.0;
+        int odr = waitingTimes.stream().filter(wt -> wt > config.getTHETA() - delay).collect(Collectors.toList()).size();
+        double waitingTimeSum = waitingTimes.stream().mapToDouble(Double::doubleValue).sum();
 
-        if (vehicleBreaksDownRisk) { return 0.0; }
+        if (vehicleBreaksDownRisk) {
+            return 0.0;
+        }
 
         // Becomes smaller the greater the distance
-        Double fitnessFractionDistance = 1 / distance;
+        double avgCusTripDistance = 1000;
+        double avgChaTripDistance = 500;
+        double tripsTimesAvgDistance = avgCusTripDistance * this.customerChromosome.size()
+                + avgChaTripDistance * (chromosomeToEvaluate.size() - this.customerChromosome.size());
+
+        Double fitnessFractionDistance = (distance / tripsTimesAvgDistance) > 1.0 ? 1.0 : (tripsTimesAvgDistance / 10000);
+        fitnessFractionDistance = 1 - fitnessFractionDistance;
         // 0.1 was added, as otherwise the fraction is equal to 1 with an ODR value of 1. However, this should only be
         // 1 if the ODR is 0.
         Double fitnessFractionODR = 1 - (odr / Double.valueOf(this.customerChromosome.size()));
 
-//        int chargingStationSize = chromosomeToEvaluate.stream()
-//                .filter(g -> g.getEnd() == null)
-//                .collect(Collectors.toList())
-//                .size();
+        double thetaTimeCusTrips = this.customerChromosome.size() * config.getTHETA();
+        Double fitnessFractionWaitingTimeSum = (waitingTimeSum / thetaTimeCusTrips) > 1.0 ? 1.0 : (thetaTimeCusTrips / 10000);
+        fitnessFractionWaitingTimeSum =  1 - fitnessFractionWaitingTimeSum;
 
         // The higher the fitness, the better it is
         // fitnessFractionDistance, fitnessFractionODR, model.getMyChargeState € [0,1]
-        return (fitnessFractionDistance * 100) + fitnessFractionODR  + model.getMyChargestate();
+
+//            double distanceWeight = 0.2192;
+//            double waitingTimeSumWeight = 0.3781;
+//            double odrWeight = 0.3707;
+//            double batteryWeight = 0.0321;
+
+        double distanceWeight = 0.3;
+        double waitingTimeSumWeight = 0.3;
+        double odrWeight = 0.3;
+        double batteryWeight = 0.1;
+
+        Double considerFuture = 0.0;
+        if (isChargingGene(chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1))) {
+            considerFuture = 0.1;
+        }
+
+        double fitness = distanceWeight * (fitnessFractionDistance)
+                + waitingTimeSumWeight * fitnessFractionWaitingTimeSum
+                + odrWeight * fitnessFractionODR
+                + batteryWeight * model.getMyChargestate()
+                + considerFuture;
+
+
+        if (false) {
+            File file = new File(filePath);
+            boolean dateiExistiert = file.exists();
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                if (!dateiExistiert) {
+                    writer.write(header);
+                    writer.newLine();
+                }
+
+                writer.write(String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                        representation,
+                        chromosomeToEvaluate.stream().map(g -> g.getChargingTime() == null ? 0 : g.getChargingTime()).collect(Collectors.toList()).toString().replace(",", "-"),
+//                                chromosomeToEvaluate.stream()
+//                                        .map(g -> {
+//                                            if (g.getEnd() == null) {
+//                                                return Arrays.asList(g.getStart());
+//                                            } else {
+//                                                return Arrays.asList(g.getStart(), g.getEnd());
+//                                            }
+//                                        })
+//                                        .flatMap(List::stream)
+//                                        .collect(Collectors.toList()).toString().replace(",", "-"),
+                        distance,
+                        waitingTimeSum,
+                        odr,
+                        model.getMyChargestate(),
+                        fitnessFractionDistance,
+                        fitnessFractionWaitingTimeSum,
+                        fitnessFractionODR,
+                        model.getMyChargestate(),
+                        fitness
+                ));
+                writer.newLine();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+//                System.out.println(String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+//                                chromosomeToEvaluate.stream().map(g -> g.getId()).collect(Collectors.toList()).toString().replace(",", "-"),
+//                                chromosomeToEvaluate.stream().map(g -> g.getChargingTime() == null ? 0 : g.getChargingTime()).collect(Collectors.toList()).toString().replace(",", "-"),
+//                                chromosomeToEvaluate.stream()
+//                                        .map(g -> {
+//                                            if (g.getEnd() == null) {
+//                                                return Arrays.asList(g.getStart());
+//                                            } else {
+//                                                return Arrays.asList(g.getStart(), g.getEnd());
+//                                            }
+//                                        })
+//                                        .flatMap(List::stream)
+//                                        .collect(Collectors.toList()).toString().replace(",", "-"),
+//                                distance,
+//                                waitingTimeSum,
+//                                odr,
+//                                model.getMyChargestate(),
+//                                fitnessFractionDistance,
+//                                fitnessFractionWaitingTimeSum,
+//                                fitnessFractionODR,
+//                                model.getMyChargestate(),
+//                                fitness
+//                        )
+//                );
+        }
+
+        return fitness;
+    }
+
+    double fitnessRefactored() {
+        try {
+            // calculate fitness for merged genes
+            List<Gene> chromosomeToEvaluate = mergeGenes();
+
+            Location vaLocation = geneticUtils.getStartLocation();
+
+            Double batteryAfterList;
+            List<Double> distancesToTrips = new ArrayList<>();
+            Double batteryLevel = config.getBatteryLevel();
+            Double batteryThreshhold = 0.3;
+            Boolean batteryFallsBelowThreshhold = false;
+            Double distance = 0.0;
+            for (int i = 0; i < chromosomeToEvaluate.size(); i++) {
+                Gene currentGene = chromosomeToEvaluate.get(i);
+                List<Location> locationsOfGene = getLocationsOfGene(currentGene);
+
+                // drive to start of current trip
+                Double currentDistance = getDistanceWithDistanceFactor(vaLocation, locationsOfGene.get(0));
+                distance += currentDistance;
+                distancesToTrips.add(distance);
+                vaLocation = locationsOfGene.get(0);
+
+                if (isChargingGene(currentGene)) {
+                    Double chargingTime = currentGene.getChargingTime() == null ? 0.0 : currentGene.getChargingTime();
+                    batteryLevel += chargingTime * config.getCHARGE_INCREASE();
+                } else {
+                    // first trip is customer - drive to end
+                    distance += getDistanceWithDistanceFactor(vaLocation, locationsOfGene.get(1));
+                    vaLocation = locationsOfGene.get(1);
+                }
+            }
+
+            List<Double> waitingTimesOfGenes = getWaitingTimeOfGenes(distancesToTrips, chromosomeToEvaluate);
+
+            // add distance of last trip from start to end
+            Double totalDistance = distancesToTrips.get(distancesToTrips.size() - 1);
+            Gene lastGene = chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1);
+            if (!isChargingGene(lastGene)) {
+                totalDistance += getDistanceWithDistanceFactor(lastGene.getStart(), lastGene.getEnd());
+            }
+
+            // berücksichtige ob current trip charging trip und dann chargingtime bei Bestimmung der ODR
+            batteryAfterList = batteryLevel - (totalDistance * config.getCHARGE_DECREASE()) + getCurrentTripChargingTime() * config.getCHARGE_INCREASE();
+
+            // check if battery threshhold is undercut
+            if (batteryAfterList < batteryThreshhold) {
+                batteryFallsBelowThreshhold = true;
+            }
+
+            // rating
+            if (batteryFallsBelowThreshhold) {
+                return 0.0;
+            }
+
+            int odr = 0;
+            for (int i = 0; i < chromosomeToEvaluate.size(); i++) {
+                if (!isChargingGene(chromosomeToEvaluate.get(i)) && waitingTimesOfGenes.get(i) > config.getTHETA()) {
+                    odr++;
+                }
+            }
+
+            // weighted sum consisting of totalDistance, odr, batteryAfterAll
+
+            // Becomes smaller the greater the distance
+            // analyzed from data.csv
+            double avgCusTripDistance = 1100;
+            double avgChaTripDistance = 450;
+            double tripsTimesAvgDistance = avgCusTripDistance * this.customerChromosome.size()
+                    + avgChaTripDistance * (chromosomeToEvaluate.size() - this.customerChromosome.size());
+
+            Double fitnessFractionDistance = (totalDistance / tripsTimesAvgDistance) > 1.0
+                    ? 1.0
+                    : (tripsTimesAvgDistance / 10000);
+            fitnessFractionDistance = 1 - fitnessFractionDistance;
+
+            // 0.1 was added, as otherwise the fraction is equal to 1 with an ODR value of 1. However, this should only be
+            // 1 if the ODR is 0.
+            Double fitnessFractionODR = 1 - (odr / Double.valueOf(this.customerChromosome.size()));
+
+            Double waitingTimeSum = waitingTimesOfGenes.stream().mapToDouble(Double::doubleValue).sum();
+            double thetaTimeCusTrips = this.customerChromosome.size() * config.getTHETA();
+            Double fitnessFractionWaitingTimeSum = (waitingTimeSum / thetaTimeCusTrips) > 1.0
+                    ? 1.0
+                    : (waitingTimeSum / thetaTimeCusTrips);
+            fitnessFractionWaitingTimeSum = 1 - fitnessFractionWaitingTimeSum;
+
+            // The higher the fitness, the better it is
+            // fitnessFractionDistance, fitnessFractionODR, model.getMyChargeState € [0,1]
+
+//            double distanceWeight = 0.2192;
+//            double waitingTimeSumWeight = 0.3781;
+//            double odrWeight = 0.3707;
+//            double batteryWeight = 0.0321;
+
+
+            double distanceWeight = 0.3;
+            double waitingTimeSumWeight = 0.3;
+            double odrWeight = 0.3;
+            double batteryWeight = 0.1;
+
+            Double considerFuture = 0.0;
+            if (isChargingGene(chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1)) && batteryAfterList < 0.85) {
+                considerFuture = 0.1;
+            }
+
+            double fitness = distanceWeight * (fitnessFractionDistance)
+                    + waitingTimeSumWeight * fitnessFractionWaitingTimeSum
+                    + odrWeight * fitnessFractionODR
+                    + batteryWeight * batteryAfterList
+                    + considerFuture;
+
+            if (false) {
+                File file = new File(filePath);
+                boolean dateiExistiert = file.exists();
+
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                    if (!dateiExistiert) {
+                        writer.write(header);
+                        writer.newLine();
+                    }
+
+                    writer.write(String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                            chromosomeToEvaluate.stream().map(g -> g.getId()).collect(Collectors.toList()).toString().replace(",", "-"),
+                            chromosomeToEvaluate.stream().filter(g -> isChargingGene(g)).map(g -> g.getChargingTime()).mapToDouble(Double::doubleValue).sum(),
+                            totalDistance,
+                            waitingTimeSum,
+                            odr,
+                            batteryAfterList,
+                            fitnessFractionDistance,
+                            fitnessFractionWaitingTimeSum,
+                            fitnessFractionODR,
+                            batteryAfterList,
+                            fitness
+                    ));
+                    writer.newLine();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return fitness;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+
+    Boolean fallsNotBelowThreshhold() {
+        try {
+            Double threshhold = 0.3;
+            List<Location> locations = new ArrayList<>();
+            locations.add(geneticUtils.getStartLocation());
+            locations.addAll(getLocations());
+            Double currChargingTime = getCurrentTripChargingTime();
+
+            Double totalDistance = geneticUtils.getTotalDistanceOfLocationList(locations);
+            Double battery = config.getBatteryLevel() + currChargingTime * config.getCHARGE_INCREASE();
+            battery -= totalDistance * config.getCHARGE_DECREASE();
+
+            List<Gene> genesWithoutLast = chargingChromosome.subList(0, chargingChromosome.size() - 1);
+            Double chargingTimeInChromosom = genesWithoutLast.stream()
+                    .filter(g -> g != null)
+                    .map(g -> g.getChargingTime())
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+            battery += chargingTimeInChromosom * config.getCHARGE_INCREASE();
+
+            return battery > threshhold;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    private List<Location> getLocations() {
+        List<Location> result = new ArrayList<>();
+        for (int i = 0; i < chargingChromosome.size(); i++) {
+            if (chargingChromosome.get(i) != null) {
+                result.add(chargingChromosome.get(i).getStart());
+            }
+            if (i != chargingChromosome.size() - 1) {
+                result.add(customerChromosome.get(i).getStart());
+                result.add(customerChromosome.get(i).getEnd());
+            }
+        }
+        return result;
+    }
+
+    private List<Double> getWaitingTimeOfGenes(List<Double> distancesToTrips, List<Gene> chromosome) {
+        List<Double> travelTimesToEachStart = distancesToTrips.stream()
+                .map(d -> calculateTravelTime(d, config.getDRIVING_SPEED()))
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < travelTimesToEachStart.size(); i++) {
+            Gene gene = chromosome.get(i);
+            if (!isChargingGene(gene)) {
+                double travelAndWaitingTime = travelTimesToEachStart.get(i) + calculateWaitingTime(
+                        gene.getBookingTime(),
+                        config.getSimulationTime()
+                );
+
+                Double chargingTimeBeforeTrip = getCurrentTripChargingTime();
+                for (int j = 0; j < i; j++) {
+                    if (isChargingGene(chromosome.get(j))) {
+                        chargingTimeBeforeTrip += chromosome.get(j).getChargingTime();
+                    }
+                }
+
+                // add MIN_CHARGING_TIME for every charging station on the way
+                travelAndWaitingTime += chargingTimeBeforeTrip;
+                travelTimesToEachStart.set(i, travelAndWaitingTime);
+            }
+        }
+        return travelTimesToEachStart;
+    }
+
+    private Double getCurrentTripChargingTime() {
+        List<Trip> currentTrip = config.getCurrentTrip();
+        if (currentTrip.size() == 0) { return 0.0; }
+        else {
+            return currentTrip.get(0).getTripType().equals("ChargingTrip")
+                    ? currentTrip.get(0).getChargingTime()
+                    : 0.0;
+        }
+    }
+
+    private boolean isChargingGene(Gene currentGene) {
+        return currentGene.getEnd() == null;
+    }
+
+    private Double getDistanceWithDistanceFactor(Location startLocation, Location location) {
+        return Location.distanceBetween(startLocation, location) * config.getDISTANCE_FACTOR();
+    }
+
+    private List<Location> getLocationsOfGene(Gene gene) {
+        if (gene.getEnd() == null) {
+            return Arrays.asList(gene.getStart());
+        } else {
+            return Arrays.asList(gene.getStart(), gene.getEnd());
+        }
+    }
+
+    private double getGeneDistance(Gene gene) {
+        return gene.getEnd() != null
+                ? Location.distanceBetween(gene.getStart(), gene.getEnd()) * config.getDISTANCE_FACTOR()
+                : 0.0;
+    }
+
+    private void updateRepresentation() {
+        String result = "";
+        List<Gene> mergedGenes = mergeGenes();
+        for (Gene gene: mergedGenes) {
+            result += gene.getId();
+            if (gene.getChargingTime() != null) {
+                result += gene.getChargingTime();
+            }
+        }
+        this.representation = result;
     }
 
     Chromosome[] crossover(final Chromosome otherChromosome) {
@@ -128,6 +533,18 @@ public class Chromosome {
         }
     }
 
+    private List<Gene> copyList(List<Gene> genes) {
+        List<Gene> copy = new ArrayList<>();
+        for (Gene gene: genes) {
+            if (gene == null) {
+                copy.add(null);
+            } else {
+                copy.add(gene.createDeepCopy());
+            }
+        }
+        return copy;
+    }
+
     Chromosome mutate() {
         try {
             // mutate customer trips and insert or delete charging trips
@@ -148,24 +565,20 @@ public class Chromosome {
             // case charging trip
             // swap random or change the charging times of random charging trips
             Random rand = new Random();
-            boolean doSwap = rand.nextBoolean();
 
-            List<Gene> chargingCopy = new ArrayList<>(this.chargingChromosome);
-            if (doSwap) {
-                if (chargingCopy.size() == 2) {
-                    Collections.swap(chargingCopy, 0, 1);
-                } else {
-                    int size = this.chargingChromosome.size();
-                    int indexACharging = random.nextInt(size);
-                    int indexBCharging = random.nextInt(size);
-                    while (indexACharging == indexBCharging) {
-                        indexACharging = random.nextInt(size);
-                        indexBCharging = random.nextInt(size);
-                    }
-                    Collections.swap(chargingCopy, indexACharging, indexBCharging);
-                }
+            List<Gene> chargingCopy = copyList(this.chargingChromosome);
+
+            if (chargingCopy.size() == 2) {
+                Collections.swap(chargingCopy, 0, 1);
             } else {
-                chargingCopy = geneticUtils.mutateChargingTimes(chargingCopy);
+                int size = this.chargingChromosome.size();
+                int indexACharging = random.nextInt(size);
+                int indexBCharging = random.nextInt(size);
+                while (indexACharging == indexBCharging) {
+                    indexACharging = random.nextInt(size);
+                    indexBCharging = random.nextInt(size);
+                }
+                Collections.swap(chargingCopy, indexACharging, indexBCharging);
             }
 
             return new Chromosome(customerCopy, chargingCopy, config);
@@ -176,11 +589,22 @@ public class Chromosome {
         }
     }
 
+    Chromosome mutateChargingTimes() {
+        final List<Gene> customerCopy = new ArrayList<>(this.customerChromosome);
+        List<Gene> chargingCopy = new ArrayList<>(this.chargingChromosome);
+        List<Gene> mutated = geneticUtils.mutateChargingTimesInRelationToBatteryLevelConsideringPreviousTrips(chargingCopy, customerCopy);
+        return new Chromosome(customerCopy, mutated, config);
+    }
+
     public List<Gene> getCustomerChromosome() {
         return customerChromosome;
     }
 
     public List<Gene> getChargingChromosome() {
         return chargingChromosome;
+    }
+
+    public String getRepresentation() {
+        return representation;
     }
 }

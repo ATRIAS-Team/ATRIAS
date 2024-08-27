@@ -46,15 +46,16 @@ public class PrinterUtil {
                 .map(p -> p.stream().map(t -> t.getTripID()).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
+        System.out.println("IDs,ODR,TotalDistance,MinBattery,BatteryAfterAllTrips,Stops,ChargingTimes,BatteryLevel,Rating");
 
         for (int i = 0; i < allStopsValues.size(); i++) {
             System.out.println(
                     String.join(
                             ",",
-                            ids.get(i).toString().replace(",", " "),
+                            ids.get(i).toString().replace(",", "-"),
                             allOdrValues.get(i).toString(),
                             String.valueOf(Math.round(allTotalDistances.get(i))),
-                            String.valueOf(Math.round(allMinBatteryLevelValues.get(i))),
+                            String.valueOf(Math.round(allMinBatteryLevelValues.get(i)) ),
                             String.valueOf(Math.round(allBatteryLevelValuesAfterAllTrips.get(i))),
                             String.valueOf(Math.round(allStopsValues.get(i))),
                             String.valueOf(Math.round(allChargingTimes.get(i))),

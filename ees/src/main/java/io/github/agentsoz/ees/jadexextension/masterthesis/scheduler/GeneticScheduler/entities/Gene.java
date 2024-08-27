@@ -1,20 +1,18 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities;
 
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
-import io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils;
 import io.github.agentsoz.util.Location;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils.calculateTravelTime;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 public class Gene {
-
     private final String id;
     // represents a trip (customer or charging trip)
     private final Location start;
     // end is null in case of charging trip
     private final Location end;
+
     private final LocalDateTime bookingTime;
     private Double chargingTime = null;
     private Config config;
@@ -30,12 +28,14 @@ public class Gene {
 
     // take type of trip into account
 
-    double distance(Gene gene) {
+    public double distance(Gene gene) {
         try {
             if (end == null) {
-                return Location.distanceBetween(start, gene.start);
+//                    Double test = getDrivingDistanceBetweenToNodes(start, gene.start, JadexModel.simulationtime);
+                return Location.distanceBetween(start, gene.start) * config.getDISTANCE_FACTOR();
             } else {
-                return Location.distanceBetween(end, gene.start);
+//                    Double test = getDrivingDistanceBetweenToNodes(end, gene.start, JadexModel.simulationtime);
+                return Location.distanceBetween(end, gene.start) * config.getDISTANCE_FACTOR();
             }
         } catch (Exception e) {
             System.out.println("Caught exception");
@@ -43,13 +43,16 @@ public class Gene {
             return 0.0;
         }
     }
-    @Override
-    public String toString() {
-        if (end == null) {
-            return "Gene [start=" + start.getCoordinates() + "]";
-        } else {
-            return "Gene [start=" + start.getCoordinates() + ", end=" + end.getCoordinates() + "]";
-        }
+
+    public Gene createDeepCopy() {
+        return new Gene(
+                id,
+                start,
+                end,
+                bookingTime,
+                chargingTime,
+                config
+        );
     }
 
     public Location getStart() {
@@ -92,8 +95,8 @@ public class Gene {
         return id;
     }
 
-    public double calculateTravelTime(Double distance, Double DRIVING_SPEED) {
-        return ((distance / 1000) / DRIVING_SPEED) * 60 * 60;
+    public LocalDateTime getBookingTime() {
+        return bookingTime;
     }
 }
 
