@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../../Program Files/Java/jdk-11.0.13" />
+    <envs>
+      <env name="runs" value="3" />
+      <env name="iters" value="60" />
+      <env name="scheduler_mode" value="GENETIC" />
+      <env name="theta" value="900" />
+      <env name="cnp" value="true" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run" />
+    <module name="eeslib" />
+    <option name="PROGRAM_PARAMETERS" value="--config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml " />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
