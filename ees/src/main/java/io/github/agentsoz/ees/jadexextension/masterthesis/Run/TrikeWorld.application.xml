@@ -23,7 +23,7 @@
 
 		<configuration name="One trike local">
 			<components>
-					<component type="TrikeAgent" number="20"/>
+					<component type="TrikeAgent" number="24"/>
 			</components>
 			<components>
 				<component type="SimIDMapper" number="1"/>

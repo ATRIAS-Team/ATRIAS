@@ -131,33 +131,35 @@ public class Run implements DataClient {
         matsimEvacModel.useSequenceLock(sequenceLock);
 
 
-        //Robustheit
-        DisruptionInjector disruptionOfAgent0 = new DisruptionInjector("0", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent1 = new DisruptionInjector("1", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent2 = new DisruptionInjector("2", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent3 = new DisruptionInjector("3", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent4 = new DisruptionInjector("4", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent5 = new DisruptionInjector("5", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent6 = new DisruptionInjector("6", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent7 = new DisruptionInjector("7", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent8 = new DisruptionInjector("8", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent9 = new DisruptionInjector("9", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent10 = new DisruptionInjector("10", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent11 = new DisruptionInjector("11", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent12 = new DisruptionInjector("12", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent13 = new DisruptionInjector("13", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent14 = new DisruptionInjector("14", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent15 = new DisruptionInjector("15", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent16 = new DisruptionInjector("16", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent17 = new DisruptionInjector("17", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent18 = new DisruptionInjector("18", "Breakdown",30000);
-        DisruptionInjector disruptionOfAgent19 = new DisruptionInjector("19", "Breakdown",30000);
+        //Robustheit disruption types: CommunicationDisruption, Breakdown
+        DisruptionInjector disruptionOfAgent0 = new DisruptionInjector("0", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent1 = new DisruptionInjector("1", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent2 = new DisruptionInjector("2", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent3 = new DisruptionInjector("3", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent4 = new DisruptionInjector("4", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent5 = new DisruptionInjector("5", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent6 = new DisruptionInjector("6", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent7 = new DisruptionInjector("7", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent8 = new DisruptionInjector("8", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent9 = new DisruptionInjector("9", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent10 = new DisruptionInjector("10", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent11 = new DisruptionInjector("11", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent12 = new DisruptionInjector("12", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent13 = new DisruptionInjector("13", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent14 = new DisruptionInjector("14", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent15 = new DisruptionInjector("15", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent16 = new DisruptionInjector("16", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent17 = new DisruptionInjector("17", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent18 = new DisruptionInjector("18", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent19 = new DisruptionInjector("19", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent20 = new DisruptionInjector("20", "CommunicationDisruption",30000);
+        DisruptionInjector disruptionOfAgent21 = new DisruptionInjector("21", "CommunicationDisruption",30000);
 
         JadexModel.disruptionToggle = true;
-        JadexModel.toDisruptAgents = Arrays.asList(disruptionOfAgent0,disruptionOfAgent1, disruptionOfAgent2,disruptionOfAgent3,disruptionOfAgent4,disruptionOfAgent18,
-                disruptionOfAgent19,disruptionOfAgent5,disruptionOfAgent8,disruptionOfAgent6,disruptionOfAgent10,disruptionOfAgent7,disruptionOfAgent9,
-         disruptionOfAgent11,disruptionOfAgent13,disruptionOfAgent14,disruptionOfAgent12,disruptionOfAgent15);
-
+        JadexModel.toDisruptAgents = Arrays.asList(disruptionOfAgent0,disruptionOfAgent1, disruptionOfAgent2,disruptionOfAgent3,disruptionOfAgent4,disruptionOfAgent5,
+                disruptionOfAgent6,disruptionOfAgent7,disruptionOfAgent8,disruptionOfAgent9,disruptionOfAgent10,disruptionOfAgent11,disruptionOfAgent12,
+         disruptionOfAgent13,disruptionOfAgent14,disruptionOfAgent15);/*,disruptionOfAgent16,disruptionOfAgent17,disruptionOfAgent18,disruptionOfAgent19,
+                disruptionOfAgent20,disruptionOfAgent21);*/
 
         while (true) {
             // Wait till both models are done before incrementing time
