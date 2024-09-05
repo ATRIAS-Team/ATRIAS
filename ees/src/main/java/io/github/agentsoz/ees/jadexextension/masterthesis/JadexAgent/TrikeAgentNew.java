@@ -783,16 +783,16 @@ public class TrikeAgentNew implements SendtoMATSIM {
         return changes;
     }
 
-    public IFuture<List<Trip>> asyncScheduling(List<Trip> merged) {
-        Future<List<Trip>> future = new Future<>();
-
-        new Thread(() -> {
-            GeneticScheduler scheduler = new GeneticScheduler(initConfigurations());
-            future.setResult(scheduler.start(merged, 10));
-        }).start();
-
-        return future;
-    }
+//    public IFuture<List<Trip>> asyncScheduling(List<Trip> merged) {
+//        Future<List<Trip>> future = new Future<>();
+//
+//        new Thread(() -> {
+//            GeneticScheduler scheduler = new GeneticScheduler(initConfigurations());
+//            future.setResult(scheduler.start(merged, 10));
+//        }).start();
+//
+//        return future;
+//    }
 
     public Config initConfigurations() {
         // init configuration properties

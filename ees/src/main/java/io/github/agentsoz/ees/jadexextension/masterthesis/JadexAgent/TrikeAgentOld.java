@@ -22,6 +22,9 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.util.Location;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,8 +41,11 @@ import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.core.router.util.LeastCostPathCalculator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
@@ -1577,6 +1583,8 @@ public class TrikeAgentOld implements SendtoMATSIM{
                     if (customerMiss(currentTrip.get(0)) == true) { // customer not there
                         updateCurrentTripProgress("Failed");
                     } else if (customerMiss(currentTrip.get(0)) == false) { // customer still there
+                        logExpectedDistance();
+
                         sendDriveTotoAdc();
                         updateCurrentTripProgress("DriveToEnd");
                     }
@@ -1606,6 +1614,47 @@ public class TrikeAgentOld implements SendtoMATSIM{
             //**/
         }
         estimateBatteryAfterTIP();
+    }
+
+    String filePath = "expectedDistances.txt";
+    private void logExpectedDistance() {
+        try {
+            Trip current = currentTrip.get(0);
+            // calc distance between start und end of current trip
+//            Double distance = getDrivingDistanceBetweenToNodes(current.startPosition, current.endPosition, JadexModel.simulationtime);
+
+            File file = new File(filePath);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                // agentId, startCoords, EndCoords, simtime, expected distance
+                writer.write(String.format("%s, (%s,%s), (%s, %s), %s, %s",
+                        agentID,
+                        current.startPosition.x,
+                        current.startPosition.y,
+                        current.endPosition.x,
+                        current.endPosition.y,
+                        JadexModel.simulationtime,
+                        "NOT DETERMINED",
+                        getDrivingDistanceBetweenToNodes(current.startPosition, current.endPosition, JadexModel.simulationtime)
+                        ));
+                writer.newLine();
+            } catch (Exception e) {
+
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
+    // @Tim
+    LeastCostPathCalculator.Path getDrivingDistanceBetweenToNodes(Location start, Location end, Double startTime) throws AgentNotFoundException {
+        List<Double> args = Arrays.asList(start.getX(), start.getY(), end.getX(), end.getY(), startTime);
+        LeastCostPathCalculator.Path path = (LeastCostPathCalculator.Path) SimActuator.getQueryPerceptInterface().queryPercept(
+                String.valueOf(agentID),
+                Constants.REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES,
+                args);
+
+        return path;
     }
 
     public void sendDriveTotoAdc()

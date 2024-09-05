@@ -77,7 +77,7 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.Ar
         @RequiredService(name="notifywhenexecutiondoneservice", type= INotifyService2.class, scope= ServiceScope.PLATFORM),
 })
 
-public class TrikeAgent implements SendtoMATSIM{
+public class TrikeAgentStash implements SendtoMATSIM{
 
     private static final Logger log = LoggerFactory.getLogger(TrikeAgent.class);
     /**

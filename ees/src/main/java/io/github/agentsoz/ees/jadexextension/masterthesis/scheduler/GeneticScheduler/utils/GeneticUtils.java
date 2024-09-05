@@ -151,6 +151,47 @@ public class GeneticUtils {
         return null;
     }
 
+    public List<List<Gene>> makeCrossoverCustomerWithHashset(List<Gene> first, List<Gene> second) {
+        // case there is only one customer trip
+        try {
+            if (first.size() == 1) {
+                return Arrays.asList(first, first);
+            }
+
+            final List<List<Gene>> thisDNA = split(first);
+            final List<List<Gene>> otherDNA = split(second);
+
+            final Set<Gene> firstCrossOver = new LinkedHashSet<>(thisDNA.get(0));
+
+            for (int i = 0; i < otherDNA.get(0).size(); i++) {
+                firstCrossOver.add(otherDNA.get(0).get(i));
+            }
+
+            for (int i = 0; i < otherDNA.get(1).size(); i++) {
+                firstCrossOver.add(otherDNA.get(1).get(i));
+            }
+
+            final Set<Gene> secondCrossOver = new LinkedHashSet<>(otherDNA.get(1));
+
+            for (int i = 0; i < thisDNA.get(0).size(); i++) {
+                secondCrossOver.add(thisDNA.get(0).get(i));
+            }
+
+            for (int i = 0; i < thisDNA.get(1).size(); i++) {
+                secondCrossOver.add(thisDNA.get(1).get(i));
+            }
+
+            return Arrays.asList(
+                    new ArrayList<>(firstCrossOver),
+                    new ArrayList<>(secondCrossOver)
+            );
+        } catch (Exception e) {
+            System.out.println("Caught exception: " + e);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public List<List<Gene>> makeCrossoverCharging(List<Gene> first, List<Gene> second) {
         try {
             final List<List<Gene>> thisDNA = split(first);
@@ -218,21 +259,23 @@ public class GeneticUtils {
     }
 
 
+    // one charging trips get mutated
     public List<Gene> mutateChargingTimesInRelationToBatteryLevelConsideringPreviousTrips(List<Gene> genes, List<Gene> customergenes) {
         try {
             genes = copyList(genes);
             boolean atLeastOneWasMutated = false;
+            outerloop:
             while (!atLeastOneWasMutated) {
                 for (int i = 0; i < genes.size(); i++) {
-                    Double batteryLevel = getBatteryLevelConsideringPreviousGenes(customergenes, genes, i);
-                    Double chargingTimeTillThreshhold = 0.0;
-                    if (batteryLevel < 0.2) {
-                        chargingTimeTillThreshhold = (0.3 - batteryLevel) * config.getCOMPLETE_CHARGING_TIME();
-                    }
                     if (genes.get(i) != null) {
-                        Double minChargingTime = config.getMIN_CHARGING_TIME() < chargingTimeTillThreshhold ? chargingTimeTillThreshhold : config.getMIN_CHARGING_TIME();
                         boolean rand = random.nextBoolean();
                         if (rand) {
+                            Double batteryLevel = getBatteryLevelConsideringPreviousGenes(customergenes, genes, i);
+                            Double chargingTimeTillThreshhold = 0.0;
+                            if (batteryLevel < 0.2) {
+                                chargingTimeTillThreshhold = (0.3 - batteryLevel) * config.getCOMPLETE_CHARGING_TIME();
+                            }
+                            Double minChargingTime = config.getMIN_CHARGING_TIME() < chargingTimeTillThreshhold ? chargingTimeTillThreshhold : config.getMIN_CHARGING_TIME();
                             int min = config.getMIN_CHARGING_TIME().intValue();
                             Double temp = (config.getMAX_CHARGING_TIME() * (1 - batteryLevel)) > minChargingTime + 1.0
                                     ? (config.getMAX_CHARGING_TIME() * (1 - batteryLevel))
@@ -242,6 +285,7 @@ public class GeneticUtils {
 
                             genes.get(i).setChargingTime(Double.valueOf(randomInt));
                             atLeastOneWasMutated = true;
+                            break outerloop;
                         }
                     }
                 }

@@ -20,6 +20,8 @@ public class Config {
     private Double DISTANCE_FACTOR;
     private Double CHARGE_INCREASE;
     private List<Trip> currentTrip;
+    private Double simtime;
+    private Double battThreshhold;
 
     public Double getCHARGE_DECREASE() {
         return CHARGE_DECREASE;
@@ -39,13 +41,13 @@ public class Config {
 
     private Double CHARGE_DECREASE;
 
+
     // to prevent instantiation
     public Config() { }
 
     public Double getDISTANCE_FACTOR() {
         return DISTANCE_FACTOR;
     }
-
     public void setDISTANCE_FACTOR(Double DISTANCE_FACTOR) {
         this.DISTANCE_FACTOR = DISTANCE_FACTOR;
     }
@@ -128,5 +130,21 @@ public class Config {
 
     public void setCurrentTrip(List<Trip> currentTrip) {
         this.currentTrip = currentTrip;
+    }
+
+    public Double getSimtime() {
+        return simtime;
+    }
+
+    public void setSimtime(Double simtime) {
+        this.simtime = simtime;
+    }
+
+    public Double getBattThreshhold() {
+        return battThreshhold;
+    }
+
+    public void setBattThreshhold(Double battThreshhold) {
+        this.battThreshhold = battThreshhold;
     }
 }

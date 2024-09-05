@@ -80,7 +80,7 @@ public class GreedyScheduler {
     public List<Trip> greedySchedule(List<Trip> allTrips, Strategy strategy) {
         Date startTime = new Date(System.currentTimeMillis());
         printerUtil.startScheduler(agentId, batteryLevel, this.simulationTime);
-        System.out.println("TripList size: " +  allTrips.size() + " - " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
+//        System.out.println("TripList size: " +  allTrips.size() + " - " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
 
         // ToDo: Is there a solution under all cirumstances? What happens if all rating results are 0? Is that possible?
         // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
@@ -202,8 +202,7 @@ public class GreedyScheduler {
 
             List<Double> ratings = ratings(normalizedDistanceOdrBattery);
 
-            // get best permutation and add charging trip to end
-            printCsv(configuredPermutations, distanceOdrBattery, normalizedDistanceOdrBattery, ratings);
+//            printCsv(configuredPermutations, distanceOdrBattery, normalizedDistanceOdrBattery, ratings);
 
             List<Trip> best = getBest(ratings, permutations);
 
@@ -1182,7 +1181,7 @@ public class GreedyScheduler {
 
     // generation of all permutations take approx 4 seconds for n = 10, 40 sec. for n = 11
     public List<List<Trip>> getAllPermutationsOfATripList(List<Trip> tripList) {
-        tripList = tripList.stream().filter(t -> !isChargingTrip(t)).collect(Collectors.toList());
+//        tripList = tripList.stream().filter(t -> !isChargingTrip(t)).collect(Collectors.toList());
         List<List<Trip>> result = new ArrayList<>();
         if (tripList.size() == 1) {
             result.add(tripList);

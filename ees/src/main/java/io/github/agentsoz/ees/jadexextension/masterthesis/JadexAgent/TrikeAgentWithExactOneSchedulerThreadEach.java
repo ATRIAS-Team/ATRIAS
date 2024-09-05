@@ -455,7 +455,7 @@ public class TrikeAgentWithExactOneSchedulerThreadEach implements SendtoMATSIM{
             Future<List<Trip>> future = new Future<>();
             Runnable task = () -> {
                 GeneticScheduler scheduler = new GeneticScheduler(initConfigurations());
-                future.setResult(scheduler.start(merged, 100));
+//                future.setResult(scheduler.start(merged, 100));
             };
 
             String threadName = agentID + "-Scheduler-Thread";

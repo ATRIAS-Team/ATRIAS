@@ -2379,7 +2379,6 @@
 //                if (Boolean.parseBoolean(System.getenv("csv"))) {
 //                    System.out.println("tripIds,chargingTimes,coords,distance,waitingTimesSum,odr,battery,distanceFraction,waitingTimesSumFraction,odrFraction,batteryFraction,fitness");
 //                }
-//                this.population = selectTopNChromosomes();
 //                updateRepresentationSet();
 //            } catch (Exception e) {
 //                System.out.println("Caught exception");
@@ -2387,7 +2386,6 @@
 //            }
 //        }
 //
-//        public List<Chromosome> selectTopNChromosomes() {
 //            PriorityQueue<Chromosome> minHeap = new PriorityQueue<>(this.initialPopulationSize, Comparator.comparingDouble(Chromosome::fitness));
 //
 //            for (Chromosome chromosome : this.population) {

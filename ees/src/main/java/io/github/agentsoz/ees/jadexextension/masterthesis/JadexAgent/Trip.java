@@ -24,6 +24,14 @@ public class Trip {
     public String progress;
     public Double chargingTime;
 
+    public LocalDateTime getBookingTime() {
+        return bookingTime;
+    }
+
+    public void setBookingTime(LocalDateTime bookingTime) {
+        this.bookingTime = bookingTime;
+    }
+
     // @Tim
     public LocalDateTime bookingTime;
 
