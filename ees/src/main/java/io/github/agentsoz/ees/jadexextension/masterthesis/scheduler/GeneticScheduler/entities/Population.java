@@ -15,14 +15,16 @@ public class Population {
     private final Config config;
     private final Random random = new Random();
     private Set<String> representationSet;
+    private List<Chromosome> elite;
 
     public Population(int initialPopulationSize, List<Trip> trips, Config config) {
         this.initialPopulationSize = initialPopulationSize;
         this.geneticUtils = new GeneticUtils(config);
-        deconstructInputTripListIntoGenes(trips);
+        deconstructInputTripListIntoGenesWithChargingTripRemoval(trips);
         this.config = config;
         this.representationSet = new HashSet<>();
         this.population = init(initialPopulationSize);
+        this.elite = new ArrayList<>();
 
 
         // füge anfängliches chromosom in die population ein => könnte bereits eine gute Lösung sein
@@ -37,6 +39,32 @@ public class Population {
         for (Chromosome c: population) {
             this.representationSet.add(c.getRepresentation());
         }
+    }
+
+    private void deconstructInputTripListIntoGenesWithChargingTripRemoval(List<Trip> trips) {
+        List<Gene> chargingGenes = new ArrayList<>();
+        List<Gene> customerGenes = new ArrayList<>();
+
+        List<Trip> customerTrips = trips.stream()
+                .filter(t -> t.getTripType().equals("CustomerTrip"))
+                .collect(Collectors.toList());
+
+        for (Trip customerTrip: customerTrips) {
+            customerGenes.add(geneticUtils.mapTripToGene(customerTrip));
+        }
+
+        for (int i = 0; i < customerGenes.size() + 1; i++) {
+            chargingGenes.add(null);
+        }
+
+        if ((customerGenes.size() + 1) != chargingGenes.size()) {
+            System.out.println("Caught Exception in Deconstruct " + trips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
+        }
+
+        this.customerGene = new Gene[customerGenes.size()];
+        this.chargingGene = new Gene[chargingGenes.size()];
+        this.customerGene = customerGenes.toArray(new Gene[0]);
+        this.chargingGene = chargingGenes.toArray(new Gene[0]);
     }
 
     private void deconstructInputTripListIntoGenes(List<Trip> trips) {
@@ -95,22 +123,17 @@ public class Population {
 
             representationSet = new HashSet<>();
             List<Chromosome> initPopulation = new ArrayList<>();
-            if (config.getBatteryLevel() > 0.90 && customerGene.length == 1) {
-                // popsize kann nicht erreicht werden bzw. nur schwer
-                while (initialPopulationSize < 20) {
-                    Chromosome newChromosome = geneticUtils.create(customerGene, chargingGene);
-                    if (representationSet.add(newChromosome.getRepresentation())) {
-                        initPopulation.add(newChromosome);
-                    }
+
+            int triedTimes = 0;
+            while (initPopulation.size() < initialPopulationSize && triedTimes < 2000) {
+//                System.out.println("Init");
+                Chromosome newChromosome = geneticUtils.create(customerGene, chargingGene);
+                if (representationSet.add(newChromosome.getRepresentation())) {
+                    initPopulation.add(newChromosome);
                 }
-            } else {
-                while (initPopulation.size() < initialPopulationSize) {
-                    Chromosome newChromosome = geneticUtils.create(customerGene, chargingGene);
-                    if (representationSet.add(newChromosome.getRepresentation())) {
-                        initPopulation.add(newChromosome);
-                    }
-                }
+                triedTimes++;
             }
+
             return initPopulation;
         } catch (Exception e) {
             System.out.println("Caught exception");
@@ -121,26 +144,52 @@ public class Population {
 
     public void update() {
         try {
-//        System.out.println("CrossOver");
-            crossover();
-//        System.out.println("Mutation");
-            mutation();
-//        System.out.println("Spawn");
+//            elitism();
             noveltySearch();
-//        System.out.println("Selection");
-            selection();
+            crossover();
+            mutation();
+            elitismAndStochasticSelection();
         } catch (Exception e) {
             System.out.println("Caught exception");
             e.printStackTrace();
         }
     }
 
-    private void tournamentSelection() {
-
+    private void elitism() {
+        int tenPercent = this.population.size() < 100 ? (int) (this.population.size() * (1/10.0)) : 10;
+        this.elite.addAll(this.population.subList(0, tenPercent));
+        this.population = this.population.subList(tenPercent, this.population.size());
     }
 
     private void selection() {
         try {
+//            System.out.println("Selection");
+            if (this.population.size() > this.initialPopulationSize) {
+                // iterate over population calculate fitness and save result with index in new list
+                List<List<Number>> fitnessAndIndices = new ArrayList<>();
+                for (int i = 0; i < population.size(); i++) {
+                    fitnessAndIndices.add(
+                            Arrays.asList(population.get(i).fitnessOld(), i)
+                    );
+                }
+
+                // sort new list with fitness value
+                List<List<Number>> sorted = fitnessAndIndices.stream().sorted(Comparator.comparingDouble(a -> (Double) a.get(0))).collect(Collectors.toList());
+                Collections.reverse(sorted);
+
+                List<Chromosome> newPopulation = new ArrayList<>();
+
+                for (int j = 0; j < this.initialPopulationSize; j++) {
+                    newPopulation.add(population.get((Integer) sorted.get(j).get(1)));
+                }
+
+                this.population = newPopulation;
+
+//            this.population.addAll(this.elite);
+//            this.population.sort(Comparator.comparingDouble(Chromosome::fitnessOld).reversed());
+//            if (this.population.size() > 100) {
+//                this.population = this.population.subList(0, 100);
+//            }
 //                System.out.println("Population size before selection: " + population.size());
 //                this.population.sort(Comparator.comparingDouble(Chromosome::fitness).reversed());
 //                // keep population size constant but keep the fittest individuals
@@ -148,48 +197,114 @@ public class Population {
 //                if (Boolean.parseBoolean(System.getenv("csv"))) {
 //                    System.out.println("tripIds,chargingTimes,coords,distance,waitingTimesSum,odr,battery,distanceFraction,waitingTimesSumFraction,odrFraction,batteryFraction,fitness");
 //                }
-            this.population = selectTopNChromosomes();
-//                updateRepresentationSet();
+            }
         } catch (Exception e) {
             System.out.println("Caught exception");
             e.printStackTrace();
         }
     }
 
-    public List<Chromosome> selectTopNChromosomes() {
-        PriorityQueue<Chromosome> minHeap = new PriorityQueue<>(this.initialPopulationSize, Comparator.comparingDouble(Chromosome::fitnessOld));
+    private void elitismAndStochasticSelection() {
+        try {
+            if (this.population.size() > this.initialPopulationSize) {
+                // iterate over population calculate fitness and save result with index in new list
+                // List of List with [fitness, indexInPopulation]
+                List<List<Number>> fitnessAndIndices = new ArrayList<>();
+                for (int i = 0; i < population.size(); i++) {
+                    fitnessAndIndices.add(
+                            Arrays.asList(population.get(i).fitnessOld(), i)
+                    );
+                }
 
-        for (Chromosome chromosome : this.population) {
-            if (minHeap.size() < this.initialPopulationSize) {
-                minHeap.add(chromosome);
-            } else if (chromosome.fitnessOld() > minHeap.peek().fitnessOld()) {
-                minHeap.poll();
-                minHeap.add(chromosome);
+                // Elitism
+                // sort new list with fitness value
+                List<List<Number>> sorted = fitnessAndIndices.stream().sorted(Comparator.comparingDouble(a -> (Double) a.get(0))).collect(Collectors.toList());
+                // fittest elements in the beginning
+                Collections.reverse(sorted);
+
+//                if (population.get(0).getCustomerChromosome().size() > 2) {
+//                    System.out.println(sorted.stream().map(t -> String.format("%.4f", t.get(0))).collect(Collectors.toList()));
+//                }
+
+                List<Chromosome> newPopulation = new ArrayList<>();
+
+                double percentageOfElitism = 0.1;
+                int size = (int) (this.initialPopulationSize * percentageOfElitism);
+                for (int j = 0; j < size; j++) {
+                    newPopulation.add(population.get((Integer) sorted.get(j).get(1)));
+                }
+
+                // Stochastic selection
+                // start at first element after elitism selection
+//                for (int j = size; j < sorted.size(); j++) {
+//                    if (stochasticSelect((Double) sorted.get(j).get(0))) {
+//                        newPopulation.add(population.get((Integer) sorted.get(j).get(1)));
+//                    }
+//                }
+
+                List<List<Number>> remainingSorted = sorted.subList(size, sorted.size());
+
+                // tournament selection
+                for (int j = size; j < initialPopulationSize; j++) {
+                    // get 3 random elements
+                    int remainingSortedSize = remainingSorted.size();
+
+                    Collections.shuffle(remainingSorted);
+                    List<Number> one = remainingSorted.get(0);
+                    List<Number> two = remainingSorted.get(1);
+                    List<Number> three = remainingSorted.get(2);
+
+                    double fitOne = (double) one.get(0);
+                    double fitTwo = (double) one.get(0);
+                    double fitThree = (double) one.get(0);
+
+                    Chromosome newElem;
+                    if (fitOne > fitTwo && fitOne > fitThree) {
+                        newElem = population.get((Integer) one.get(1));
+                    } else if (fitTwo > fitOne && fitTwo > fitThree) {
+                        newElem = population.get((Integer) two.get(1));
+                    } else {
+                        newElem = population.get((Integer) three.get(1));
+                    }
+
+                    newPopulation.add(newElem);
+                    sorted.remove(newElem);
+                }
+
+
+                // population should be constantly with initialPopulationSize
+//                int currentSize = newPopulation.size();
+//                while (currentSize > initialPopulationSize) {
+//                    int randomIndex = random.nextInt(newPopulation.size());
+//                    newPopulation.remove(randomIndex);
+//                    currentSize = newPopulation.size();
+//                }
+
+                this.population = newPopulation;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-
-        List<Chromosome> topChromosomes = new ArrayList<>(minHeap);
-        topChromosomes.sort(Comparator.comparingDouble(Chromosome::fitnessOld).reversed());
-        List<Chromosome> withoutDuplicats = new ArrayList<>();
-        representationSet = new HashSet<>();
-        for (Chromosome chromosome: topChromosomes) {
-            if (representationSet.add(chromosome.getRepresentation())) {
-                withoutDuplicats.add(chromosome);
-            }
-        }
-        return withoutDuplicats;
+    private boolean stochasticSelect(Double fitness) {
+        // generates random value between 0.0 and 1.0
+        Double randDouble = random.nextDouble();
+        return randDouble < fitness;
     }
 
     private void noveltySearch() {
         try {
             int added = 0;
-            while (added != 20) {
+            int triedTimes = 0;
+            while (added != 20 && triedTimes < 2000) {
+//                System.out.println("Novelty");
                 Chromosome c = geneticUtils.create(customerGene, geneticUtils.generateChargingGenes());
                 if (representationSet.add(c.getRepresentation())) {
                     this.population.add(c);
                     added++;
                 }
+                triedTimes++;
             }
         } catch (Exception e) {
             System.out.println("Caught exception");
@@ -200,26 +315,42 @@ public class Population {
     private void mutation() {
         try {
             int size = population.size();
-            int amountNewElems = size / 5;
+            // 10% of population gets mutated
+            int amountNewElems = (int) (size * (0.1));
             int added = 0;
-            while (added != amountNewElems) {
-                if (population.get(0).getCustomerChromosome().size() > 1) {
-                    Chromosome mutated  = this.population.get(random.nextInt(population.size())).mutate();
-                    if (representationSet.add(mutated.getRepresentation())) {
-                        population.add(mutated);
+            int triedTimes = 0;
+
+            // 0 => mutate customer trips, 1 => mutate charging trips, 2 => mutate charging times
+            int mutateType = -1;
+            while (added < amountNewElems && triedTimes < 5000) {
+                mutateType = (mutateType + 1) % 3;
+//                System.out.println("Mutation");
+                if (mutateType == 0 || mutateType == 1) {
+                    if (population.get(0).getCustomerChromosome().size() > 1) {
+                        // mutate either customer trip list or charging trip list
+//                    List<Chromosome> mutated  = Arrays.asList(this.population.get(random.nextInt(population.size())).mutateAlternately(mutateCustomer));
+                        Chromosome mutated  = this.population.get(random.nextInt(population.size())).mutateAlternately(mutateType);
+
+                        if (representationSet.add(mutated.getRepresentation())) {
+                            population.add(mutated);
+                            added++;
+                        }
+
+                    }
+                }
+                if (mutateType == 2) {
+                    Chromosome chargingChromosome = this.population.get(random.nextInt(population.size()));
+                    // get new charging chromosome if there are no charging genes
+                    while (chargingChromosome.mergeGenes().size() == chargingChromosome.getCustomerChromosome().size()) {
+                        chargingChromosome = this.population.get(random.nextInt(population.size()));
+                    }
+                    Chromosome mutated2 = chargingChromosome.mutateChargingTimes();
+                    if (representationSet.add(mutated2.getRepresentation())) {
+                        population.add(mutated2);
                         added++;
                     }
                 }
-                Chromosome chargingChromosome = this.population.get(random.nextInt(population.size()));
-                // get new charging chromosome if there are no charging genes
-                while (chargingChromosome.mergeGenes().size() == chargingChromosome.getCustomerChromosome().size()) {
-                    chargingChromosome = this.population.get(random.nextInt(population.size()));
-                }
-                Chromosome mutated2 = chargingChromosome.mutateChargingTimes();
-                if (representationSet.add(mutated2.getRepresentation())) {
-                    population.add(mutated2);
-                    added++;
-                }
+                triedTimes++;
             }
         } catch (Exception e) {
             System.out.println("Caught exception");
@@ -236,7 +367,7 @@ public class Population {
             }
             for (Chromosome chromosome : this.population) {
                 Chromosome partner = getCrossOverPartner(chromosome);
-                cache.addAll(Arrays.asList(chromosome.crossover(partner)));
+                cache.addAll(Arrays.asList(chromosome.uniformCrossover(partner)));
             }
 
             for (Chromosome c : cache) {
@@ -254,12 +385,14 @@ public class Population {
 
     private void crossover() {
         try {
+//            System.out.println("Crossover");
             List<Chromosome> cache = new ArrayList<>();
             // no candidates exists for a crossover
             if (population.size() == 1) {
                 return;
             }
-            for (int i = 0; i < population.size() / 2; i++) {
+            int size = (int) (population.size() * (5 /10.0));
+            for (int i = 0; i < size; i++) {
                 Chromosome ith = population.get(i);
                 Chromosome partner = getCrossOverPartner(ith);
                 cache.addAll(Arrays.asList(ith.crossover(partner)));
