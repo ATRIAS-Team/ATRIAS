@@ -662,33 +662,70 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 
 			// @Tim
 			case PerceptList.REQUEST_DRIVING_DISTANCE_BETWEEN_TWO_NODES:
-				if (args == null) {
-					throw new RuntimeException("Query percept '"+perceptID+"' expecting Node[], but found: " + args);
-				}
+				try {
 
-				// [startCoords, endCoords, time]
-				List<Double> coordsAndTime = (List<Double>) args;
+					if (args == null) {
+						throw new RuntimeException("Query percept '" + perceptID + "' expecting Node[], but found: " + args);
+					}
 
-				Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
-				Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
+					List<Double> coordsAndTime = (List<Double>) args;
 
-				Node startNode = getNearestNodeFromCoord(startCoord);
-				Node endNode = getNearestNodeFromCoord(endCoord);
+					Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
+					Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
 
-				Link startLink = getNearestLinkFromCoord(startCoord);
-				Link endLink = getNearestLinkFromCoord(endCoord);
-				// Parameter: startNode, endNode, departureTime, person and vehicle
-				// ToDo: Determination of the time (v), v => startTime
+// Synchronisieren auf einem gemeinsamen Objekt
+					synchronized (this) {
+						Node startNode = getNearestNodeFromCoord(startCoord);
+						Node endNode = getNearestNodeFromCoord(endCoord);
 
-				System.out.println("-                -          -              -        -");
-				System.out.println("StartCoord: " + startCoord);
-				System.out.println("EndCoord: " + endCoord);
-				System.out.println("StartNode: " + startNode);
-				System.out.println("EndNode: " + endNode);
-				System.out.println("Time: " + coordsAndTime.get(4));
-				System.out.println("Beeeeeeeeeeeeeeeeeeeeeeeeefore Path Calc ");
-				TripRouter tripRouter = this.getReplanner().tripRouter;
-				Location location = new Location("d", startLink.getCoord().getX(), startLink.getCoord().getY());
+						// Synchronisieren auf einem gemeinsamen Objekt, falls getReplanner()
+						// oder pathCalculator gemeinsam genutzt wird
+						synchronized (this.getReplanner()) {
+							LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
+									startNode,
+									endNode,
+									coordsAndTime.get(4),
+									null,
+									null
+							);
+
+							return path;
+						}
+					}
+
+					// [startCoords, endCoords, time]
+//					List<Double> coordsAndTime = (List<Double>) args;
+//
+//					Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
+//					Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
+//
+//					Node startNode = getNearestNodeFromCoord(startCoord);
+//					Node endNode = getNearestNodeFromCoord(endCoord);
+//
+//					LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
+//							startNode,
+//							endNode,
+//							coordsAndTime.get(4),
+//							null,
+//							null
+//					);
+//
+//					return path;
+
+//					Link startLink = getNearestLinkFromCoord(startCoord);
+//					Link endLink = getNearestLinkFromCoord(endCoord);
+					// Parameter: startNode, endNode, departureTime, person and vehicle
+					// ToDo: Determination of the time (v), v => startTime
+
+//				System.out.println("-                -          -              -        -");
+//				System.out.println("StartCoord: " + startCoord);
+//				System.out.println("EndCoord: " + endCoord);
+//				System.out.println("StartNode: " + startNode);
+//				System.out.println("EndNode: " + endNode);
+//				System.out.println("Time: " + coordsAndTime.get(4));
+//				System.out.println("Beeeeeeeeeeeeeeeeeeeeeeeeefore Path Calc ");
+//					TripRouter tripRouter = this.getReplanner().tripRouter;
+//					Location location = new Location("d", startLink.getCoord().getX(), startLink.getCoord().getY());
 //				List<Leg> legs = tripRouter.calcRoute(
 //						"bike",
 //						location,
@@ -697,20 +734,20 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 //						null
 //				);
 
-				LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
-						startNode,
-						endNode,
-						coordsAndTime.get(4),
-						null,
-						null
-				);
-				System.out.println("Aaaaaaaaaaaaaaaaaaaafter Path Calc");
-				System.out.println("-                -          -              -        -");
+//					LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
+//							startNode,
+//							endNode,
+//							coordsAndTime.get(4),
+//							null,
+//							null
+//					);
+//				System.out.println("Aaaaaaaaaaaaaaaaaaaafter Path Calc");
+//				System.out.println("-                -          -              -        -");
 
-			// ToDo: Class cast exception?
+					// ToDo: Class cast exception?
 //				Vehicle vehicle;
 
-				Id<Person> id = mobsimAgent.getId();
+//				Id<Person> id = mobsimAgent.getId();
 
 //				Map<String, Id<Vehicle>> vehicleIds = VehicleUtils.getVehicleIds(person);
 
@@ -719,9 +756,11 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 //					vehicle = scenario.getVehicles().getVehicles().get(vehicleId);
 
 
-
 //				}
-				return path;
+//					return path;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			case PerceptList.REQUEST_DESTINATION_COORDINATES_2 :
 				double[] cords2= {-1,-1};
 				if(this.getReplanner().editPlans().isAtRealActivity(mobsimAgent)){ // if agent is currently in an activity
