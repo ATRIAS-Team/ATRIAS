@@ -173,11 +173,10 @@ public class Chromosome {
 //        double odrWeight = 0.3;
 //        double batteryWeight = 0.1;
 
-        double distanceWeight = 0.3;
+        double distanceWeight = 3 / 10.0;
 //        double waitingTimeSumWeight = 0.3;
-        double odrWeight = 0.6;
-        double batteryWeight = 0.1;
-
+        double odrWeight = 6 / 10.0;
+        double batteryWeight = 1 / 10.0;
         Double considerFuture = 0.0;
         // last element is charging gene
         if (isChargingGene(chromosomeToEvaluate.get(chromosomeToEvaluate.size() - 1))) {

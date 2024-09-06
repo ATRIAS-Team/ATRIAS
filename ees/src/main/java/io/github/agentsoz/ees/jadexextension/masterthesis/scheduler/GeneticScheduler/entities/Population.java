@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 public class Population {
     private List<Chromosome> population;
+//    private List<Chromosome> newPopulation = new ArrayList<>();
     private final int initialPopulationSize;
     private Gene[] customerGene;
     private Gene[] chargingGene;
@@ -207,6 +208,28 @@ public class Population {
     private void elitismAndStochasticSelection() {
         try {
             if (this.population.size() > this.initialPopulationSize) {
+
+//                // sort and get best elements
+//                List<List<Number>> fitnessAndIndicesNewPop = new ArrayList<>();
+//                for (int i = 0; i < newPopulation.size(); i++) {
+//                    fitnessAndIndicesNewPop.add(
+//                            Arrays.asList(newPopulation.get(i).fitnessOld(), i)
+//                    );
+//                }
+//                List<List<Number>> sortedNewPop = fitnessAndIndicesNewPop.stream().sorted(Comparator.comparingDouble(a -> (Double) a.get(0))).collect(Collectors.toList());
+//                // fittest elements in the beginning
+//                Collections.reverse(sortedNewPop);
+//
+//                // get 75% of soorted pop
+//                int bestSize = (int) (newPopulation.size() * 0.75);
+//                List<Chromosome> newBest = new ArrayList<>();
+//                for (int i = 0; i < bestSize; i++) {
+//                    newBest.add(newPopulation.get((Integer) sortedNewPop.get(i).get(1)));
+//                }
+//
+//                population.addAll(newBest);
+//                this.newPopulation = new ArrayList<>();
+
                 // iterate over population calculate fitness and save result with index in new list
                 // List of List with [fitness, indexInPopulation]
                 List<List<Number>> fitnessAndIndices = new ArrayList<>();
@@ -297,7 +320,8 @@ public class Population {
         try {
             int added = 0;
             int triedTimes = 0;
-            while (added != 20 && triedTimes < 2000) {
+            int size = (int) (population.size() / 10.0);
+            while (added != size && triedTimes < 2000) {
 //                System.out.println("Novelty");
                 Chromosome c = geneticUtils.create(customerGene, geneticUtils.generateChargingGenes());
                 if (representationSet.add(c.getRepresentation())) {
@@ -316,7 +340,7 @@ public class Population {
         try {
             int size = population.size();
             // 10% of population gets mutated
-            int amountNewElems = (int) (size * (0.1));
+            int amountNewElems = (int) (size * (0.2));
             int added = 0;
             int triedTimes = 0;
 

@@ -95,7 +95,7 @@ public class GreedyScheduler {
 
         List<Trip> remaining = allTrips.subList(0, allTrips.size() - lastSixElements.size());
 
-        boolean permutateCustomerTrips = false;
+        boolean permutateCustomerTrips = true;
         List<List<Trip>> permutations = getAllPermutationsWithOneOption(lastSixElements, permutateCustomerTrips);
 
         Double batteryAfterEndOfRemaining = getBatteryAfterEndOfRemaining(remaining);
@@ -388,7 +388,8 @@ public class GreedyScheduler {
             }
 
             // convert travel distance in travel time
-            List<Double> travelTimes = distancesOfPerm.stream().map(d -> SchedulerUtils.calculateTravelTime(d, DRIVING_SPEED)).collect(Collectors.toList());
+            List<Double> travelTimes = distancesOfPerm.stream().map(d -> (SchedulerUtils.calculateTravelTime(d, DRIVING_SPEED) + TIME_UNTIL_CURRENT_ACTION_IS_DONE
+            )).collect(Collectors.toList());
 
             for (int k = 0; k < travelTimes.size(); k++) {
                 Trip currentTrip = tripList.get(k);

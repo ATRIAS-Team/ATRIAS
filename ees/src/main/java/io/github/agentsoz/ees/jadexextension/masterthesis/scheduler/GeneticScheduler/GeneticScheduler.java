@@ -65,7 +65,7 @@ public class GeneticScheduler {
 //                int stagnationIndex
 //                System.out.println("Scores Archive of Run " + i + ": " + scoresArchive);
 
-                writeScoresArchiveIntoFile(scoresArchive, tripsToSchedule.size());
+//                writeScoresArchiveIntoFile(scoresArchive, tripsToSchedule.size());
 
                 Chromosome best = population.getBestChromosome();
                 scores.add(best.fitnessOld());
