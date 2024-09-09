@@ -673,7 +673,7 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 					Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
 					Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
 
-// Synchronisieren auf einem gemeinsamen Objekt
+					// Synchronisieren auf einem gemeinsamen Objekt
 					synchronized (this) {
 						Node startNode = getNearestNodeFromCoord(startCoord);
 						Node endNode = getNearestNodeFromCoord(endCoord);
@@ -692,72 +692,6 @@ public final class MATSimModel implements ABMServerInterface, ModelInterface, Qu
 							return path;
 						}
 					}
-
-					// [startCoords, endCoords, time]
-//					List<Double> coordsAndTime = (List<Double>) args;
-//
-//					Coord startCoord = new Coord(coordsAndTime.get(0), coordsAndTime.get(1));
-//					Coord endCoord = new Coord(coordsAndTime.get(2), coordsAndTime.get(3));
-//
-//					Node startNode = getNearestNodeFromCoord(startCoord);
-//					Node endNode = getNearestNodeFromCoord(endCoord);
-//
-//					LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
-//							startNode,
-//							endNode,
-//							coordsAndTime.get(4),
-//							null,
-//							null
-//					);
-//
-//					return path;
-
-//					Link startLink = getNearestLinkFromCoord(startCoord);
-//					Link endLink = getNearestLinkFromCoord(endCoord);
-					// Parameter: startNode, endNode, departureTime, person and vehicle
-					// ToDo: Determination of the time (v), v => startTime
-
-//				System.out.println("-                -          -              -        -");
-//				System.out.println("StartCoord: " + startCoord);
-//				System.out.println("EndCoord: " + endCoord);
-//				System.out.println("StartNode: " + startNode);
-//				System.out.println("EndNode: " + endNode);
-//				System.out.println("Time: " + coordsAndTime.get(4));
-//				System.out.println("Beeeeeeeeeeeeeeeeeeeeeeeeefore Path Calc ");
-//					TripRouter tripRouter = this.getReplanner().tripRouter;
-//					Location location = new Location("d", startLink.getCoord().getX(), startLink.getCoord().getY());
-//				List<Leg> legs = tripRouter.calcRoute(
-//						"bike",
-//						location,
-//						endLink,
-//						coordsAndTime.get(4),
-//						null
-//				);
-
-//					LeastCostPathCalculator.Path path = this.getReplanner().pathCalculator.calcLeastCostPath(
-//							startNode,
-//							endNode,
-//							coordsAndTime.get(4),
-//							null,
-//							null
-//					);
-//				System.out.println("Aaaaaaaaaaaaaaaaaaaafter Path Calc");
-//				System.out.println("-                -          -              -        -");
-
-					// ToDo: Class cast exception?
-//				Vehicle vehicle;
-
-//				Id<Person> id = mobsimAgent.getId();
-
-//				Map<String, Id<Vehicle>> vehicleIds = VehicleUtils.getVehicleIds(person);
-
-//				if (vehicleIds != null && !vehicleIds.isEmpty()) {
-//					Id<Vehicle> vehicleId = vehicleIds.values().iterator().next();
-//					vehicle = scenario.getVehicles().getVehicles().get(vehicleId);
-
-
-//				}
-//					return path;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
