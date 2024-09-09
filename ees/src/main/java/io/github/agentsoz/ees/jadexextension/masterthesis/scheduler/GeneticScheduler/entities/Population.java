@@ -170,7 +170,7 @@ public class Population {
                 List<List<Number>> fitnessAndIndices = new ArrayList<>();
                 for (int i = 0; i < population.size(); i++) {
                     fitnessAndIndices.add(
-                            Arrays.asList(population.get(i).fitnessOld(), i)
+                            Arrays.asList(population.get(i).fitness(), i)
                     );
                 }
 
@@ -209,33 +209,12 @@ public class Population {
         try {
             if (this.population.size() > this.initialPopulationSize) {
 
-//                // sort and get best elements
-//                List<List<Number>> fitnessAndIndicesNewPop = new ArrayList<>();
-//                for (int i = 0; i < newPopulation.size(); i++) {
-//                    fitnessAndIndicesNewPop.add(
-//                            Arrays.asList(newPopulation.get(i).fitnessOld(), i)
-//                    );
-//                }
-//                List<List<Number>> sortedNewPop = fitnessAndIndicesNewPop.stream().sorted(Comparator.comparingDouble(a -> (Double) a.get(0))).collect(Collectors.toList());
-//                // fittest elements in the beginning
-//                Collections.reverse(sortedNewPop);
-//
-//                // get 75% of soorted pop
-//                int bestSize = (int) (newPopulation.size() * 0.75);
-//                List<Chromosome> newBest = new ArrayList<>();
-//                for (int i = 0; i < bestSize; i++) {
-//                    newBest.add(newPopulation.get((Integer) sortedNewPop.get(i).get(1)));
-//                }
-//
-//                population.addAll(newBest);
-//                this.newPopulation = new ArrayList<>();
-
                 // iterate over population calculate fitness and save result with index in new list
                 // List of List with [fitness, indexInPopulation]
                 List<List<Number>> fitnessAndIndices = new ArrayList<>();
                 for (int i = 0; i < population.size(); i++) {
                     fitnessAndIndices.add(
-                            Arrays.asList(population.get(i).fitnessOld(), i)
+                            Arrays.asList(population.get(i).fitness(), i)
                     );
                 }
 
@@ -244,10 +223,6 @@ public class Population {
                 List<List<Number>> sorted = fitnessAndIndices.stream().sorted(Comparator.comparingDouble(a -> (Double) a.get(0))).collect(Collectors.toList());
                 // fittest elements in the beginning
                 Collections.reverse(sorted);
-
-//                if (population.get(0).getCustomerChromosome().size() > 2) {
-//                    System.out.println(sorted.stream().map(t -> String.format("%.4f", t.get(0))).collect(Collectors.toList()));
-//                }
 
                 List<Chromosome> newPopulation = new ArrayList<>();
 
@@ -294,15 +269,6 @@ public class Population {
                     sorted.remove(newElem);
                 }
 
-
-                // population should be constantly with initialPopulationSize
-//                int currentSize = newPopulation.size();
-//                while (currentSize > initialPopulationSize) {
-//                    int randomIndex = random.nextInt(newPopulation.size());
-//                    newPopulation.remove(randomIndex);
-//                    currentSize = newPopulation.size();
-//                }
-
                 this.population = newPopulation;
             }
         } catch (Exception e) {
@@ -322,7 +288,6 @@ public class Population {
             int triedTimes = 0;
             int size = (int) (population.size() / 10.0);
             while (added != size && triedTimes < 2000) {
-//                System.out.println("Novelty");
                 Chromosome c = geneticUtils.create(customerGene, geneticUtils.generateChargingGenes());
                 if (representationSet.add(c.getRepresentation())) {
                     this.population.add(c);
@@ -348,7 +313,6 @@ public class Population {
             int mutateType = -1;
             while (added < amountNewElems && triedTimes < 5000) {
                 mutateType = (mutateType + 1) % 3;
-//                System.out.println("Mutation");
                 if (mutateType == 0 || mutateType == 1) {
                     if (population.get(0).getCustomerChromosome().size() > 1) {
                         // mutate either customer trip list or charging trip list

@@ -36,7 +36,7 @@ public class GreedySchedulerTest extends TestCase {
 
         Location currentVaLocation = new Location("", 0.0, 0.0);
 
-        scheduler = new GreedyScheduler(chargingStations, 0.4, null, null, null, null, "1", 0.0);
+        scheduler = new GreedyScheduler(chargingStations, 0.4, null, null, null, null, "1", 0.0, null);
 
         Trip trip1 = new Trip(
                 "1",
@@ -142,7 +142,8 @@ public class GreedySchedulerTest extends TestCase {
                 6.0,
                 600.0,
                 "AP001",
-                0.0
+                0.0,
+                null
         );
         List<Trip> tripsSzenario1 = new ArrayList<>();
         Trip trip1Szenario1 = new Trip(
@@ -186,7 +187,8 @@ public class GreedySchedulerTest extends TestCase {
                 6.0,
                 900.0,
                 "1",
-                0.0
+                0.0,
+                null
         );
         List<Trip> tripsSzenario1 = new ArrayList<>();
         Trip trip1Szenario1 = new Trip(

@@ -1,7 +1,5 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler;
 
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Trip;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 

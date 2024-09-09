@@ -57,7 +57,7 @@ public class GeneticScheduler {
                 List<Double> scoresArchive = new ArrayList<>();
                 for (int j = 0; j < iterations; j++) {
                     population.update();
-                    scoresArchive.add(population.getBestChromosome().fitnessOld());
+                    scoresArchive.add(population.getBestChromosome().fitness());
                 }
 
 //                int idx = scoresArchive.indexOf(scoresArchive.get(scoresArchive.size() - 1));
@@ -68,7 +68,7 @@ public class GeneticScheduler {
 //                writeScoresArchiveIntoFile(scoresArchive, tripsToSchedule.size());
 
                 Chromosome best = population.getBestChromosome();
-                scores.add(best.fitnessOld());
+                scores.add(best.fitness());
                 chromosomes.add(best);
             }
 

@@ -1,10 +1,8 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.GeneticScheduler.entities;
 
 import io.github.agentsoz.util.Location;
-import static io.github.agentsoz.ees.jadexextension.masterthesis.scheduler.SchedulerUtils.calculateTravelTime;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class Gene {
     private final String id;
@@ -26,15 +24,12 @@ public class Gene {
         this.config = config;
     }
 
-    // take type of trip into account
 
     public double distance(Gene gene) {
         try {
             if (end == null) {
-//                    Double test = getDrivingDistanceBetweenToNodes(start, gene.start, JadexModel.simulationtime);
                 return Location.distanceBetween(start, gene.start) * config.getDISTANCE_FACTOR();
             } else {
-//                    Double test = getDrivingDistanceBetweenToNodes(end, gene.start, JadexModel.simulationtime);
                 return Location.distanceBetween(end, gene.start) * config.getDISTANCE_FACTOR();
             }
         } catch (Exception e) {
@@ -69,26 +64,6 @@ public class Gene {
 
     public void setChargingTime(Double chargingTime) {
         this.chargingTime = chargingTime;
-    }
-
-    public Double calculateWaitingTime(List<Gene> otherGenes) {
-        try {
-            Gene agentGene = new Gene(null, config.getAgentLocation(), null, null, null, config);
-            Double waitingTime = calculateTravelTime(distance(agentGene), config.getDRIVING_SPEED());;
-            if (chargingTime == null) { return waitingTime; }
-            // travel time
-            for (Gene gene : otherGenes) {
-                waitingTime += calculateTravelTime(distance(gene), config.getDRIVING_SPEED());
-                if (gene.getChargingTime() != null) {
-                    waitingTime = gene.getChargingTime();
-                }
-            }
-            return waitingTime;
-        } catch (Exception e) {
-            System.out.println("Caught exception");
-            e.printStackTrace();
-            return 0.0;
-        }
     }
 
     public String getId() {

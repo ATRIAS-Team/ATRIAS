@@ -2,11 +2,12 @@
   <configuration default="false" name="Run" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../../Program Files/Java/jdk-11.0.13" />
     <envs>
-      <env name="runs" value="3" />
-      <env name="iters" value="60" />
-      <env name="scheduler_mode" value="GENETIC" />
-      <env name="theta" value="900" />
       <env name="cnp" value="true" />
+      <env name="iters" value="10" />
+      <env name="runs" value="5" />
+      <env name="scheduler_mode" value="GREEDY" />
+      <env name="theta" value="900" />
+      <env name="popsize" value="100" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run" />
     <module name="eeslib" />

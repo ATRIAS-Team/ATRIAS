@@ -22,6 +22,7 @@ public class Trip {
     public Location startPosition; // use this for trips with just one Geolocation
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
+    // @Tim
     public Double chargingTime;
 
     public LocalDateTime getBookingTime() {

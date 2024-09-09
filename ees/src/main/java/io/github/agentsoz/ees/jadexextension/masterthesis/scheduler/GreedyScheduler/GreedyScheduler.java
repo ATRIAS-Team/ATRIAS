@@ -78,93 +78,13 @@ public class GreedyScheduler {
      * @return List of scheduled trips
      */
     public List<Trip> greedySchedule(List<Trip> allTrips, Strategy strategy) {
-        Date startTime = new Date(System.currentTimeMillis());
         printerUtil.startScheduler(agentId, batteryLevel, this.simulationTime);
-//        System.out.println("TripList size: " +  allTrips.size() + " - " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
-
-        // ToDo: Is there a solution under all cirumstances? What happens if all rating results are 0? Is that possible?
-        // ToDo: Charging trip counter needs to be incremented for every inserted charging trip
-//        List<List<Trip>> permutations = getAllPermutations(allTrips);
-
-        List<Trip> lastSixElements;
-        if (allTrips.size() <= 6) {
-            lastSixElements = allTrips;
-        } else {
-            lastSixElements = allTrips.subList(allTrips.size() - 6, allTrips.size());
-        }
-
-        List<Trip> remaining = allTrips.subList(0, allTrips.size() - lastSixElements.size());
 
         boolean permutateCustomerTrips = true;
-        List<List<Trip>> permutations = getAllPermutationsWithOneOption(lastSixElements, permutateCustomerTrips);
+        List<List<Trip>> permutations = getAllPermutationsWithOneOption(allTrips, permutateCustomerTrips);
 
-        Double batteryAfterEndOfRemaining = getBatteryAfterEndOfRemaining(remaining);
-
-        List<Trip> result =  simpelScheduling(permutations, batteryAfterEndOfRemaining);
-        remaining.addAll(result);
-        return remaining;
-//        for (List<Trip> permutation: permutations) {
-//            System.out.println(permutation.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
-//        }
-
-//        try {
-//            List<Trip> res = fifoWithChargingTimes(allTrips);
-//            return res;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-
-//        System.out.println("Size of permutations: " + permutations.size() + " origin trip list: " + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
-
-//        MetricsValues metricsValues = getAllMetricsValuesForEachPermutation(permutations, strategy);
-
-//        System.out.println("(" + allTrips.stream().map(t -> t.getTripID()).collect(Collectors.toList()) + ") Finished calculating metrics...");
-        // Determine the minimum and maximum values for each metric. These are used for normalization right after.
-//        MinMaxMetricsValues minMaxMetricsValues = getMinMaxMetricsValues(metricsValues);
-//        List<List<Number>> normalizedMetricsValues = normalizeValues(metricsValues, minMaxMetricsValues);
-
-//        printerUtil.metrics(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
-//                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
-//                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
-
-        // ToDo: Optimize rating function
-
-//        List<Trip> result = gradualApproach(permutations, metricsValues);
-
-//        List<Double> ratings = rating(
-//                normalizedMetricsValues,
-//                metricsValues.getAllTripsWithCharingTimes(),
-//                metricsValues.getAllVaBreaksDownValues()
-//        );
-//        int idx = idx(ratings, metricsValues.getAllTripsWithCharingTimes());
-
-//        printerUtil.metricsOfIndex(idx, permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
-//                metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
-//                metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes());
-//        printerUtil.endScheduler(ratings);
-
-//        List<Trip> result = permutations.get(idx);
-
-//        System.out.println("IDs: " + result.stream().map(t -> t.getTripID()).collect(Collectors.toList()));
-
-        /**
-         * Kann genutzt werden, um die Ausgabe in eine CSV zu kopieren mit folgenden Spalten:
-         * IDs, ODR, Total Distance, MinBattery, BatteryAfterAllTrips, Stops, ChargingTimes, BatteryLevel, Rating
-         **/
-//         printerUtil.csv(permutations, metricsValues.getAllOdrValues(), metricsValues.getAllTotalDistances(),
-//                 metricsValues.getAllMinBatteryLevelValues(), metricsValues.getAllBatteryLevelValuesAfterAllTrips(),
-//                 metricsValues.getAllStopsValues(), metricsValues.getAllChargingTimes(), batteryLevel, ratings);
-
-//        System.out.println("End time with schedule time: " + ((new Date(System.currentTimeMillis()).getTime() - startTime.getTime()) / 1000) + " Permutations size: " + permutations.size());
-
-//        for (int i = 0; i < result.size(); i++) {
-//            if (isChargingTrip(result.get(i))) {
-//                result.get(i).tripID = "CH" + chargingTripCounter;
-//                chargingTripCounter++;
-//            }
-//        }
-//        return result;
+        List<Trip> result =  simpelScheduling(permutations, batteryLevel);
+        return result                                                                                                                                                                                                                                                                                                                                                    ;
     }
 
     private Double getBatteryAfterEndOfRemaining(List<Trip> remaining) {

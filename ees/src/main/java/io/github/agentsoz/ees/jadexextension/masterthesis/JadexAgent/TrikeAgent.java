@@ -118,6 +118,7 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public List<String> tripIDList = new ArrayList<>();
 
+    // @Tim
     @Belief
     public List<String> chargingTripIDList = new ArrayList<>();
 
@@ -178,19 +179,20 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
+    // @Tim - Adjusted
     Boolean CNP_ACTIVE = Boolean.parseBoolean(System.getenv("cnp"));
     Double THETA = Double.parseDouble(System.getenv("theta")); //allowed waiting time for customers.
     int ITERS = Integer.parseInt(System.getenv("iters")); //allowed waiting time for customers.
     int RUNS = Integer.parseInt(System.getenv("runs")); //allowed waiting time for customers.
     Boolean ALLOW_CUSTOMER_MISS = true; // customer will miss when delay > THETA
     Double DISTANCE_FACTOR = 3.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
+    String mode = System.getenv("scheduler_mode");
 
     Double CHARGING_THRESHOLD = 0.4; // Threshold to determine when a ChargingTrip should be generated
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
     public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33,5553197.70), new Location("", 476172.65,5552839.64),new Location("", 476482.10,5552799.06),new Location("", 476659.13,5553054.12),new Location("", 476787.10,5552696.95),new Location("", 476689.45,5552473.11),new Location("", 476405.41,5552489.17),new Location("", 476100.86,5552372.79));
-
 
 
     /**
@@ -394,7 +396,6 @@ public class TrikeAgent implements SendtoMATSIM{
 
     }
 
-    String mode = System.getenv("scheduler_mode");
     @Belief
     double timediff = JadexModel.simulationtime;
     long firstTime = System.currentTimeMillis();
@@ -1710,6 +1711,7 @@ public class TrikeAgent implements SendtoMATSIM{
         ExecuteTrips();
     }
 
+    // @Tim
     private LocalDateTime getCurrentSimulationTimeAsDate() {
         long secondsAfterMidnight = (long) JadexModel.simulationtime;
         // ToDo: Use correct date otherwise calculations in greedy scheduler are wrong
@@ -1739,7 +1741,7 @@ public class TrikeAgent implements SendtoMATSIM{
         return diff;
     };
 
-    // @Tim used booking time to deterimine if customer is missed
+    // @Tim used booking time to determine if customer is missed
     public boolean customerMissOld(Trip trip) {
         boolean isMissed = false;
         LocalDateTime vaTime = trip.getVATime();
