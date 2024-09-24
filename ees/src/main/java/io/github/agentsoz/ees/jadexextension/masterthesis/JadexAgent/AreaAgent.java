@@ -1,6 +1,6 @@
 /** AreaAgent
- *  Version: v0.4 (02.03.2024)
- *  changelog: cleaned for paper
+ *  Version: v0.5 (24.09.2024)
+ *  changelog: cleanup
  *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
@@ -9,7 +9,6 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrike
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
-import io.github.agentsoz.util.Location;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
@@ -20,13 +19,9 @@ import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.security.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,181 +50,118 @@ public class AreaAgent {
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
 
-    //TODO: Some kind of area AgentID needed for the comunication when more areaagents are used
+    @Belief
+    private List<Job> csvJobList = new ArrayList<>(); // job list for historic data
 
     @Belief
-    public List<Job> jobList1 = new ArrayList<>(); //Joblist for historic data
-
-    @Belief
-    public List<Job> jobList2 = new ArrayList<>(); //JobList for App data
+    private final List<Job> jobList = new ArrayList<>(); // job list for App data
 
     public LocatedAgentList locatedAgentList = new LocatedAgentList();
 
-    // TODO problably not used anymore, try to delete
-    // to check the number of agents that are assigned ID, when all of the agents receive their IDs, then they could start sending trips
-    @Belief
-    public static int NumberAgentAssignedID;
-    @Belief
-    public static List<String> NumberSimInputAssignedID = new ArrayList<>();
-
     boolean done;
-    long offset;
-    long milli;
 
     @Belief
-    private String areaAgentId = "area:0";
-    public String myTag = "area:0";
+    private final String areaAgentId = "area:0";
 
     /** The agent body. */
     @OnStart
-    public void body() throws ParserConfigurationException, IOException, SAXException {
+    private void body() {
 
         System.out.println("AreaAgent sucessfully started;");
         initJobs();
 
         IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
-        //agent.getId().getName() instead of 0
         agent.setTags(sid, areaAgentId);
         System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
-        /** ########*/
         bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
-        //bdiFeature.dispatchTopLevelGoal(new PrintTime1());
     }
-
-    @Goal (recur = true, recurdelay = 1000)
-    class PrintTime1 {
-        public PrintTime1() {
-        }
-    }
-
-    @Plan(trigger = @Trigger(goals = PrintTime1.class))
-    public void PrintTime() {
-        // when receive result from other agents, the plan somehow
-        //TODO need time from MATSim
-        System.out.println(JadexModel.simulationtime);
-    }
-
 
     @Goal (recur = true, recurdelay = 3000)
-    class CheckNumberAgentAssignedID {
-        public CheckNumberAgentAssignedID() {
-        }
-    }
+    class CheckNumberAgentAssignedID {}
 
     @Plan(trigger = @Trigger(goals = CheckNumberAgentAssignedID.class))
-    public void PrintActiveAgent() {
-        // when receive result from other agents, the plan somehow
-        //TODO need time from MATSim
-        if (TrikeMain.TrikeAgentNumber== JadexModel.TrikeAgentnumber)
-            if (done == false) {
+    private void dispatchDistributionGoal() {
+        if (TrikeMain.TrikeAgentNumber == JadexModel.TrikeAgentnumber)
+            if (!done) {
                 done = true;
-                bdiFeature.dispatchTopLevelGoal(new MaintainDistributeJobs());
+                bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
+                bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
             }
     }
 
-    @Goal(recur = true, recurdelay = 1000 )
-    class MaintainDistributeJobs
+    @Goal(recur = true, recurdelay = 500 )
+    class MaintainDistributeFirebaseJobs
     {
-        //Compare time with matsim and send only if simulationtiem > booking time
-        //bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
         @GoalMaintainCondition
-        boolean jobListNotEmpty(){
-            return jobList1.isEmpty();
+        boolean isListEmpty(){
+            return jobList.isEmpty();
         }
     }
-
-    @Plan(trigger=@Trigger(goals=MaintainDistributeJobs.class))
-    private void SendJob()
+    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
+    private void SendFirebaseJob()
     {
-        sendJobToAgent();
+        sendJobToAgent(jobList);
     }
 
-    public void sendJobToAgent(){
-        // sending data to specific TrikeAgent by calling its serviceTag
-        //TODO: get time from Matsim and send only when >= bookingTime
-        //TODO: time format of matsim like 43220.0 how to compare?
-        //System.out.println(JadexModel.simulationtime);
-        //TODO: run multiple times till jobList is empty
+    @Goal(recur = true, recurdelay = 500 )
+    class MaintainDistributeCSVJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return csvJobList.isEmpty();
+        }
+    }
 
-        while(!jobList1.isEmpty()) {
-            milli = jobList1.get(0).getbookingTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            boolean isReady = milli - offset <= JadexModel.simulationtime * 1000;
-            //System.out.println("job time: " + (milli - offset) / 1000);
-            //System.out.println("sim time: " + JadexModel.simulationtime);
-            if(!isReady) break;
+    @Plan(trigger=@Trigger(goals=MaintainDistributeCSVJobs.class))
+    private void SendCSVJob()
+    {
+        sendJobToAgent(csvJobList);
+    }
 
-            // local platform, for remote use GLOBAL    //# Service Baustein
-            //System.out.println("locatedAgentList size: " + locatedAgentList.size());
+    /**
+     * sending data to specific TrikeAgent by calling its serviceTag
+     */
+    private void sendJobToAgent(List<Job> jobList){
+        //  current job
+        Job job = jobList.get(0);
 
-            Job toHandle = jobList1.get(0);
+        //  convert
+        LocalTime simTime = LocalTime.MIDNIGHT
+                .withMinute((int) Math.floor((JadexModel.simulationtime % 3600) / 60))
+                .withHour((int) Math.floor(JadexModel.simulationtime / 3600));
 
-            String closestAgent = locatedAgentList.calculateClosestLocatedAgent(toHandle.getStartPosition());
+        LocalDateTime simDateTime = LocalDateTime.of(LocalDate.now(), simTime);
+        if(!job.getbookingTime().isBefore(simDateTime)) return;
 
-            if (closestAgent.equals("NoAgentsLocated")){
-                System.out.println("ERROR: No Agent located at this AreaAgent");
-            }
-            else{
-                //message creation
-                MessageContent messageContent = new MessageContent("", toHandle.toArrayList());
-                //String timeStampBooked = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.ms").format(new java.util.Date());
-                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                System.out.println("START Negotiation - JobID: " + toHandle.getID() + " TimeStamp: "+ timeStampBooked);
-                Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
-
-                IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
-                service.trikeReceiveJob(message.serialize());
-
-                //remove job from list
-                jobList1.remove(0);
-                System.out.println("AREA AGENT: JOB was SENT");
-            }
+        String closestAgent = locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
+        if (closestAgent.equals("NoAgentsLocated")){
+            System.out.println("ERROR: No Agent located at this AreaAgent");
+        }
+        else{
+            //message creation
+            MessageContent messageContent = new MessageContent("", job.toArrayList());
+            LocalTime bookingTime = LocalTime.now();
+            System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
+            Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
+            IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
+            service.trikeReceiveJob(message.serialize());
+            //remove job from list
+            jobList.remove(0);
+            System.out.println("AREA AGENT: JOB was SENT");
         }
     }
 
 
-
-    public void initJobs() throws ParserConfigurationException, IOException, SAXException {
-        String csvFilePath = "data.csv";
-        String jsonFilePath = "output.json";
+    private void initJobs() {
+        String csvFilePath = "ees/data-utm-1000.csv";
         char delimiter = ';';
 
-        //parse csv and create json output
-        JSONParser.csvToJSON(csvFilePath, jsonFilePath, delimiter);
-
         System.out.println("parse json from file:");
-        jobList1 = Job.JSONFileToJobs("output.json");
+        csvJobList = Job.csvToJobs(csvFilePath, delimiter);
 
-        for (Job job: jobList1) {
+        for (Job job: csvJobList) {
             System.out.println(job.getID());
         }
-
-        //  jobs directly from json
-        System.out.println("parse json from app:");
-
-        //jobList2 = Job.JSONToJobs("");
-
-        for (Job job: jobList2) {
-            System.out.println(job.getID());
-        }
-
-     /*
-     // parse simulation start time
-     Document document = new XMLParser(("C:\\Users\\Mahkamjon\\Desktop\\ees\\ees\\scenarios\\mount-alexander-shire\\maldon-example\\ees.xml")).getDocument();
-     Element globalElement = (Element) document.getElementsByTagName("global").item(0);
-     String[] timeArr = globalElement.getElementsByTagName("opt").item(2)
-             .getTextContent()
-             .split(":");
-     int hour = Integer.parseInt(timeArr[0]);
-     int minute = Integer.parseInt(timeArr[1]);
-
-    */
-
-        offset = jobList1.get(0).getbookingTime()
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 }
