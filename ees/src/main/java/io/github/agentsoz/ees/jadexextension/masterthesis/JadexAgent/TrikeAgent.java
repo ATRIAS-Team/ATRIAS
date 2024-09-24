@@ -1,10 +1,3 @@
-/* TrikeAgnet.java
- * Version: v0.12 (03.03.2024)
- * changelog: terminate tripList
- * @Author Marcel (agent logic), Thu (BDI-ABM sync), Oemer (customer miss)
- *
- *
- */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
@@ -21,11 +14,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.util.Location;
-import io.github.agentsoz.util.Time;
-import jadex.bdiv3.runtime.IPlan;
-import jadex.commons.future.IFuture;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -43,8 +32,6 @@ import jadex.bridge.service.search.ServiceQuery;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
@@ -78,29 +65,24 @@ public class TrikeAgent implements SendtoMATSIM{
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
 
-    @Belief
-    //  public List <String> resultfromMATSIM = Arrays.asList("false");
-    public String resultfromMATSIM = "false";
-
     // to indicate if the agent is available to take the new ride
     @Belief
-    public boolean activestatus;
-    //ATTENTION @Mariam
-    //IMPORTANT! right now location will be set after the first drive operation
+    public volatile boolean isMatsimFree;
     @Belief
-    //vorher private wegen Battery moveToTarget public gemacht -oemer
-    public Location agentLocation; // position of the agent TODO: init location with start location from matsim
-    //todo: delete when replaced with decisionTaskList
+    public boolean isExecuting = false;
+
     @Belief
-    public List<Job> jobList = new ArrayList<>();
+    public Location agentLocation;
+
     @Belief
     public List<DecisionTask> decisionTaskList = new ArrayList<>();
 
     @Belief
     public List<DecisionTask> FinishedDecisionTaskList = new ArrayList<>();
 
-    @Belief    //contains all the trips
-    public List<Trip> tripList = new ArrayList<>();
+    @Belief
+    public List<Trip> tripList = new ArrayList<>(); //contains all the trips
+
     @Belief
     public List<String> tripIDList = new ArrayList<>();
 
@@ -120,8 +102,6 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public String write = null;
 
-
-
     public Integer chargingTripCounter = 0;
 
     @Belief
@@ -133,35 +113,17 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public List<Double> estimateBatteryAfterTIP = Arrays.asList(trikeBattery.getMyChargestate());
 
-
-
-
-
-
-
-
-
-    /**
-     * Every DecisionTask with a score equal or higher will be commited
-     * todo: should be initialized from a configFile()
-     */
-
-
-    public boolean informSimInput = false;
+    public volatile boolean informSimInput = false;
 
     public String currentSimInputBroker;
     private SimActuator SimActuator;
-
-    //test variables
-    //test variables
-    public boolean isModified = false;
 
     @Belief
     public String chargingTripAvailable = "0"; //Battery -oemer
 
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
-    Boolean CNP_ACTIVE = true;
+    Boolean CNP_ACTIVE = false;
     Double THETA = 600.0; //allowed waiting time for customers.
     Boolean ALLOW_CUSTOMER_MISS = true; // customer will miss when delay > THETA
     Double DISTANCE_FACTOR = 3.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
@@ -183,29 +145,12 @@ public class TrikeAgent implements SendtoMATSIM{
         SimActuator = new SimActuator();
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
         AddAgentNametoAgentList(); // to get an AgentID later
-        activestatus = true;
+        isMatsimFree = true;
         bdiFeature.dispatchTopLevelGoal(new ReactoAgentIDAdded());
-        bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs()); //evtl löschen
+        bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
         bdiFeature.dispatchTopLevelGoal(new TimeTest());
-
-        // bdiFeature.dispatchTopLevelGoal(new AchieveMoveTo()); //Battery -oemer
-
-
-        //sendMessage("area:0", "request", "");
-
-        //csvLogger csvLogger;// = new csvLogger(agentID);
-    }
-
-    @Goal(recur=true, recurdelay=1000) //in ms
-    class ManageFlutter {
-    }
-
-    @Plan(trigger=@Trigger(goals=ManageFlutter.class))
-    private void WriteFlutter()
-    {
-        /** TODO: @Mariam look for open questions in the firebase database and write answers into it
-         *
-         */
+        bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
+        bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
     }
 
     /**
@@ -223,27 +168,6 @@ public class TrikeAgent implements SendtoMATSIM{
         Status();
     }
 
-    @Belief
-    public boolean erzeugt = false;
-
-
-    @Goal(recur = true, recurdelay = 300)
-    class testGoal {
-        @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
-        public testGoal() {
-        }
-
-        //@GoalTargetCondition
-        //boolean senttoMATSIM() {
-        //    return (erzeugt == true);
-        //}
-    }
-
-    @Plan(trigger = @Trigger(goalfinisheds = testGoal.class))
-    public void testPlan() {
-        erzeugt = true;
-    }
-
     @Goal(recur = true, recurdelay = 100)
     public class MaintainBatteryLoaded {
         @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
@@ -256,8 +180,6 @@ public class TrikeAgent implements SendtoMATSIM{
         {
             if (estimateBatteryAfterTIP.get(0) < CHARGING_THRESHOLD && chargingTripAvailable.equals("0")){
                 //estimateBatteryAfterTIP();
-                //Location LocationCh = new Location("", 476530.26535798033, 5552438.979076344);
-                //Location LocationCh = new Location("", 476224.26535798033, 5552487.979076344);
                 chargingTripCounter+=1;
                 String tripID = "CH";
                 tripID = tripID.concat(Integer.toString(chargingTripCounter));
@@ -289,286 +211,227 @@ public class TrikeAgent implements SendtoMATSIM{
             }
         }
 
-
-        //}
-
         return ChargingStation;
     }
 
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-
-    @Goal(recur=true, recurdelay=1000) //standard = 1000
+    @Goal(recur=true, recurdelay=1000)
     class MaintainManageJobs
     {
-        @GoalMaintainCondition	// The cleaner aims to maintain the following expression, i.e. act to restore the condition, whenever it changes to false.
-        boolean jobListEmpty()
+        @GoalMaintainCondition
+        boolean isDecisionEmpty()
         {
-            return decisionTaskList.size()==0; // Everything is fine as long as the charge state is above 20%, otherwise the cleaner needs to recharge.
+            return decisionTaskList.isEmpty();
         }
     }
 
     @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
     private void EvaluateDecisionTask()
     {
-
-        /**
-         * agentID
-         * TODO: @Mariam Trike will commit a Trip here. write into firebase
-         */
-
-        //TODO: zwischenschritte (visio) fehlen utilliy usw.
-        //tripIDList.add("1");
-        //jobList.remove(0);
-        //}
-
-
-
-
-        /**
-         * todo: will replace solution above
-         */
-        if (decisionTaskList.size()>0) {
-            //System.out.println("EvaluateDecisionTask: new Version");
-            boolean finishedForNow = false;
-            while (finishedForNow == false) {
-                Integer changes = 0;
-                for (int i = 0; i < decisionTaskList.size(); i++) {
-                    Integer currentChanges = selectNextAction(i);
-
-
-
-                    //progress abgreifen
-                    // funktion aufrufen
-                    //finished decisiontask List anlegen?
-                    //wenn durchlauf ohen Änderungen finishedForNow = true
-                    changes += currentChanges;
-                }
-                if(changes==0){
-                    finishedForNow = true;
-                }
+        boolean finishedForNow = false;
+        while (!finishedForNow) {
+            Integer changes = 0;
+            for (int i = 0; i < decisionTaskList.size(); i++) {
+                Integer currentChanges = selectNextAction(i);
+                //progress abgreifen
+                // funktion aufrufen
+                //finished decisiontask List anlegen?
+                //wenn durchlauf ohen Änderungen finishedForNow = true
+                changes += currentChanges;
             }
-
-            /**
-             Trip newTrip = new Trip(jobToTrip.getID(), "CustomerTrip", jobToTrip.getVATime(), jobToTrip.getStartPosition(), jobToTrip.getEndPosition(), "NotStarted");
-             //TODO: create a unique tripID
-             tripList.add(newTrip);
-
-             // TEST MESSAGE DELETE LATER
-             sendTestAreaAgentUpdate();
-             //
-             /**
-             * agentID
-             * TODO: @Mariam Trike will commit a Trip here. write into firebase
-             */
-
-            /**
-
-             //TODO: zwischenschritte (visio) fehlen utilliy usw.
-             tripIDList.add("1");
-             jobList.remove(0);
-             */
-
-
+            if(changes==0){
+                finishedForNow = true;
+            }
         }
-
     }
 
-    public Integer selectNextAction(Integer position){
-        Integer changes = 0;
-        if (decisionTaskList.get(position).getStatus().equals("new")){
-            /**
-             *  Execute Utillity here > "commit"|"delegate"
-             */
-            Double ownScore = calculateUtility(decisionTaskList.get(position));
-            //ownScore = 0.0; //todo: delete this line after the implementation of the cnp
-            decisionTaskList.get(position).setUtillityScore(agentID, ownScore);
-            if (ownScore < commitThreshold && CNP_ACTIVE){
-                decisionTaskList.get(position).setStatus("delegate");
-            }
-            else{
-                decisionTaskList.get(position).setStatus("commit");
-                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: "+ timeStampBooked);
-            }
+    public Integer selectNextAction(int index){
+        int changes = 0;
+        DecisionTask currentDecisionTask = decisionTaskList.get(index);
 
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("commit")){
-            /**
-             *  create trip here
-             */
-            DecisionTask dTaToTrip = decisionTaskList.get(position);
-            Trip newTrip = new Trip(decisionTaskList.get(position), dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
-            //TODO: create a unique tripID
-            tripList.add(newTrip);
-            tripIDList.add("1");
-            estimateBatteryAfterTIP();
+        switch (currentDecisionTask.getStatus()) {
+            case "new": {
+                //  Execute Utillity here > "commit"|"delegate"
 
-            decisionTaskList.get(position).setStatus("committed");
-            FinishedDecisionTaskList.add(dTaToTrip);
-            //decisionTaskList.remove(position); //geht nicht! warum? extra methode testen
-            decisionTaskList.remove(position.intValue()); //geht nicht! warum? extra methode testen
-
-
-            //decisionTaskList.remove(0);
-
-            // TEST MESSAGE DELETE LATER //TODO: unsed Code from Mahkam
-            //sendTestAreaAgentUpdate();
-            //
-            /**
-             * agentID
-             * TODO: @Mariam Trike will commit a Trip here. write into firebase
-             */
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("delegate")){
-            /**
-             *  start cnp here > "waitingForNeighbourlist"
-             */
-            //TODO: neighbour request here
-            //TODO: adapt
-            // TEST MESSAGE DELETE LATER
-            //bool makes sure that the methods below are called only once
-
-            ArrayList<String> values = new ArrayList<>();
-            values.add(decisionTaskList.get(position).getJobID()); //todo move into a method
-            decisionTaskList.get(position).setStatus("waitingForNeighbours");
-            sendMessage("area:0", "request", "callForNeighbours", values);
-
-            //sendTestAreaAgentUpdate();
-            //testTrikeToTrikeService();
-            //testAskForNeighbours();
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForCFP")){
-            /**
-             *  send cfp> "waitingForProposals"
-             */
-            Job JobForCFP = decisionTaskList.get(position).getJob();
-            ArrayList<String> neighbourIDs = decisionTaskList.get(position).getNeighbourIDs();
-            for( int i=0; i<neighbourIDs.size(); i++){
-                //todo: klären message pro nachbar evtl mit user:
-                //todo: action values definieren
-                // values: gesammterJob evtl. bereits in area zu triek so vorhanden?
-                //sendMessageToTrike(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
-                testTrikeToTrikeService(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
-            }
-
-
-            decisionTaskList.get(position).setStatus("waitingForProposals");
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForProposals")){
-            //todo: überprüfen ob bereits alle gebote erhalten
-            // falls ja ("readyForDecision")
-            //todo:
-            if (decisionTaskList.get(position).testAllProposalsReceived() == true){
-                //System.out.println("");
-                decisionTaskList.get(position).setStatus("readyForDecision");
-            }
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForDecision")){
-            /**
-             *  send agree/cancel > "waitingForConfirmations"
-             */
-            decisionTaskList.get(position).tagBestScore(agentID);
-            for (int i=0; i<decisionTaskList.get(position).getUTScoreList().size(); i++){
-                String bidderID = decisionTaskList.get(position).getUTScoreList().get(i).getBidderID();
-                String tag = decisionTaskList.get(position).getUTScoreList().get(i).getTag();
-                if(tag.equals("AcceptProposal")){
-                    ArrayList<String> values = new ArrayList<>();
-                    values.add(decisionTaskList.get(position).getJobID());
-                    testTrikeToTrikeService(bidderID, tag, tag, values);
-                    decisionTaskList.get(position).setStatus("waitingForConfirmations");
-                }
-                else if(tag.equals("RejectProposal")){
-                    ArrayList<String> values = new ArrayList<>();
-                    values.add(decisionTaskList.get(position).getJobID());
-                    testTrikeToTrikeService(bidderID, tag, tag, values);
-                }
-                else if(tag.equals("AcceptSelf")){
-                    //todo: selbst zusagen
-                    decisionTaskList.get(position).setStatus("commit");
+                Double ownScore = calculateUtility(currentDecisionTask);
+                currentDecisionTask.setUtillityScore(agentID, ownScore);
+                if (ownScore < commitThreshold && CNP_ACTIVE) {
+                    currentDecisionTask.setStatus("delegate");
+                } else {
+                    currentDecisionTask.setStatus("commit");
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                    System.out.println("FINISHED Negotiation - JobID: " + decisionTaskList.get(position).getJobID() + " TimeStamp: "+ timeStampBooked);
-
-
+                    System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
                 }
-                else{
-                    //todo: print ungültiger tag
-                    System.out.println(agentID + ": invalid UTScoretag");
-                }
-                decisionTaskList.get(position).getUTScoreList();
-
+                changes += 1;
+                break;
             }
-            //decisionTaskList.get(position).setStatus("waitingForConfirmations");
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("readyForConfirmation")){
-            /**
-             *  send bid > "commit"
-             */
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("proposed")){
-            /**
-             *  send bid > "waitingForManager"
-             */
-            Double ownScore = calculateUtility(decisionTaskList.get(position));
-            //todo: eigene utillity speichern
-            // send bid
-            // ursprung des proposed job bestimmen
-            ArrayList<String> values = new ArrayList<>();
+            case "commit": {
+                //  create trip here
 
-            values.add(decisionTaskList.get(position).getJobID());
-            values.add("#");
-            values.add(String.valueOf(ownScore));
+                DecisionTask dTaToTrip = currentDecisionTask;
+                Trip newTrip = new Trip(currentDecisionTask, dTaToTrip.getIDFromJob(), "CustomerTrip", dTaToTrip.getVATimeFromJob(), dTaToTrip.getStartPositionFromJob(), dTaToTrip.getEndPositionFromJob(), "NotStarted");
+                //TODO: create a unique tripID
+                tripList.add(newTrip);
+                tripIDList.add("1");
+                estimateBatteryAfterTIP();
 
-            //zb. values = jobid # score
-            testTrikeToTrikeService(decisionTaskList.get(position).getOrigin(), "Propose", "Propose", values);
-            decisionTaskList.get(position).setStatus("waitingForManager");
+                currentDecisionTask.setStatus("committed");
+                FinishedDecisionTaskList.add(dTaToTrip);
+                decisionTaskList.remove(index);
+                changes += 1;
+                break;
+            }
+            case "delegate": {
+                // start cnp here > "waitingForNeighbourlist"
+                //TODO: neighbour request here
+                //TODO: adapt
+                // TEST MESSAGE DELETE LATER
+                //bool makes sure that the methods below are called only once
 
-            changes += 1;
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("notAssigned")){
-            //todo in erledigt verschieben
-            FinishedDecisionTaskList.add(decisionTaskList.get(position));
-            decisionTaskList.remove(position.intValue());
+                ArrayList<String> values = new ArrayList<>();
+                values.add(currentDecisionTask.getJobID()); //todo move into a method
+                decisionTaskList.get(index).setStatus("waitingForNeighbours");
+                sendMessage("area:0", "request", "callForNeighbours", values);
 
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForConfirmations")){
-            //todo: test timeout here
-            // just a temporary solution for the paper
-            // workaround for the not workign confirmation
-            decisionTaskList.get(position).setStatus("delegated"); //todo: not shure if this is working corect
-            FinishedDecisionTaskList.add(decisionTaskList.get(position)); //todo: not shure if this is working corect
-            decisionTaskList.remove(position.intValue());//todo: not shure if this is working corect
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("waitingForManager")){
-            //todo: test timeout here
-        }
-        else if (decisionTaskList.get(position).getStatus().equals("committed")){
-            System.out.println("should not exist: " + decisionTaskList.get(position).getStatus());
-            //decisionTaskList.remove(0);
-        }
-        else {
-            //System.out.println("invalid status: " + decisionTaskList.get(position).getStatus());
+                //sendTestAreaAgentUpdate();
+                //testTrikeToTrikeService();
+                //testAskForNeighbours();
+                changes += 1;
+                break;
+            }
+            case "readyForCFP": {
+                /**
+                 *  send cfp> "waitingForProposals"
+                 */
+                Job JobForCFP = currentDecisionTask.getJob();
+                ArrayList<String> neighbourIDs = currentDecisionTask.getNeighbourIDs();
+                for (int i = 0; i < neighbourIDs.size(); i++) {
+                    //todo: klären message pro nachbar evtl mit user:
+                    //todo: action values definieren
+                    // values: gesammterJob evtl. bereits in area zu triek so vorhanden?
+                    //sendMessageToTrike(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
+                    testTrikeToTrikeService(neighbourIDs.get(i), "CallForProposal", "CallForProposal", JobForCFP.toArrayList());
+                }
+
+                currentDecisionTask.setStatus("waitingForProposals");
+                changes += 1;
+                break;
+            }
+            case "waitingForProposals": {
+                //todo: überprüfen ob bereits alle gebote erhalten
+                // falls ja ("readyForDecision")
+                //todo:
+                if (currentDecisionTask.testAllProposalsReceived()) {
+                    decisionTaskList.get(index).setStatus("readyForDecision");
+                }
+                break;
+            }
+            case "readyForDecision": {
+                /**
+                 *  send agree/cancel > "waitingForConfirmations"
+                 */
+                currentDecisionTask.tagBestScore(agentID);
+                for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
+                    String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
+                    String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
+                    switch (tag) {
+                        case "AcceptProposal": {
+                            ArrayList values = new ArrayList<>();
+                            values.add(currentDecisionTask.getJobID());
+                            testTrikeToTrikeService(bidderID, tag, tag, values);
+                            currentDecisionTask.setStatus("waitingForConfirmations");
+                            break;
+                        }
+                        case "RejectProposal": {
+                            ArrayList values = new ArrayList<>();
+                            values.add(currentDecisionTask.getJobID());
+                            testTrikeToTrikeService(bidderID, tag, tag, values);
+                            break;
+                        }
+                        case "AcceptSelf": {
+                            //todo: selbst zusagen
+                            currentDecisionTask.setStatus("commit");
+                            String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+                            System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+                            break;
+                        }
+                        default: {
+                            //todo: print ungültiger tag
+                            System.out.println(agentID + ": invalid UTScoretag");
+                            break;
+                        }
+                    }
+                }
+                changes += 1;
+                break;
+            }
+            case "readyForConfirmation": {
+                /**
+                 *  send bid > "commit"
+                 */
+                changes += 1;
+                break;
+            }
+            case "proposed": {
+                /**
+                 *  send bid > "waitingForManager"
+                 */
+                Double ownScore = calculateUtility(currentDecisionTask);
+                //todo: eigene utillity speichern
+                // send bid
+                // ursprung des proposed job bestimmen
+                ArrayList<String> values = new ArrayList<>();
+
+                values.add(currentDecisionTask.getJobID());
+                values.add("#");
+                values.add(String.valueOf(ownScore));
+
+                //zb. values = jobid # score
+                testTrikeToTrikeService(currentDecisionTask.getOrigin(), "Propose", "Propose", values);
+                currentDecisionTask.setStatus("waitingForManager");
+
+                changes += 1;
+                break;
+            }
+            case "notAssigned": {
+                //todo in erledigt verschieben
+                FinishedDecisionTaskList.add(currentDecisionTask);
+                decisionTaskList.remove(index);
+                break;
+            }
+            case "waitingForConfirmations": {
+                //todo: test timeout here
+                // just a temporary solution for the paper
+                // workaround for the not workign confirmation
+                currentDecisionTask.setStatus("delegated"); //todo: not shure if this is working corect
+                FinishedDecisionTaskList.add(currentDecisionTask); //todo: not shure if this is working corect
+                decisionTaskList.remove(index);//todo: not shure if this is working corect
+                break;
+            }
+            case "waitingForManager": {
+                //todo: test timeout here
+                break;
+            }
+            case "committed":{
+                System.out.println("should not exist: " + decisionTaskList.get(index).getStatus());
+                //decisionTaskList.remove(0);
+                break;
+            }
+            default: {
+                //System.out.println("invalid status: " + decisionTaskList.get(position).getStatus());
+                break;
+            }
         }
         return changes;
     }
-
-
 
 
     public Double timeInSeconds(LocalDateTime time) {
         // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
 
         double vaTimeSec = time.atZone(ZoneId.systemDefault()).toEpochSecond();
-        //double vaTimeMilli = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        //double vaTimeSec2 = vaTimeMilli/1000;
-        //double vaTimeMin = vaTimeMilli/1000/60;
         return vaTimeSec;
     }
 
@@ -578,7 +441,7 @@ public class TrikeAgent implements SendtoMATSIM{
         if (tripList.size()>0){
             lastTrip = tripList.get(tripList.size()-1);
         }
-        else if (tripList.size()==0 && currentTrip.size()>0){
+        else if (currentTrip.size()>0){
             lastTrip = currentTrip.get(currentTrip.size()-1);
 
         }
@@ -856,8 +719,6 @@ public class TrikeAgent implements SendtoMATSIM{
         return utillityScore;
     }
 
-
-
     //estimates the batteryLevel after all Trips. Calculations a based on aerial line x1.5
     public Double estimateBatteryAfterTIP(){
         Double batteryChargeAfterTIP = trikeBattery.getMyChargestate();
@@ -918,21 +779,15 @@ public class TrikeAgent implements SendtoMATSIM{
 
     /**
      *  MaintainTripService former SendDrivetoTooutAdc
-     *
      *  desired behavior:
      *  start: when new trip is generated
-
      */
-
     @Goal(recur = true, recurdelay = 300)
     class MaintainTripService {
-        @GoalCreationCondition(factadded = "tripIDList") //
-        public MaintainTripService() {
-        }
 
-        @GoalTargetCondition
-        boolean senttoMATSIM() {
-            return !(activestatus == false);
+        @GoalMaintainCondition
+        boolean sentToMATSIM() {
+            return !isMatsimFree && !isExecuting;
         }
     }
 
@@ -940,18 +795,11 @@ public class TrikeAgent implements SendtoMATSIM{
      * DoNextTrip() former PlansendDriveTotoOutAdc()
      */
     ///**
-    @Plan(trigger = @Trigger(goalfinisheds = MaintainTripService.class))
+    @Plan(trigger = @Trigger(goals = MaintainTripService.class))
     public void DoNextTrip() {
-        System.out.println( "New trip is added to agent " +agentID + " : Trip "+ tripIDList.get(tripIDList.size()-1));
-        if (activestatus == true){
-            if(currentTrip.size() == 0){
-                ExecuteTrips();
-                activestatus = false;
-            }
-
-            //TODO: when able to remove ExecuteTrips from Sensory update the following lines are necessary
-            //remove its agentID from the ActiveList of its SimSensoryInputBroker
-            // updateAtInputBroker();
+        if(!tripList.isEmpty() || !currentTrip.isEmpty()){
+            ExecuteTrips();
+            isExecuting = false;
         }
     }
 
@@ -974,7 +822,7 @@ public class TrikeAgent implements SendtoMATSIM{
         if (agentID != null) // only react if the agentID exists
         {
             if (SimIDMapper.NumberSimInputAssignedID.size() == JadexModel.SimSensoryInputBrokernumber) // to make sure all SimInputBroker also receives its ID so vehicle agent could choose one SimInputBroker ID to register
-                if (sent == false) { // to make sure the following part only executed once
+                if (!sent) { // to make sure the following part only executed once
                     sent = true;
                     System.out.println("The agentid assigned for this vehicle agent is " + this.agentID);
                     // setTag for itself to receive direct communication from SimSensoryInputBroker when service INotifyService is used.
@@ -1149,56 +997,26 @@ public class TrikeAgent implements SendtoMATSIM{
     @Goal(recur = true,recurdelay = 300)
     class PerformSIMReceive {
         // Goal should be triggered when the simPerceptList or simActionList are triggered
-        @GoalCreationCondition(beliefs = "resultfromMATSIM") //
-        public PerformSIMReceive() {
-        }
-        @GoalTargetCondition
-        boolean	PerceptorContentnotEmpty()
+        @GoalMaintainCondition
+        boolean	ListNotEmpty()
         {
-            return ( !(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty())|| (!(SimPerceptList.isEmpty()) && !(SimActionList.isEmpty())));
+            return SimPerceptList.isEmpty() && SimActionList.isEmpty();
         }
     }
 
-    @Plan(trigger = @Trigger(goalfinisheds = PerformSIMReceive.class))
+    @Plan(trigger = @Trigger(goals = PerformSIMReceive.class))
     public void SensoryUpdate() {
-        if (resultfromMATSIM.contains("true")) {
-            System.out.println(agentID +" receives information from MATSIM");
-            //optional loop to print the SimActionList and the SimPerceptList
-            //for (ActionContent actionContent : SimActionList) {
-            //System.out.println("The result of action "+ actionContent.getAction_type()+ " for agent "+ agentID+ " is " + actionContent.getState());
-            //         System.out.println("An example of a parameter in SimactionList of agent "+agentID +"is " + actionContent.getParameters()[0]);
-            //}
-            //for (PerceptContent perceptContent : SimPerceptList) {
-            //  System.out.println("agent " +agentID +"receive percepts in SimPerceptList" );
-            //}
-            // reset for the next iteration
-            setResultfromMASIM("false");
-        }
         currentTripStatus();
-        //updateBeliefAfterAction();
-        if (informSimInput == false) //make sure it only sent once per iteration
+        if (!informSimInput) //make sure it only sent once per iteration
         {   informSimInput = true;
-            if (activestatus == true && (!(SimPerceptList.isEmpty()) || !(SimActionList.isEmpty()))) {
+            System.out.println(tripList);
+            if (isMatsimFree && !currentTrip.isEmpty()) {
                 for (ActionContent actionContent : SimActionList) {
                     if (actionContent.getAction_type().equals("drive_to")) {
                         System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
                         System.out.println("AgentID: " + agentID + actionContent.getParameters()[0]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[1]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[2]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[3]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[4]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[5]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[6]);
-                        //System.out.println("AgentID: " + agentID + actionContent.getParameters()[7]);
-
-
                         updateBeliefAfterAction();
-                        //TODO: ExecuteTrips should not be executes here, violates our VISIO diagram!
-                        ExecuteTrips();
-                        //tripIDList.add("0"); // TODO: this is an alternative for ExecutesTrips but it will not work deterministic!
-                        //TODO: soemtimes teh agent will not execute all trips, further investigatin necessary
-                        //TODO: mostly the error relates in someway to the activestatus which will not change back to true
-                        //remove its agentID from the ActiveList of its SimSensoryInputBroker
+                        isExecuting = true;
                         updateAtInputBroker();
                     }
                 }
@@ -1330,10 +1148,6 @@ public class TrikeAgent implements SendtoMATSIM{
         System.out.println("AgentID: " + agentID + "ALL TRIPS TERMINATED");
     }
 
-    public void setResultfromMASIM(String Result) {
-        this.resultfromMATSIM = Result;
-    }
-
     public void AddAgentNametoAgentList()
     {
         SimIDMapper.TrikeAgentNameList.add(agent.getId().getName());
@@ -1347,12 +1161,6 @@ public class TrikeAgent implements SendtoMATSIM{
     public void AddTripIDTripList(String ID)
     {
         tripIDList.add(ID);
-    }
-
-    //todo: remove for AddDecisionTask
-    public void AddJobToJobList(Job Job)
-    {
-        jobList.add(Job);
     }
 
     public void AddDecisionTask(DecisionTask decisionTask)
@@ -1443,7 +1251,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     void Status(){
         //if (agentID.equals("0")){
-        System.out.println("AgentID: " + agentID + " activestatus: " + activestatus);
+        System.out.println("AgentID: " + agentID + " activestatus: " + isMatsimFree);
         System.out.println("AgentID: " + agentID + " currentTrip.size: " + currentTrip.size());
         System.out.println("AgentID: " + agentID + " tripList.size: " + tripList.size());
         System.out.println("AgentID: " + agentID + " decisionTaskList.size: " + decisionTaskList.size());
@@ -1636,7 +1444,7 @@ public class TrikeAgent implements SendtoMATSIM{
         //added oemer
         Endparams[6] = sumLinkLength;
         SimActuator.getEnvironmentActionInterface().packageAction(agentID, "drive_to", Endparams, null);
-        activestatus = false; // to mark that this trike agent is not available to take new trip
+        isMatsimFree = false; // to mark that this trike agent is not available to take new trip
 
     }
 
@@ -1738,12 +1546,6 @@ public class TrikeAgent implements SendtoMATSIM{
 
     }
 
-    //  if isModified=true, then testTrikeToTrikeService worked properly
-    public void testModify(){
-        isModified = true;
-        System.out.println("isModified: " + isModified);
-
-    }
     //Battery -oemer
     public void setMyLocation(Location location) {
     }
@@ -1763,5 +1565,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     }
 
-
+    public void print(String str){
+        System.out.println(agentID + ": " + str);
+    }
 }

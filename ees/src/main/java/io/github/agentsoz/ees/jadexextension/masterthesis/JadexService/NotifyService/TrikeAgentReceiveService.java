@@ -29,21 +29,16 @@ public class TrikeAgentReceiveService implements INotifyService {
 
 	public void NotifyotherAgent(List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
 		// Reply if the message contains the keyword.
-		final TrikeAgent TrikeAgent = (io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
+		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 
-		TrikeAgent.setActionContentList(ActionContentList);
-		TrikeAgent.setPerceptContentList(PerceptContentList);
-		TrikeAgent.setResultfromMASIM("true");
-		TrikeAgent.informSimInput = false;
+		trikeAgent.setActionContentList(ActionContentList);
+		trikeAgent.setPerceptContentList(PerceptContentList);
+		trikeAgent.print("receives information from MATSIM");
+
+		trikeAgent.informSimInput = false;
 		if (activestatus)
 		{
-			TrikeAgent.activestatus = activestatus;
-			//todo: !!!
-			//TrikeAgent.currentTrip.get(0).setProgress("Finished"); //was ist das? angleichen mit meinem plan!
-			//TrikeAgent.tripIDList.add("0");
+			trikeAgent.isMatsimFree = true;
 		}
-
 	}
-
-
 }
