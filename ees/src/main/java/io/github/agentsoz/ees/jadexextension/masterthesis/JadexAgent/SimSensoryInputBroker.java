@@ -25,6 +25,7 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -102,7 +103,7 @@ public class SimSensoryInputBroker {
 	}
 
 	@Plan(trigger = @Trigger(goals = PerformCheckDatafromMATSIM.class))
-	private void performcheckDatafromMATSIM() {
+	private void performcheckDatafromMATSIM() throws IOException {
 
 		if (NewDatafromMATSIM == true) {
 			if (!JadexModel.answeredInputBroker.contains(SensoryInputID)) { // to check if its already answer JADEXModel after finishing in this iteration. if yes, not execute again in the iteration
@@ -158,6 +159,32 @@ public class SimSensoryInputBroker {
 							for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
 								INotifyService cs = iteration.next();
 								cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus); // assign data to vehicle agents via service
+
+								MyLogger logger = new MyLogger("inputbroker.txt", MyLogger.Status.INFO);
+								logger.info("Trike id: " + agentId);
+								logger.newLine();
+								if(ActionContentList.isEmpty()){
+									logger.info("ActionContentList: []");
+								}else{
+									logger.info("ActionContentList: ");
+									ActionContentList.forEach((simAction) ->
+										logger.info("Action type: " + simAction.getAction_type() + "; "
+												+ "Instance Id: " + simAction.getInstance_id()
+												+ "; " + "State: "  + simAction.getState().name() + ";"
+												+ "Params: "  + Arrays.toString(simAction.getParameters()))
+									);
+								}
+								logger.newLine();
+								if(PerceptContentList.isEmpty()){
+									logger.info("PerceptContentList: []");
+								}else{
+									logger.info("PerceptContentList:");
+									PerceptContentList.forEach((simPercept) -> logger.info("Percept type: " + simPercept.getPercept_type() + "; "
+											+ "Value: " + simPercept.getValue()
+											+ "; " + "Params: "  + Arrays.toString(simPercept.getParameters())));
+								}
+								logger.info("#########################################################");
+								logger.close();
 							}
 
 						}

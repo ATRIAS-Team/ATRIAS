@@ -15,6 +15,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.util.Location;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -52,6 +53,168 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.Ar
 })
 
 public class TrikeAgent implements SendtoMATSIM{
+    public List<Location> AGENT_SPAWN_LOCATIONS = Arrays.asList(
+            new Location("", 330129.503,4690968.364),
+            new Location("", 330130.503, 4690969.364),
+            new Location("", 330131.503, 4690970.364),
+            new Location("", 330132.503, 4690971.364),
+            new Location("", 329969.702, 4690968.243),
+            new Location("", 329970.702, 4690969.243),
+            new Location("", 329971.702, 4690970.243),
+            new Location("", 329972.702, 4690971.243),
+            new Location("", 330226.178, 4690808.802),
+            new Location("", 330227.178, 4690809.802),
+            new Location("", 330228.178, 4690810.802),
+            new Location("", 330229.178, 4690811.802),
+            new Location("", 330394.635, 4691190.930),
+            new Location("", 330395.635, 4691191.930),
+            new Location("", 330396.635, 4691192.930),
+            new Location("", 330397.635, 4691193.930),
+            new Location("", 330019.125, 4690675.274),
+            new Location("", 330020.125, 4690676.274),
+            new Location("", 330021.125, 4690677.274),
+            new Location("", 330022.125, 4690678.274),
+            new Location("", 329830.824, 4690748.290),
+            new Location("", 329831.824, 4690749.290),
+            new Location("", 329832.824, 4690750.290),
+            new Location("", 329833.824, 4690751.290),
+            new Location("", 330061.408, 4691249.231),
+            new Location("", 330062.408, 4691250.231),
+            new Location("", 330063.408, 4691251.231),
+            new Location("", 330064.408, 4691252.231),
+            new Location("", 330085.391, 4690790.884),
+            new Location("", 330086.391, 4690791.884),
+            new Location("", 330087.391, 4690792.884),
+            new Location("", 330088.391, 4690793.884));
+    // */
+    /**
+     public List<Location> AGENT_SPAWN_LOCATIONS = Arrays.asList(
+     new Location("", 476693.70,5553399.74),
+     new Location("", 476411.90963429067, 5552419.709277404),
+     new Location("", 476593.32115363394, 5553317.19412722),
+     new Location("", 476438.79189037136, 5552124.30651799),
+     new Location("", 476500.76932398824, 5552798.971484745),
+     new Location("", 476538.9427888916, 5553324.827033389),
+     new Location("", 476619.6161561999, 5552925.794018047),
+     new Location("", 476606.7547, 5552369.86),
+     new Location("", 476072.454, 5552737.847),
+     new Location("", 476183.6117, 5552372.253),
+     new Location("", 476897.6661, 5552908.159),
+     new Location("", 476117.4177, 5552983.103),
+     new Location("", 476206.3887, 5553181.409),
+     new Location("", 476721.5633, 5553163.268),
+     new Location("", 476504.8636, 5553075.586),
+     new Location("", 476006.3971, 5552874.791),
+     new Location("", 476896.9427, 5552809.207),
+     new Location("", 476576.8201, 5552875.558),
+     new Location("", 476659.5715, 5552264.147),
+     new Location("", 476140.0289, 5552869.111),
+     new Location("", 476459.8442, 5552766.704),
+     new Location("", 476076.6989, 5552496.082),
+     new Location("", 475950.8911, 5553012.783),
+     new Location("", 476269.0866, 5553041.63),
+     new Location("", 476574.3644, 5552706.306),
+     new Location("", 476229.5433, 5553032.162),
+     new Location("", 476182.5081, 5552736.953),
+     new Location("", 476718.9972, 5552412.517),
+     new Location("", 476088.6448, 5552928.079),
+     new Location("", 476285.4132, 5552547.373),
+     new Location("", 476257.686, 5553038.9),
+     new Location("", 476276.6184, 5553043.434)
+     );
+     */
+    //Boston station
+    // /**
+    public List<Location> CHARGING_STATION_LIST = Arrays.asList(
+            new Location("", 330129.503,4690968.364),
+            new Location("", 329969.702, 4690968.243),
+            new Location("", 330226.178, 4690808.802),
+            new Location("", 330394.635, 4691190.930),
+            new Location("", 330019.125, 4690675.274),
+            new Location("", 329830.824, 4690748.290),
+            new Location("", 330061.408, 4691249.231),
+            new Location("", 330085.391, 4690790.884),
+            new Location("", 330376.760, 4691775.234),
+            new Location("", 329510.461, 4690211.875),
+            new Location("", 329947.761, 4690811.336),
+            new Location("",330734.09049771406, 4686338.209947874),
+            new Location("",331315.3926859213, 4686003.14675877),
+            new Location("",330459.654522083, 4686797.65147697),
+            new Location("",330522.2126332774, 4686923.635164486),
+            new Location("",330404.0268183075, 4685725.674994842),
+            new Location("",330267.0424466077, 4685598.519795385),
+            new Location("",330162.4159192683, 4685455.758060012),
+            new Location("",330934.30093666096, 4684885.481330267),
+            new Location("",331067.9425282917, 4684873.356880021),
+            new Location("",331458.9572182546, 4683871.1501955),
+            new Location("",331525.34854709206, 4683418.775171504),
+            new Location("",327719.550770866, 4685531.510325233),
+            new Location("",327479.17367278016, 4686069.85136981),
+            new Location("",326790.8477667136, 4689528.776679865),
+            new Location("",326567.774762258, 4689664.697967572),
+            new Location("",327710.277554634, 4689368.639028133),
+            new Location("",327973.19664333365, 4689270.511257319),
+            new Location("",328133.97907932295, 4689478.039451958),
+            new Location("",328190.7759946394, 4689772.728762476),
+            new Location("",326281.4664791448, 4689675.283094306),
+            new Location("",328265.46399824356, 4690081.059870234),
+            new Location("",328040.2401779549, 4690128.885234285),
+            new Location("",327987.49280368455, 4690429.764286722),
+            new Location("",328461.5517205638, 4690143.2098028455),
+            new Location("",328831.32978277106, 4690507.727442217),
+            new Location("",329767.2607187112, 4690445.978121304),
+            new Location("",330225.55006005947, 4690092.84661864),
+            new Location("",330912.8591505459, 4689999.019060219),
+            new Location("",331006.74102454877, 4690518.329129274),
+            new Location("",330983.7125710095, 4690296.8628525175),
+            new Location("",326752.3580612396, 4692458.707911453),
+            new Location("",326496.2080125784, 4692683.370884217),
+            new Location("",329044.6136624153, 4693086.086950928),
+            new Location("",329672.0546194103, 4692140.789613456),
+            new Location("",330351.5084426627, 4692166.455323417),
+            new Location("",331075.2075612657, 4693423.9441094035),
+            new Location("",332053.42006065475, 4693016.88156659),
+            new Location("",332260.02298745513, 4692919.660061572),
+            new Location("",332283.69022679795, 4692945.753122068),
+            new Location("",330773.91964123806, 4691695.911588468),
+            new Location("",330541.70079147693, 4692117.668885517),
+            new Location("",331125.97199872, 4692204.9227484055),
+            new Location("",329529.3681031796, 4687436.116361706),
+            new Location("",327010.8782558239, 4687482.809660871),
+            new Location("",327044.18152553355, 4687003.280819914),
+            new Location("",327065.7802733871, 4687885.381320049),
+            new Location("",328175.1632187184, 4688539.366192844),
+            new Location("",329529.4398850673, 4688287.695682363),
+            new Location("",329364.698601429, 4688423.9164145),
+            new Location("",330077.15229866316, 4687961.080699825),
+            new Location("",329202.0219202008, 4683190.730182893),
+            new Location("",328456.1722722984, 4682856.789983864),
+            new Location("",327991.48788313573, 4683102.576120801),
+            new Location("",328556.58158344286, 4683689.950927951),
+            new Location("",329198.0303689931, 4684123.306078233),
+            new Location("",329952.6582628207, 4684269.552173864),
+            new Location("",328692.95462842024, 4684355.114709307),
+            new Location("",328693.0153561778, 4684357.607604435),
+            new Location("",327943.6362818504, 4684632.793215642),
+            new Location("",328678.7676101875, 4684594.920629536),
+            new Location("",329081.35585095023, 4685113.209289537),
+            new Location("",328699.8707663481, 4685580.953568669),
+            new Location("",328600.20644835127, 4685703.284318363)
+    );
+    //*/
+    //Goethe stations
+    /**
+     public List<Location> CHARGING_STATION_LIST = Arrays.asList(
+     new Location("", 476142.33,5553197.70),
+     new Location("", 476172.65,5552839.64),
+     new Location("", 476482.10,5552799.06),
+     new Location("", 476659.13,5553054.12),
+     new Location("", 476787.10,5552696.95),
+     new Location("", 476689.45,5552473.11),
+     new Location("", 476405.41,5552489.17),
+     new Location("", 476100.86,5552372.79)
+     );
+     */
 
     /**
      * The bdi agent. Automatically injected
@@ -69,7 +232,7 @@ public class TrikeAgent implements SendtoMATSIM{
     @Belief
     public volatile boolean isMatsimFree;
     @Belief
-    public boolean isExecuting = false;
+    public boolean canExecute = false;
 
     @Belief
     public Location agentLocation;
@@ -132,9 +295,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
     //public List<Location> CHARGING_STATION_LIST = new ArrayList<>();
 
-    public List<Location> CHARGING_STATION_LIST = Arrays.asList(new Location("", 476142.33,5553197.70), new Location("", 476172.65,5552839.64),new Location("", 476482.10,5552799.06),new Location("", 476659.13,5553054.12),new Location("", 476787.10,5552696.95),new Location("", 476689.45,5552473.11),new Location("", 476405.41,5552489.17),new Location("", 476100.86,5552372.79));
-
-
+    public MyLogger logger;
 
     /**
      * The agent body.
@@ -151,6 +312,8 @@ public class TrikeAgent implements SendtoMATSIM{
         bdiFeature.dispatchTopLevelGoal(new TimeTest());
         bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
+        bdiFeature.dispatchTopLevelGoal(new LogSimActionList());
+        bdiFeature.dispatchTopLevelGoal(new LogSimPerceptList());
     }
 
     /**
@@ -787,7 +950,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
         @GoalMaintainCondition
         boolean sentToMATSIM() {
-            return !isMatsimFree && !isExecuting;
+            return !(isMatsimFree || canExecute);
         }
     }
 
@@ -799,7 +962,7 @@ public class TrikeAgent implements SendtoMATSIM{
     public void DoNextTrip() {
         if(!tripList.isEmpty() || !currentTrip.isEmpty()){
             ExecuteTrips();
-            isExecuting = false;
+            canExecute = false;
         }
     }
 
@@ -850,138 +1013,9 @@ public class TrikeAgent implements SendtoMATSIM{
                     //action perceive is sent to matsim only once in the initiation phase to register to receive events
                     SendPerceivetoAdc();
 
-                    if (agentID.equals("0")){
-                        agentLocation = new Location("", 476693.70,5553399.74);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("1")){
-                        agentLocation = new Location("", 476411.90963429067, 5552419.709277404);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("2")){
-                        agentLocation = new Location("", 476593.32115363394, 5553317.19412722);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("3")){
-                        agentLocation = new Location("", 476438.79189037136, 5552124.30651799);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("4")){
-                        agentLocation = new Location("", 476500.76932398824, 5552798.971484745);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("5")){
-                        agentLocation = new Location("", 476538.9427888916, 5553324.827033389);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("6")){
-                        agentLocation = new Location("", 476619.6161561999, 5552925.794018047);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("7")){
-                        agentLocation = new Location("", 476606.7547, 5552369.86);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("8")){
-                        agentLocation = new Location("", 476072.454, 5552737.847);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("9")){
-                        agentLocation = new Location("", 476183.6117, 5552372.253);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("10")){
-                        agentLocation = new Location("", 476897.6661, 5552908.159);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("11")){
-                        agentLocation = new Location("", 476117.4177, 5552983.103);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("12")){
-                        agentLocation = new Location("", 476206.3887, 5553181.409);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("13")){
-                        agentLocation = new Location("", 476721.5633, 5553163.268);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("14")){
-                        agentLocation = new Location("", 476504.8636, 5553075.586);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("15")){
-                        agentLocation = new Location("", 476006.3971, 5552874.791);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("16")){
-                        agentLocation = new Location("", 476896.9427, 5552809.207);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("17")){
-                        agentLocation = new Location("", 476576.8201, 5552875.558);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("18")){
-                        agentLocation = new Location("", 476659.5715, 5552264.147);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("19")){
-                        agentLocation = new Location("", 476140.0289, 5552869.111);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("20")){
-                        agentLocation = new Location("", 476459.8442, 5552766.704);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("21")){
-                        agentLocation = new Location("", 476076.6989, 5552496.082);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("22")){
-                        agentLocation = new Location("", 475950.8911, 5553012.783);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("23")){
-                        agentLocation = new Location("", 476269.0866, 5553041.63);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("24")){
-                        agentLocation = new Location("", 476574.3644, 5552706.306);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("25")){
-                        agentLocation = new Location("", 476229.5433, 5553032.162);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("26")){
-                        agentLocation = new Location("", 476182.5081, 5552736.953);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("27")){
-                        agentLocation = new Location("", 476718.9972, 5552412.517);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("28")){
-                        agentLocation = new Location("", 476088.6448, 5552928.079);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("29")){
-                        agentLocation = new Location("", 476285.4132, 5552547.373);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("30")){
-                        agentLocation = new Location("", 476257.686, 5553038.9);
-                        sendAreaAgentUpdate("register");
-                    }
-                    else if (agentID.equals("31")){
-                        agentLocation = new Location("", 476276.6184, 5553043.434);
-                        sendAreaAgentUpdate("register");
-                    }
-                    //**/
-                    /**
-                     * TODO: @Mariam initiale anmeldung an firebase hier
-                     */
+                    agentLocation = AGENT_SPAWN_LOCATIONS.get(Integer.parseInt(agentID));
+                    sendAreaAgentUpdate("register");
+
                     //csvLogger csvLogger = new csvLogger(agentID);
                     csvLogger csvLogger = new csvLogger(agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR);
 
@@ -1000,7 +1034,7 @@ public class TrikeAgent implements SendtoMATSIM{
         @GoalMaintainCondition
         boolean	ListNotEmpty()
         {
-            return SimPerceptList.isEmpty() && SimActionList.isEmpty();
+            return SimActionList.isEmpty();
         }
     }
 
@@ -1016,7 +1050,7 @@ public class TrikeAgent implements SendtoMATSIM{
                         System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
                         System.out.println("AgentID: " + agentID + actionContent.getParameters()[0]);
                         updateBeliefAfterAction();
-                        isExecuting = true;
+                        canExecute = true;
                         updateAtInputBroker();
                     }
                 }
@@ -1567,5 +1601,86 @@ public class TrikeAgent implements SendtoMATSIM{
 
     public void print(String str){
         System.out.println(agentID + ": " + str);
+    }
+
+
+
+
+    @Goal(recur = true, recurdelay = 100)
+    class LogSimActionList{
+        /*
+        @GoalMaintainCondition
+        public boolean isEmpty(){
+            return SimActionList.isEmpty();
+        }
+
+         */
+    }
+
+    @Plan(trigger = @Trigger(goals = LogSimActionList.class))
+    public void logSimActionList() throws IOException {
+        logger = new MyLogger(agentID + "-Action.txt", MyLogger.Status.INFO);
+        if(currentTrip.isEmpty()){
+            logger.info("Current Trip: []");
+        }else{
+            logger.info("Current Trip: ");
+            currentTrip.forEach((trip) -> logger.info(trip.tripID));
+        }
+        logger.newLine();
+        if(tripList.isEmpty()){
+            logger.info("Trips: []");
+        }else{
+            logger.info("Trips: ");
+            tripList.forEach((trip) -> logger.info(trip.tripID));
+        }
+        logger.newLine();
+        if(SimPerceptList.isEmpty()){
+            logger.info("SimActionList: []");
+        }else{
+            logger.info("SimActionList: ");
+            SimActionList.forEach((simAction) -> logger.info(simAction.toString()));
+        }
+        logger.newLine();
+        logger.info("#########################################################");
+        logger.close();
+    }
+
+    @Goal(recur = true, recurdelay = 100)
+    class LogSimPerceptList{
+        /*
+        @GoalMaintainCondition
+        public boolean isEmpty(){
+            return SimPerceptList.isEmpty();
+        }
+
+         */
+    }
+
+    @Plan(trigger = @Trigger(goals = LogSimPerceptList.class))
+    public void logSimPerceptList() throws IOException {
+        logger = new MyLogger(agentID + "-Percept.txt", MyLogger.Status.INFO);
+        if(currentTrip.isEmpty()){
+            logger.info("Current Trip: []");
+        }else{
+            logger.info("Current Trip: ");
+            currentTrip.forEach((trip) -> logger.info(trip.tripID));
+        }
+        logger.newLine();
+        if(tripList.isEmpty()){
+            logger.info("Trips: []");
+        }else{
+            logger.info("Trips: ");
+            tripList.forEach((trip) -> logger.info(trip.tripID));
+        }
+        logger.newLine();
+        if(SimPerceptList.isEmpty()){
+            logger.info("SimPerceptList: []");
+        }else{
+            logger.info("SimPerceptList: ");
+            SimPerceptList.forEach((simAction) -> logger.info(simAction.toString()));
+        }
+        logger.newLine();
+        logger.info("#########################################################");
+        logger.close();
     }
 }
