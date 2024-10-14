@@ -75,6 +75,14 @@ public class AreaAgent {
         System.out.println("locatedAgentList size: " + locatedAgentList.size());
 
         bdiFeature.dispatchTopLevelGoal(new CheckNumberAgentAssignedID());
+        bdiFeature.dispatchTopLevelGoal(new PrintMatsim());
+    }
+    @Goal(recur = true, recurdelay = 1000 )
+    class PrintMatsim {}
+    @Plan(trigger=@Trigger(goals=PrintMatsim.class))
+    private void printMatsim()
+    {
+        System.out.println("abc "+JadexModel.simulationtime);
     }
 
     @Goal (recur = true, recurdelay = 3000)
@@ -90,21 +98,9 @@ public class AreaAgent {
             }
     }
 
-    @Goal(recur = true, recurdelay = 500 )
-    class MaintainDistributeFirebaseJobs
-    {
-        @GoalMaintainCondition
-        boolean isListEmpty(){
-            return jobList.isEmpty();
-        }
-    }
-    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
-    private void SendFirebaseJob()
-    {
-        sendJobToAgent(jobList);
-    }
 
-    @Goal(recur = true, recurdelay = 500 )
+
+    @Goal(recur = true, recurdelay = 1000 )
     class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition
@@ -112,6 +108,22 @@ public class AreaAgent {
             return csvJobList.isEmpty();
         }
     }
+
+    @Goal(recur = true, recurdelay = 1000 )
+    class MaintainDistributeFirebaseJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return jobList.isEmpty();
+        }
+    }
+
+    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
+    private void SendFirebaseJob()
+    {
+        sendJobToAgent(jobList);
+    }
+
 
     @Plan(trigger=@Trigger(goals=MaintainDistributeCSVJobs.class))
     private void SendCSVJob()
@@ -154,7 +166,7 @@ public class AreaAgent {
 
 
     private void initJobs() {
-        String csvFilePath = "ees/data-utm-1000.csv";
+        String csvFilePath = "ees/subsample_2.csv";
         char delimiter = ';';
 
         System.out.println("parse json from file:");
