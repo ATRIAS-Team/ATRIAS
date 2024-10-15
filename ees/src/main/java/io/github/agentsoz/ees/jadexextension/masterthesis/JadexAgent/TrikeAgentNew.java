@@ -158,6 +158,17 @@ public class TrikeAgentNew implements SendtoMATSIM {
     public String currentSimInputBroker;
     private SimActuator SimActuator;
 
+
+
+
+    private Thread thread = null;
+    private MyRunnable runnable = null;
+
+    @Belief
+    public boolean runnableFinished = false;
+
+
+
     //test variables
     //test variables
     public boolean isModified = false;
@@ -167,7 +178,7 @@ public class TrikeAgentNew implements SendtoMATSIM {
 
     public Double commitThreshold = 50.0;
     Double DRIVING_SPEED = 6.0;
-    Boolean CNP_ACTIVE = false;
+    Boolean CNP_ACTIVE = true;
     // @Adjusted - @Tim
     Double THETA = 720.0; //allowed waiting time for customers.
     Boolean ALLOW_CUSTOMER_MISS = true; // customer will miss when delay > THETA
@@ -502,6 +513,31 @@ public class TrikeAgentNew implements SendtoMATSIM {
 //            tempTripList.clear();
 
             tripList.add(newTrip);
+
+            GreedyScheduler greedyScheduler = new GreedyScheduler(
+                    CHARGING_STATION_LIST,
+                    trikeBattery.getMyChargestate(),
+                    agentLocation,
+                    getCurrentSimulationTimeAsDate(),
+                    DRIVING_SPEED,
+                    THETA,
+                    agentID,
+                    determineTimeTillEndpositionIsReach()
+            );
+
+            if(thread == null){
+                runnable = new MyRunnable(tripList, greedyScheduler);
+                thread = new Thread(runnable);
+            }
+
+            runnable.queue.add(newTrip);
+
+
+            if(!thread.isAlive()){
+                thread.start();
+            }
+
+
             tripIDList.add("1");
 
             decisionTaskList.get(position).setStatus("committed");
@@ -1408,7 +1444,7 @@ public class TrikeAgentNew implements SendtoMATSIM {
 
         @GoalTargetCondition
         boolean senttoMATSIM() {
-            return !(activestatus == false);
+            return !(activestatus == false) && runnableFinished;
         }
     }
 
@@ -1963,7 +1999,7 @@ public class TrikeAgentNew implements SendtoMATSIM {
 
     void newCurrentTrip() {
         System.out.println("Test if new currentTrip can be created");
-        if (currentTrip.size() == 0 && tripList.size() > 0) {
+        if (currentTrip.size() == 0 && tripList.size() > 0 && runnable.finished) {
             System.out.println("no currentTrip available");
             System.out.println("getting nextTrip from TripList");
             currentTrip.add(tripList.get(0));
@@ -2455,6 +2491,4 @@ public class TrikeAgentNew implements SendtoMATSIM {
         this.daytime = daytime;
 
     }
-
-
 }
