@@ -36,4 +36,4 @@ to get something like
 "21201128901" : null,
 ```
 
-that can be pasted directly into the [scenario messages JSON file](./messages.json).
+that can be pasted directly into the [scenario messages JSON file](messages.json).

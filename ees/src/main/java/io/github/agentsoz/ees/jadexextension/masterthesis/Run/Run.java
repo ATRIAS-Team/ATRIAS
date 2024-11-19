@@ -28,6 +28,8 @@ import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
 import io.github.agentsoz.dataInterface.DataClient;
 import io.github.agentsoz.dataInterface.DataServer;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Cells;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Parsers;
 import io.github.agentsoz.ees.matsim.*;
 import io.github.agentsoz.ees.util.Utils;
 import io.github.agentsoz.util.Global;
@@ -60,8 +62,11 @@ public class Run implements DataClient {
 
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");
-
         FirebaseHandler.init();
+        XMLConfig xmlConfig = new XMLConfig();
+        xmlConfig.applyConfig(Parsers.parseXML("XMLConfig.xml"));
+        Cells.applyConfig();
+
         // Read the config
         Config cfg = new Config();
         Map<String,String> opts = cfg.parse(args);
@@ -70,7 +75,7 @@ public class Run implements DataClient {
         // Get BDI agents map from the MATSim population file
         log.info("Reading BDI agents from MATSim population file");
         Map<Integer, List<String[]>> bdiMap = Utils.getAgentsFromMATSimPlansFile(cfg.getModelConfig(Config.eModelMatsim).get("configXml"));
-       
+
 
         // Run it
         new Run()
@@ -244,6 +249,4 @@ public class Run implements DataClient {
                 throw new RuntimeException("Unknown data type received: " + dataType);
         }
     }
-
-
 }

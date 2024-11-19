@@ -2,7 +2,7 @@
 
 The [latest video is here](https://cloudstor.aarnet.edu.au/plus/s/phuCz9Q3suj9slb). Same colour scheme as below applies.
 
-Note that the EES model (actually the underlying BDI-ABM action/percept model) does not support sending two messages (percepts) of the same type at the same time to an agent. Therefore the timing of the different messages should be unique. The [final messaging regime](./scenario_messages.json ) is as follows:
+Note that the EES model (actually the underlying BDI-ABM action/percept model) does not support sending two messages (percepts) of the same type at the same time to an agent. Therefore the timing of the different messages should be unique. The [final messaging regime](scenario_messages.json ) is as follows:
 
 Message | Time sent | Zones sent to |
 --- | --- | --- |

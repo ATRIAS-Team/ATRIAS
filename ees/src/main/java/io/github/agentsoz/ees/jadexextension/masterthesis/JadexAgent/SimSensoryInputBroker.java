@@ -159,8 +159,8 @@ public class SimSensoryInputBroker {
 							for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
 								INotifyService cs = iteration.next();
 								cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus); // assign data to vehicle agents via service
-
-								MyLogger logger = new MyLogger("inputbroker.txt", MyLogger.Status.INFO);
+								/*
+								MyLogger logger = new MyLogger(SensoryInputID + "-inputbroker.txt", MyLogger.Status.INFO);
 								logger.info("Trike id: " + agentId);
 								logger.newLine();
 								if(ActionContentList.isEmpty()){
@@ -168,10 +168,10 @@ public class SimSensoryInputBroker {
 								}else{
 									logger.info("ActionContentList: ");
 									ActionContentList.forEach((simAction) ->
-										logger.info("Action type: " + simAction.getAction_type() + "; "
-												+ "Instance Id: " + simAction.getInstance_id()
-												+ "; " + "State: "  + simAction.getState().name() + ";"
-												+ "Params: "  + Arrays.toString(simAction.getParameters()))
+											logger.info("Action type: " + simAction.getAction_type() + "; "
+													+ "Instance Id: " + simAction.getInstance_id()
+													+ "; " + "State: "  + simAction.getState().name() + ";"
+													+ "Params: "  + Arrays.toString(simAction.getParameters()))
 									);
 								}
 								logger.newLine();
@@ -185,6 +185,8 @@ public class SimSensoryInputBroker {
 								}
 								logger.info("#########################################################");
 								logger.close();
+
+								 */
 							}
 
 						}
