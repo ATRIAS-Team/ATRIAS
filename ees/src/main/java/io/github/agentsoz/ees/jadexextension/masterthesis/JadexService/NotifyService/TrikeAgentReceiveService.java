@@ -31,11 +31,18 @@ public class TrikeAgentReceiveService implements INotifyService {
 		// Reply if the message contains the keyword.
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 
-		trikeAgent.setActionContentList(ActionContentList);
-		trikeAgent.setPerceptContentList(PerceptContentList);
+		for (ActionContent actionContent : ActionContentList){
+			boolean isSuccess = trikeAgent.actionContentRingBuffer.write(actionContent);
+			if(!isSuccess){
+				throw new RuntimeException("BUFFER OVERRIDE!!!");
+			}
+		}
+
+		for (PerceptContent perceptContent : PerceptContentList){
+			trikeAgent.perceptContentRingBuffer.write(perceptContent);
+		}
 		trikeAgent.print("receives information from MATSIM");
 
-		trikeAgent.informSimInput = false;
 		if (activestatus)
 		{
 			trikeAgent.isMatsimFree = true;
