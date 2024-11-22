@@ -27,8 +27,8 @@ public class Cells {
 
     public static String locationToCellAddress(Location location, int resolution) {
         CoordinateConversion coordinateConversion = new CoordinateConversion();
-
-        String UTM = "32 U " + location.x + " " + location.y;
+        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+        String UTM = zone + location.x + " " + location.y;
         double[] latlng = coordinateConversion.utm2LatLon(UTM);
         double lat = latlng[0];
         double lng = latlng[1];
@@ -45,8 +45,8 @@ public class Cells {
 
     public static String findKey(Location location){
         CoordinateConversion coordinateConversion = new CoordinateConversion();
-
-        String UTM = "32 U " + location.x + " " + location.y;
+        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+        String UTM = zone + location.x + " " + location.y;
         double[] latlng = coordinateConversion.utm2LatLon(UTM);
         double lat = latlng[0];
         double lng = latlng[1];
