@@ -81,7 +81,7 @@ public class AreaAgent {
 
     /** The agent body. */
     @OnStart
-    private void body() {
+    private void body() throws InterruptedException {
         Element classElement = XMLConfig.getClassElement("AreaAgent.java");
         configure(classElement);
         Pattern pattern = Pattern.compile("[0-9]+");
@@ -148,15 +148,14 @@ public class AreaAgent {
         }
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
 
-        while (true){
-            if(TrikeMain.TrikeAgentNumber == JadexModel.TrikeAgentnumber){
-                break;
-            }
+        while (TrikeMain.TrikeAgentNumber != JadexModel.TrikeAgentnumber) {
+            Thread.sleep(1000);
         }
 
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
     }
+
     @Goal(recur = true, recurdelay = 1000 )
     class PrintSimTime {}
     @Plan(trigger=@Trigger(goals=PrintSimTime.class))

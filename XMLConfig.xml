@@ -31,6 +31,21 @@
         <field field_name="FIREBASE_ENABLED">false</field>
     </class>
 
+    <!--    BOSTON   -->
+    <cells resolutions="5">
+        <areaagent>
+            <cell>852a3067fffffff</cell>
+            <cell>852a3077fffffff</cell>
+            <cell>852a3063fffffff</cell>
+            <cell>852a306ffffffff</cell>
+            <cell>852a339bfffffff</cell>
+            <cell>852a3393fffffff</cell>
+            <cell>852a302bfffffff</cell>
+        </areaagent>
+    </cells>
+
+    <!--    FRANKFURT   -->
+    <!--
     <cells resolutions="7,8,9">
         <areaagent>
             <cell>871faeaadffffff</cell>
@@ -41,8 +56,8 @@
             <cell>871faeaa9ffffff</cell>
             <cell>871faea1affffff</cell>
         </areaagent>
-        <trikeagent/>
     </cells>
+    -->
 </configuration>
 
         <!--
