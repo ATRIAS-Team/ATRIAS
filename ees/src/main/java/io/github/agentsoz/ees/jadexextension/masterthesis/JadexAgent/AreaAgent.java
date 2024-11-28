@@ -165,7 +165,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 10 )
+    @Goal(recur = true, recurdelay = 20 )
     class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition

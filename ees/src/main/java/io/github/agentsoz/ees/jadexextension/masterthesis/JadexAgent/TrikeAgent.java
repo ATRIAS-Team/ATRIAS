@@ -485,7 +485,9 @@ public class TrikeAgent implements SendtoMATSIM{
                 ArrayList<String> values = new ArrayList<>();
                 values.add(currentDecisionTask.getJobID()); //todo move into a method
                 decisionTaskList.get(index).setStatus("waitingForNeighbours");
-                sendMessage("area:0", "request", "callForNeighbours", values);
+
+                String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+                sendMessage(areaAgentTag, "request", "callForNeighbours", values);
 
                 //sendTestAreaAgentUpdate();
                 //testTrikeToTrikeService();
@@ -974,7 +976,7 @@ public class TrikeAgent implements SendtoMATSIM{
      *  desired behavior:
      *  start: when new trip is generated
      */
-    @Goal(recur = true, recurdelay = 300)
+    @Goal(recur = true, recurdelay = 100)
     class MaintainTripService {
 
         @GoalMaintainCondition
@@ -1070,14 +1072,15 @@ public class TrikeAgent implements SendtoMATSIM{
     public void SensoryUpdate() {
         currentTripStatus();
         if(actionContentRingBuffer.isEmpty()) return;
+        ActionContent actionContent = actionContentRingBuffer.read();
         if (isMatsimFree && !currentTrip.isEmpty()) {
-            ActionContent actionContent = actionContentRingBuffer.read();
             if (actionContent.getAction_type().equals("drive_to") && actionContent.getState() == ActionContent.State.PASSED) {
                 System.out.println("Agent " + agentID + " finished with the previous trip and now can take the next trip");
                 System.out.println("AgentID: " + agentID + actionContent.getParameters()[0]);
                 double metersDriven = Double.parseDouble((String) actionContent.getParameters()[1]);
                 updateBeliefAfterAction(metersDriven);
                 canExecute = true;
+                ExecuteTrips();
                 updateAtInputBroker();
             }
         }
@@ -1183,9 +1186,6 @@ public class TrikeAgent implements SendtoMATSIM{
             System.out.println("Neue Position:" + agentLocation);
             FirebaseHandler.updateAgentLocation(agentID, agentLocation);
         }
-
-
-
 
         System.out.println("Neue Position: " + agentLocation);
         sendAreaAgentUpdate("update");
@@ -1415,6 +1415,7 @@ public class TrikeAgent implements SendtoMATSIM{
                             trikeBattery.loadBattery();
                             updateCurrentTripProgress("Finished");
                             chargingTripAvailable = "0";
+                            ExecuteTrips();
                             break;
                         }
                         case "CustomerTrip": {
@@ -1430,6 +1431,7 @@ public class TrikeAgent implements SendtoMATSIM{
                         }
                         default: {
                             updateCurrentTripProgress("Finished");
+                            ExecuteTrips();
                             break;
                         }
                     }
@@ -1437,12 +1439,14 @@ public class TrikeAgent implements SendtoMATSIM{
                 }
                 case "AtEndLocation": {
                     updateCurrentTripProgress("Finished");
+                    ExecuteTrips();
                     break;
                 }
                 case "Finished":
                 case "Failed": {
                     currentTrip.remove(0);
                     currentTripStatus();
+                    ExecuteTrips();
                     break;
                 }
             }
@@ -1556,8 +1560,9 @@ public class TrikeAgent implements SendtoMATSIM{
 
         //update the cell based on location
         String foundKey = Cells.findKey(agentLocation);
-        int resolution = Cells.getCellResolution(foundKey);
-        newCellAddress = Cells.locationToCellAddress(agentLocation, resolution);
+        //int resolution = Cells.getCellResolution(foundKey);
+        //newCellAddress = Cells.locationToCellAddress(agentLocation, resolution);
+        newCellAddress = foundKey;
 
         //  init register of trikes
         if (action.equals("register")){
@@ -1587,12 +1592,6 @@ public class TrikeAgent implements SendtoMATSIM{
 
     }
 
-    public void test(){
-        ArrayList<String> values = new ArrayList<>();
-        sendMessage("area:0", "request", "callForNeighbours", values);
-        //sendMessage("area:0", "inform", "update");
-
-    }
 
     //Battery -oemer
     public void setMyLocation(Location location) {

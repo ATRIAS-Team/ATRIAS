@@ -15,7 +15,15 @@ import java.util.HashMap;
 
 public class Cells {
     public static int[] resolutions = null;
+    public static H3Core h3Core;
 
+    static {
+        try {
+            h3Core = H3Core.newInstance();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //  area
     static int areaAgentIdCounter = 0;
@@ -33,14 +41,7 @@ public class Cells {
         double lat = latlng[0];
         double lng = latlng[1];
 
-        H3Core h3 = null;
-        try {
-            h3 = H3Core.newInstance();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return h3.latLngToCellAddress(lat, lng, resolution);
+        return h3Core.latLngToCellAddress(lat, lng, resolution);
     }
 
     public static String findKey(Location location){
@@ -51,18 +52,11 @@ public class Cells {
         double lat = latlng[0];
         double lng = latlng[1];
 
-        H3Core h3 = null;
-        try {
-            h3 = H3Core.newInstance();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        String smallestCell = h3.latLngToCellAddress(lat, lng, resolutions[resolutions.length - 1]);
+        String smallestCell = h3Core.latLngToCellAddress(lat, lng, resolutions[resolutions.length - 1]);
 
         for (int i = resolutions.length - 1; i >= 0; i--){
-            String address = h3.cellToParentAddress(smallestCell, resolutions[i]);
-            LatLng latLng = h3.cellToLatLng(address);
+            String address = h3Core.cellToParentAddress(smallestCell, resolutions[i]);
+            //LatLng latLng = h3Core.cellToLatLng(address);
 
             if(cellAgentMap.containsKey(address)) return address;
         }
@@ -71,14 +65,7 @@ public class Cells {
     }
 
     public static int getCellResolution(String cell){
-        H3Core h3 = null;
-        try {
-            h3 = H3Core.newInstance();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return h3.getResolution(cell);
+        return h3Core.getResolution(cell);
     }
 
 
