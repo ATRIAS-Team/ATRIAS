@@ -487,7 +487,7 @@ public class TrikeAgent implements SendtoMATSIM{
                 decisionTaskList.get(index).setStatus("waitingForNeighbours");
 
                 String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
-                sendMessage(areaAgentTag, "request", "callForNeighbours", values);
+                sendMessage(areaAgentTag, "request", "trikesInArea", values);
 
                 //sendTestAreaAgentUpdate();
                 //testTrikeToTrikeService();

@@ -11,6 +11,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrike
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig;
+import io.github.agentsoz.ees.util.RingBuffer;
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -22,7 +23,11 @@ import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
+import org.hsqldb.types.Collation;
 import org.w3c.dom.Element;
+
+import java.lang.reflect.Array;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -39,7 +44,7 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.g
 @Agent(type = "bdi")
 
 @ProvidedServices({
-        @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( AreaAgentService.class)),
+                    @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( AreaAgentService.class)),
 })
 @RequiredServices({
         @RequiredService(name="clockservice", type= IClockService.class),
@@ -66,6 +71,8 @@ public class AreaAgent {
     @Belief
     private final List<Job> jobList = new ArrayList<>(); // job list for App data
 
+    private List<Job> delegatedJobs = new ArrayList<>();
+
     public LocatedAgentList locatedAgentList = new LocatedAgentList();
     boolean done;
 
@@ -77,7 +84,21 @@ public class AreaAgent {
     private String areaAgentId = null;
     public String myTag = null;
 
+    public RingBuffer<Message> buffer = new RingBuffer<>(4);
+
+    public RingBuffer<Job> jobRingBuffer = new RingBuffer<>(8);
+
     boolean FIREBASE_ENABLED = false;
+
+    int MIN_TRIKES = 12;
+
+    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(32);
+
+    long waitTime = 3000;  //3 sec
+
+    List<DelegateInfo> jobsToDelegate = new ArrayList<>();
+
+    List<String> neighbourIds = null;
 
     /** The agent body. */
     @OnStart
@@ -96,6 +117,7 @@ public class AreaAgent {
         myTag = areaAgentId;
         cell = Cells.areaAgentCells.get(index);
         Cells.cellAgentMap.put(cell, areaAgentId);
+        neighbourIds = Cells.getNeighbours(cell, 1);
 
         System.out.println("AreaAgent " + areaAgentId + " sucessfully started;");
         initJobs();
@@ -154,7 +176,97 @@ public class AreaAgent {
 
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeBufferJobs());
+        bdiFeature.dispatchTopLevelGoal(new CheckBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckProposals());
+        bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
     }
+
+    private static class DelegateInfo{
+        public Job job;
+        public long ts = -1;
+
+        public DelegateInfo(Job job){
+            this.job = job;
+        }
+    }
+
+
+    @Goal(recur = true, recurdelay = 40 )
+    class CheckBuffer{}
+
+    @Plan(trigger=@Trigger(goals=CheckBuffer.class))
+    private void checkBuffer(){
+        if(buffer.isEmpty()) return;
+        Message bufferMessage = buffer.read();
+        String areaId = bufferMessage.getSenderId();
+
+        if(locatedAgentList.size() < MIN_TRIKES) return;
+        MessageContent messageContent = new MessageContent("AGREE");
+        messageContent.values.addAll(bufferMessage.getContent().getValues());
+        messageContent.values.add(cell);
+
+        Message message = new Message("0", areaAgentId, areaId, "request", JadexModel.simulationtime, messageContent);
+        IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
+        service.receiveMessage(message.serialize());
+    }
+
+
+    @Goal(recur = true, recurdelay = 40 )
+    class CheckProposals{}
+
+    @Plan(trigger=@Trigger(goals=CheckProposals.class))
+    private void checkProposals(){
+        for (DelegateInfo delegateInfo: jobsToDelegate) {
+            long currentTime = Instant.now().toEpochMilli();
+            if(delegateInfo.ts == -1 || currentTime < delegateInfo.ts + waitTime) return;
+            if(proposalBuffer.isEmpty()){
+                throw new RuntimeException("FAILED TRIP");
+            }
+
+            long minHops = 10;
+            String bestAreaAgent = null;
+
+            while (!proposalBuffer.isEmpty()){
+                Message bufferMessage = proposalBuffer.read();
+                String areaId = bufferMessage.getSenderId();
+                String areaCell = bufferMessage.getContent().values.get(10);
+
+                long hops = Cells.getHops(cell, areaCell);
+                if(hops < minHops){
+                    minHops = hops;
+                    bestAreaAgent = areaId;
+                }
+            }
+
+            MessageContent messageContent = new MessageContent("ASSIGN");
+            messageContent.values = delegateInfo.job.toArrayList();
+            Message message = new Message("0", areaAgentId, bestAreaAgent, "request", JadexModel.simulationtime, messageContent);
+            IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
+            service.receiveMessage(message.serialize());
+
+            jobsToDelegate.remove(delegateInfo);
+        }
+    }
+
+
+    @Goal(recur = true, recurdelay = 40)
+    class DelegateJobs{}
+
+    @Plan(trigger=@Trigger(goals=DelegateJobs.class))
+    private void delegateJobs(){
+        for (DelegateInfo delegateInfo: jobsToDelegate) {
+            if(delegateInfo.ts != -1) return;
+            for (String neighbourId: neighbourIds){
+                MessageContent messageContent = new MessageContent("DELEGATE", delegateInfo.job.toArrayList());
+                Message message = new Message("0", areaAgentId, neighbourId, "request", JadexModel.simulationtime, messageContent);
+                IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
+                service.receiveMessage(message.serialize());
+                delegateInfo.ts = Instant.now().toEpochMilli();
+            }
+        }
+    }
+
 
     @Goal(recur = true, recurdelay = 1000 )
     class PrintSimTime {}
@@ -174,6 +286,8 @@ public class AreaAgent {
         }
     }
 
+
+
     @Goal(recur = true, recurdelay = 1000 )
     class MaintainDistributeFirebaseJobs
     {
@@ -182,6 +296,18 @@ public class AreaAgent {
             return jobList.isEmpty();
         }
     }
+
+    @Goal(recur = true, recurdelay = 40 )
+    class MaintainDistributeBufferJobs{}
+
+    @Plan(trigger=@Trigger(goals=MaintainDistributeBufferJobs.class))
+    private void maintainDistributeBufferJobs()
+    {
+        if(jobRingBuffer.isEmpty()) return;
+        delegatedJobs.add(jobRingBuffer.read());
+        sendJobToAgent(delegatedJobs);
+    }
+
 
     @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
     private void SendFirebaseJob()
@@ -209,18 +335,19 @@ public class AreaAgent {
                 .withHour((int) Math.floor(JadexModel.simulationtime / 3600));
 
         LocalDateTime simDateTime = LocalDateTime.of(csvDate, simTime);
-        if(job.getbookingTime().compareTo(simDateTime) >= 0) return;
+        if(!job.getbookingTime().isBefore(simDateTime)) return;
 
         String closestAgent = locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
-        if (closestAgent.equals("NoAgentsLocated")){
-            System.out.println("ERROR: No Agent located at this AreaAgent");
+        if (closestAgent == null){
+            jobsToDelegate.add(new DelegateInfo(job));
+            jobList.remove(0);
         }
         else{
             //message creation
             MessageContent messageContent = new MessageContent("", job.toArrayList());
             LocalTime bookingTime = LocalTime.now();
             System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
-            Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
+            Message message = new Message("0", areaAgentId, closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
             IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
             service.trikeReceiveJob(message.serialize());
             //remove job from list
@@ -246,8 +373,8 @@ public class AreaAgent {
         for (Job job: csvJobList) {
             System.out.println(job.getID());
         }
-        if(!csvJobList.isEmpty()) {
-            csvDate = csvJobList.get(0).getbookingTime().toLocalDate();
+        if(!allJobs.isEmpty()) {
+            csvDate = allJobs.get(0).getbookingTime().toLocalDate();
         }
     }
 

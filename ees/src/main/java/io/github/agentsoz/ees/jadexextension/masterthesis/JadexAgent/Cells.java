@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class Cells {
     public static int[] resolutions = null;
@@ -68,6 +69,18 @@ public class Cells {
         return h3Core.getResolution(cell);
     }
 
+
+    public static List<String> getNeighbours(String origin, int radius){
+        List<String> neighbourIds = new ArrayList<>();
+        for (String neighbourCell: h3Core.gridDisk(origin, radius)) {
+            if(cellAgentMap.containsKey(neighbourCell)){
+                neighbourIds.add(cellAgentMap.get(neighbourCell));
+            }
+        }
+        return neighbourIds;
+    }
+
+    public static long getHops(String cell1, String cell2){return h3Core.gridDistance(cell1, cell2);}
 
 
     public static void applyConfig(){

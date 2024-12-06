@@ -5,25 +5,17 @@ import jadex.bridge.IInternalAccess;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
-/**
- *  The chat service interface.
- */
 public interface IAreaTrikeService
 {
-    /**
-     *  Receives a chat message.
-     *  @param text The message text.
-     */
-    //public void sendTrip(String text);
-    void areaReceiveUpdate(String message);
+    default void areaReceiveUpdate(String message){}
 
-    void trikeReceiveJob(String message);
+    default void trikeReceiveJob(String message){}
 
-    void trikeReceiveTrikeMessage(String message);
+   default void trikeReceiveTrikeMessage(String message){}
 
-    void trikeReceiveAgentsInArea(String messageStr);
+    default void trikeReceiveAgentsInArea(String messageStr){}
 
-    void receiveMessage(String messageStr); //todo: will replace many other methods
+    default void receiveMessage(String messageStr){};
 
     //  gets a service depending on agent and message receiver tag
     static IAreaTrikeService messageToService(IInternalAccess agent, Message message) {
@@ -34,9 +26,4 @@ public interface IAreaTrikeService
         IAreaTrikeService service = agent.getLocalService(query);
         return service;
     }
-
-
-    /**
-     *  Basic chat user interface.
-     */
 }

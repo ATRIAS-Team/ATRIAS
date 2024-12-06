@@ -170,14 +170,4 @@ public class TrikeAgentService implements IAreaTrikeService {
 
 		//todo: @marcel hier in trike schreiben
 	}
-
-	///////////////////////////////////////////////////////
-	//area agent part
-
-	//DON'T PUT ANY CODE INSIDE METHODS
-	public void areaReceiveUpdate(String message) {}
-
-	public void receiveMessage(String messageStr) {}
-
-	///////////////////////////////////////////////////////
 }
