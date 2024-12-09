@@ -32,6 +32,7 @@
     </class>
 
     <!--    BOSTON   -->
+
     <cells resolutions="5">
         <areaagent>
             <cell>852a3067fffffff</cell>
@@ -44,6 +45,14 @@
         </areaagent>
     </cells>
 
+    <!--    BOSTON 1 AREA  -->
+    <!--
+    <cells resolutions="2">
+        <areaagent>
+            <cell>822a37fffffffff</cell>
+        </areaagent>
+    </cells>
+    -->
     <!--    FRANKFURT   -->
     <!--
     <cells resolutions="7,8,9">

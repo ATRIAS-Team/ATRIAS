@@ -19,11 +19,7 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.util.RingBuffer;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig;
 import io.github.agentsoz.util.Location;
-import io.github.agentsoz.util.Time;
-import jadex.bdiv3.runtime.IPlan;
-import jadex.commons.future.IFuture;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -42,8 +38,6 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
@@ -378,6 +372,7 @@ public class TrikeAgent implements SendtoMATSIM{
 
                 Double ownScore = calculateUtility(currentDecisionTask);
                 currentDecisionTask.setUtillityScore(agentID, ownScore);
+
                 if (ownScore < commitThreshold && CNP_ACTIVE) {
                     currentDecisionTask.setStatus("delegate");
                 } else {
@@ -476,18 +471,20 @@ public class TrikeAgent implements SendtoMATSIM{
                 break;
             }
             case "delegate": {
-                // start cnp here > "waitingForNeighbourlist"
-                //TODO: neighbour request here
-                //TODO: adapt
-                // TEST MESSAGE DELETE LATER
-                //bool makes sure that the methods below are called only once
-
                 ArrayList<String> values = new ArrayList<>();
                 values.add(currentDecisionTask.getJobID()); //todo move into a method
                 decisionTaskList.get(index).setStatus("waitingForNeighbours");
+                Location jobLocation = currentDecisionTask.getJob().getStartPosition();
+                String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(newCellAddress));
+                boolean isInArea = newCellAddress.equals(jobCell);
+                if(isInArea){
+                    String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+                    sendMessage(areaAgentTag, "request", "trikesInArea", values);
+                }else{
+                    //  need to broadcast cnp
 
-                String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
-                sendMessage(areaAgentTag, "request", "trikesInArea", values);
+                }
+
 
                 //sendTestAreaAgentUpdate();
                 //testTrikeToTrikeService();

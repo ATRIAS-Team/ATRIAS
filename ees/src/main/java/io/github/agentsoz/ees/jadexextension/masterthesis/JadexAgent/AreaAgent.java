@@ -23,10 +23,8 @@ import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
-import org.hsqldb.types.Collation;
 import org.w3c.dom.Element;
 
-import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -84,7 +82,7 @@ public class AreaAgent {
     private String areaAgentId = null;
     public String myTag = null;
 
-    public RingBuffer<Message> buffer = new RingBuffer<>(4);
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(4);
 
     public RingBuffer<Job> jobRingBuffer = new RingBuffer<>(8);
 
@@ -94,7 +92,7 @@ public class AreaAgent {
 
     public RingBuffer<Message> proposalBuffer = new RingBuffer<>(32);
 
-    long waitTime = 3000;  //3 sec
+    long waitTime = 10000;  //3 sec
 
     List<DelegateInfo> jobsToDelegate = new ArrayList<>();
 
@@ -177,7 +175,7 @@ public class AreaAgent {
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeBufferJobs());
-        bdiFeature.dispatchTopLevelGoal(new CheckBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new CheckProposals());
         bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
     }
@@ -186,6 +184,8 @@ public class AreaAgent {
         public Job job;
         public long ts = -1;
 
+
+
         public DelegateInfo(Job job){
             this.job = job;
         }
@@ -193,12 +193,12 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 40 )
-    class CheckBuffer{}
+    class CheckMessagesBuffer{}
 
-    @Plan(trigger=@Trigger(goals=CheckBuffer.class))
-    private void checkBuffer(){
-        if(buffer.isEmpty()) return;
-        Message bufferMessage = buffer.read();
+    @Plan(trigger=@Trigger(goals=CheckMessagesBuffer.class))
+    private void checkMessagesBuffer(){
+        if(messagesBuffer.isEmpty()) return;
+        Message bufferMessage = messagesBuffer.read();
         String areaId = bufferMessage.getSenderId();
 
         if(locatedAgentList.size() < MIN_TRIKES) return;
@@ -219,7 +219,9 @@ public class AreaAgent {
     private void checkProposals(){
         for (DelegateInfo delegateInfo: jobsToDelegate) {
             long currentTime = Instant.now().toEpochMilli();
-            if(delegateInfo.ts == -1 || currentTime < delegateInfo.ts + waitTime) return;
+            if(delegateInfo.ts == -1 || currentTime < delegateInfo.ts + waitTime){
+                break;
+            }
             if(proposalBuffer.isEmpty()){
                 throw new RuntimeException("FAILED TRIP");
             }
@@ -358,7 +360,7 @@ public class AreaAgent {
 
 
     private void initJobs() {
-        String csvFilePath = "ees/subsample_2.csv";
+        String csvFilePath = "ees/subsample_2_new.csv";
         char delimiter = ';';
 
         System.out.println("parse json from file:");
@@ -370,9 +372,11 @@ public class AreaAgent {
             }
         }
 
+
         for (Job job: csvJobList) {
             System.out.println(job.getID());
         }
+
         if(!allJobs.isEmpty()) {
             csvDate = allJobs.get(0).getbookingTime().toLocalDate();
         }
