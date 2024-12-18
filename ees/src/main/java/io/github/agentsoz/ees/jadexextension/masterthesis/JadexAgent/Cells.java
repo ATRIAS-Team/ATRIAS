@@ -107,6 +107,7 @@ public class Cells {
             Node cellNode = cellsNL.item(i);
             if(cellNode.getNodeType() != Node.ELEMENT_NODE) continue;
             areaAgentCells.add(cellNode.getTextContent());
+            cellAgentMap.put(cellNode.getTextContent(), "");
         }
     }
 

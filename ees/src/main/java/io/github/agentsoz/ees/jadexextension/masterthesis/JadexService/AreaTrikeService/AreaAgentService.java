@@ -91,6 +91,7 @@ public class AreaAgentService implements IAreaTrikeService
 	 */
 
 	public void receiveMessage(String messageStr){
+
 		final AreaAgent areaAgent	= (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
 
@@ -135,12 +136,17 @@ public class AreaAgentService implements IAreaTrikeService
 					//	sends back agent ids
 					//todo: replace it by something generic
 					service.trikeReceiveAgentsInArea(message.serialize());
+
 					//
+					break;
+				}
+				case "TRIKES": {
+
 					break;
 				}
 				case "DELEGATE":
 				{
-					areaAgent.buffer.write(messageObj);
+					areaAgent.messagesBuffer.write(messageObj);
 					break;
 				}
 				case "AGREE":
