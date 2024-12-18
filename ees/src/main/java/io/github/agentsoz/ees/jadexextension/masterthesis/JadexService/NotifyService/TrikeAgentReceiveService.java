@@ -41,7 +41,6 @@ public class TrikeAgentReceiveService implements INotifyService {
 		for (PerceptContent perceptContent : PerceptContentList){
 			trikeAgent.perceptContentRingBuffer.write(perceptContent);
 		}
-		trikeAgent.print("receives information from MATSIM");
 
 		if (activestatus)
 		{

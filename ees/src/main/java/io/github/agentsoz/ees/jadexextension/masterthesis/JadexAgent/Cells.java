@@ -29,10 +29,10 @@ public class Cells {
     //  area
     static int areaAgentIdCounter = 0;
     static ArrayList<String> areaAgentCells = new ArrayList<>();
-    static HashMap<String, String> cellAgentMap = new HashMap<>();
+    public static HashMap<String, String> cellAgentMap = new HashMap<>();
 
     //  trike
-    static HashMap<String, Location> trikeRegisterLocations = new HashMap<>();
+    public static HashMap<String, Location> trikeRegisterLocations = new HashMap<>();
 
     public static String locationToCellAddress(Location location, int resolution) {
         CoordinateConversion coordinateConversion = new CoordinateConversion();

@@ -90,7 +90,7 @@ public class AreaAgent {
 
     boolean FIREBASE_ENABLED = false;
 
-    int MIN_TRIKES = 12;
+    public int MIN_TRIKES = 12;
 
     public RingBuffer<Message> proposalBuffer = new RingBuffer<>(32);
 
@@ -193,7 +193,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 40 )
-    class CheckBuffer{}
+    private class CheckBuffer{}
 
     @Plan(trigger=@Trigger(goals=CheckBuffer.class))
     private void checkBuffer(){
@@ -213,7 +213,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 40 )
-    class CheckProposals{}
+    private class CheckProposals{}
 
     @Plan(trigger=@Trigger(goals=CheckProposals.class))
     private void checkProposals(){
@@ -251,7 +251,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 40)
-    class DelegateJobs{}
+    private class DelegateJobs{}
 
     @Plan(trigger=@Trigger(goals=DelegateJobs.class))
     private void delegateJobs(){
@@ -269,7 +269,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 1000 )
-    class PrintSimTime {}
+    private class PrintSimTime {}
     @Plan(trigger=@Trigger(goals=PrintSimTime.class))
     private void printTime()
     {
@@ -278,7 +278,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 20 )
-    class MaintainDistributeCSVJobs
+    private class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition
         boolean isListEmpty(){
@@ -289,7 +289,7 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 1000 )
-    class MaintainDistributeFirebaseJobs
+    private class MaintainDistributeFirebaseJobs
     {
         @GoalMaintainCondition
         boolean isListEmpty(){
@@ -298,7 +298,7 @@ public class AreaAgent {
     }
 
     @Goal(recur = true, recurdelay = 40 )
-    class MaintainDistributeBufferJobs{}
+    private class MaintainDistributeBufferJobs{}
 
     @Plan(trigger=@Trigger(goals=MaintainDistributeBufferJobs.class))
     private void maintainDistributeBufferJobs()
