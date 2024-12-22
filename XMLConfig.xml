@@ -29,6 +29,7 @@
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="FIREBASE_ENABLED">false</field>
+        <field field_name="CSV_SOURCE">ees/subsample_2_new.csv</field>
     </class>
 
     <!--    BOSTON   -->

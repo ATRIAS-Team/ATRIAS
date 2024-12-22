@@ -1,6 +1,7 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.Utils;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
@@ -81,7 +82,7 @@ public class TrikeAgentService implements IAreaTrikeService {
 					System.out.println("FINISHED Negotiation - JobID: " + trikeAgent.decisionTaskList.get(i).getJobID() + " TimeStamp: "+ timeStampBooked);
 					ArrayList<String> values = new ArrayList<>();
 					values.add(jobID);
-					trikeAgent.sendMessage(messageObj.getSenderId(), "inform", "confirmAccept", values);
+					Utils.sendMessage(trikeAgent, messageObj.getSenderId(), "inform", "confirmAccept", values);
 					// nur clients waitingForconfirmations
 					//trikeAgent.testTrikeToTrikeService(messageObj.getSenderId(), "inform", "confirmAccept", values);
 					// alle waitingmanager waiting confirmation
@@ -135,39 +136,7 @@ public class TrikeAgentService implements IAreaTrikeService {
 	//todo: replace by a generic solution
 	public void trikeReceiveAgentsInArea(String messageStr){
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-		System.out.println(messageStr);
 		Message messageObj = Message.deserialize(messageStr);
-		System.out.println(messageObj.getContent().getValues());
-		System.out.println("JobID:" + messageObj.getContent().getValues().get(0));
-
-
-		String JobIDSearch = messageObj.getContent().getValues().get(0);
-		ArrayList<String> neighbourList = messageObj.getContent().getValues();
-		neighbourList.remove(0); //JobID
-		neighbourList.remove(0); //#
-
-		Boolean found = false;
-		Integer i = 0;
-		while (found == false) {
-			if (JobIDSearch.equals(trikeAgent.decisionTaskList.get(i).getJobID())){
-				trikeAgent.decisionTaskList.get(i).setNeighbourIDs(neighbourList);
-				trikeAgent.decisionTaskList.get(i).setStatus("readyForCFP");
-				found = true;
-			}
-			else{
-				i+=1;
-			}
-		}
-
-
-
-
-
-
-		//todo: richtigen decision task bestimmen um einzufügen
-		//todo: action vor absendne benennen
-		//todo: ID von job beifügen
-
-		//todo: @marcel hier in trike schreiben
+		trikeAgent.messagesBuffer.write(messageObj);
 	}
 }

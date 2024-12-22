@@ -88,6 +88,8 @@ public class DecisionTask {
 
     public void setNeighbourIDs(ArrayList<String> neighbourIDs){this.neighbourIDs = neighbourIDs;}
 
+    public void addNeighbourIDs(ArrayList<String> neighbourIDs){this.neighbourIDs.addAll(neighbourIDs);}
+
     public Job getJob(){return job;}
 
 

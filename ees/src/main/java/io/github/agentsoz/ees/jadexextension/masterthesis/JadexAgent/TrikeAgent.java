@@ -18,12 +18,15 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifySer
 import io.github.agentsoz.ees.util.RingBuffer;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig;
 import io.github.agentsoz.util.Location;
+
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
+import jadex.bridge.component.IExecutionFeature;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
+import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
@@ -46,13 +49,15 @@ import java.util.*;
 })
 
 public class TrikeAgent{
-    /**
-     * The bdi agent. Automatically injected
-     */
+
     @Agent
     public IInternalAccess agent;
     @AgentFeature
     protected IBDIAgentFeature bdiFeature;
+    @AgentFeature
+    protected IExecutionFeature execFeature;
+    @AgentFeature
+    protected IRequiredServicesFeature requiredServicesFeature;
 
     // to indicate if the agent is available to take the new ride
     @Belief
@@ -60,6 +65,7 @@ public class TrikeAgent{
     @Belief
     public boolean canExecute = true;
 
+    @Belief
     public Location agentLocation;
 
     @Belief
@@ -71,12 +77,15 @@ public class TrikeAgent{
     @Belief
     public List<Trip> tripList = new ArrayList<>(); //contains all the trips
 
+
     @Belief    //contains the current Trip
     public List<Trip> currentTrip = new ArrayList<>();
 
     public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(16);
 
     public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(16);
+
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(32);
 
 
     @Belief
@@ -86,7 +95,7 @@ public class TrikeAgent{
     @Belief
     public String write = null;
 
-    public Integer chargingTripCounter = 0;
+    public int chargingTripCounter = 0;
 
     @Belief
     protected boolean daytime; //Battery -oemer
@@ -95,7 +104,7 @@ public class TrikeAgent{
     @Belief
     public BatteryModel trikeBattery = new BatteryModel();
     @Belief
-    public List<Double> estimateBatteryAfterTIP = List.of(trikeBattery.getMyChargestate());
+    public List<Double> estimateBatteryAfterTIP = Arrays.asList(trikeBattery.getMyChargestate());
 
     public String currentSimInputBroker;
     public SimActuator SimActuator;
@@ -103,23 +112,25 @@ public class TrikeAgent{
     @Belief
     public String chargingTripAvailable = "0"; //Battery -oemer
 
-    public MyLogger logger;
-
-    private Plans plans;
 
     //  FIREBASE
     public FirebaseHandler<TrikeAgent, Trip> firebaseHandler;
     public HashMap<String, ChildEventListener> listenerHashMap;
 
+    public Utils utils;
+    public Plans plans;
+
+    public long ts = -1;
+
     /**
      * The agent body.
      */
     @OnStart
-    private void body() {
-        Element classElement = XMLConfig.getClassElement("TrikeAgent.java");
-        Utils utils = new Utils(this);
+    public void body() {
+        utils = new Utils(this);
         plans = new Plans(this, utils);
-        
+
+        Element classElement = XMLConfig.getClassElement("TrikeAgent.java");
         utils.configure(classElement);
 
         if(TrikeConstants.FIREBASE_ENABLED){
@@ -130,38 +141,72 @@ public class TrikeAgent{
         System.out.println("TrikeAgent sucessfully started;");
         SimActuator = new SimActuator();
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
-        AddAgentNameToAgentList(); // to get an AgentID later
+        AddAgentNametoAgentList(); // to get an AgentID later
         isMatsimFree = true;
         bdiFeature.dispatchTopLevelGoal(new ReactToAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
+        bdiFeature.dispatchTopLevelGoal(new Log());
         bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
-        bdiFeature.dispatchTopLevelGoal(new MaintainBatteryLoaded());
+        bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckDelegates());
+    }
+
+    @Goal(recur=true, recurdelay=100)
+    private class CheckDelegates {}
+
+    @Plan(trigger=@Trigger(goals=CheckDelegates.class))
+    private void checkDelegates() {
+       plans.checkDelegates();
+    }
+
+
+
+    /**
+     * This is just a debug Goal that will print many usefull information every 10s
+     */
+    @Goal(recur=true, recurdelay=10000)
+    private class Log {}
+
+    @Plan(trigger=@Trigger(goals=Log.class))
+    private void log() {
+        System.out.println("agentID " + agentID +  " simtime " + JadexModel.simulationtime);
     }
 
     @Goal(recur = true, recurdelay = 100)
-    private class MaintainBatteryLoaded {}
+    private class MaintainBatteryLoaded {
+        @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
+        public MaintainBatteryLoaded() {
+        }
+    }
 
     @Plan(trigger = @Trigger(goals = MaintainBatteryLoaded.class))
     private void newChargingTrip() {
         plans.newChargingTrip();
     }
 
-
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay=1000)
-    private class MaintainManageJobs
-    {
+    @Goal(recur=true, recurdelay=100)
+    private class MaintainManageJobs {
         @GoalMaintainCondition
-        boolean isDecisionEmpty() {return decisionTaskList.isEmpty();}
+        boolean isDecisionEmpty()
+        {
+            return decisionTaskList.isEmpty();
+        }
     }
 
     @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
-    private void evaluateDecisionTask() {plans.evaluateDecisionTask();}
+    private void evaluateDecisionTask() {
+        plans.evaluateDecisionTask();
+    }
 
-
+    /**
+     *  MaintainTripService former SendDrivetoTooutAdc
+     *  desired behavior:
+     *  start: when new trip is generated
+     */
     @Goal(recur = true, recurdelay = 100)
     private class MaintainTripService {
         @GoalMaintainCondition
@@ -171,11 +216,13 @@ public class TrikeAgent{
     }
 
     @Plan(trigger = @Trigger(goals = MaintainTripService.class))
-    private void doNextTrip() {plans.executeTrips();}
+    private void executeTrips() {
+        plans.executeTrips();
+    }
 
 
     //#######################################################################
-    //Goals and plans : After the agentID is assigned to the Trike Agent,
+    //Goals and Plans : After the agentID is assigned to the Trike Agent,
     // Trike Agent should prepare everything for the synchronization process
     //#######################################################################
 
@@ -183,10 +230,13 @@ public class TrikeAgent{
     private class ReactToAgentIDAdded {}
 
     @Plan(trigger = @Trigger(goals = ReactToAgentIDAdded.class))
-    private void reactToAgentIDAdded() {plans.reactToAgentIDAdded();}
+    private void ReactToAgentIDAdded()
+    {
+        plans.reactToAgentIDAdded();
+    }
 
     //#######################################################################
-    //Goals and plans : to print out something when the data from MATSIM is
+    //Goals and Plans : to print out something when the data from MATSIM is
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 
@@ -194,20 +244,33 @@ public class TrikeAgent{
     private class PerformSIMReceive {}
 
     @Plan(trigger = @Trigger(goals = PerformSIMReceive.class))
-    private void sensoryUpdate() {plans.sensoryUpdate();}
+    private void sensoryUpdate() {
+        plans.sensoryUpdate();
+    }
+
+    @Goal(recur = true, recurdelay = 50)
+    private class CheckMessagesBuffer{}
+
+    @Plan(trigger = @Trigger(goals = CheckMessagesBuffer.class))
+    private void checkMessagesBuffer(){
+        plans.checkMessagesBuffer();
+    }
 
 
-
-    public void AddAgentNameToAgentList()
+    public void AddAgentNametoAgentList()
     {
         SimIDMapper.TrikeAgentNameList.add(agent.getId().getName());
+    }
+
+    public void AddTriptoTripList(Trip Trip)
+    {
+        tripList.add(Trip);
     }
 
     public void AddDecisionTask(DecisionTask decisionTask)
     {
         decisionTaskList.add(decisionTask);
     }
-
 
     public void setAgentID(String agentid) {
         agentID = agentid;

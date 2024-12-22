@@ -5,7 +5,7 @@ import io.github.agentsoz.util.Location;
 import java.util.Arrays;
 import java.util.List;
 
-public class TrikeConstants {
+public class  TrikeConstants {
     public static double commitThreshold = 50.0;
     public static double DRIVING_SPEED = 6.0;
     public static boolean CNP_ACTIVE = true;

@@ -1,15 +1,11 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaAgentService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
-import org.apache.xpath.operations.Bool;
 
-import java.nio.DoubleBuffer;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 
 /**

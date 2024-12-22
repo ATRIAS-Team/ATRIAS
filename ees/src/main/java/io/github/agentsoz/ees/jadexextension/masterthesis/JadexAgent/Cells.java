@@ -28,7 +28,7 @@ public class Cells {
 
     //  area
     static int areaAgentIdCounter = 0;
-    static ArrayList<String> areaAgentCells = new ArrayList<>();
+    public static ArrayList<String> areaAgentCells = new ArrayList<>();
     public static HashMap<String, String> cellAgentMap = new HashMap<>();
 
     //  trike

@@ -1,7 +1,6 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
@@ -102,54 +101,13 @@ public class AreaAgentService implements IAreaTrikeService
 		}
 		if(messageObj.getComAct().equals("request")){
 			switch (messageObj.getContent().getAction()){
-				case "trikesInArea":{
-					messageObj.getContent().getValues().get(0);
-					//messageObj.getSenderId();
-
-
-					ArrayList<String> locatedAgentIds = new ArrayList<>();
-					locatedAgentIds.add(messageObj.getContent().getValues().get(0));
-					locatedAgentIds.add("#");
-
-					//todo: when everywhre just the ID and not user: is used remove this
-					String requestID = messageObj.getSenderId();
-					requestID = requestID.replace("", "");
-
-
-					for (LocatedAgent locatedAgent: areaAgent.locatedAgentList.LocatedAgentList) {
-						if ((!locatedAgent.getAgentID().equals(requestID))) {
-							//System.out.println("equal? " + !(locatedAgent.getAgentID().equals(messageObj.getSenderId())));
-							locatedAgentIds.add(locatedAgent.getAgentID());
-						}
-					}
-					//todo: send answere here
-					//todo: define where to store the list inside the trike
-
-					// neu
-					//hier decisiontaskID hinzufügen
-
-					MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
-					//todo: crate a unique message id
-					Message message = new Message("1", messageObj.getReceiverId(), messageObj.getSenderId(), "inform", JadexModel.simulationtime, messageContent);
-					IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
-
-					//	sends back agent ids
-					//todo: replace it by something generic
-					service.trikeReceiveAgentsInArea(message.serialize());
-
-					//
+				case "trikesInArea":
+					areaAgent.trikeMessagesBuffer.write(messageObj);
 					break;
-				}
-				case "TRIKES": {
-
+				case "BROADCAST":
+					areaAgent.areaMessagesBuffer.write(messageObj);
 					break;
-				}
-				case "DELEGATE":
-				{
-					areaAgent.messagesBuffer.write(messageObj);
-					break;
-				}
-				case "AGREE":
+				case "PROPOSE":
 					areaAgent.proposalBuffer.write(messageObj);
 					break;
 				case "ASSIGN":

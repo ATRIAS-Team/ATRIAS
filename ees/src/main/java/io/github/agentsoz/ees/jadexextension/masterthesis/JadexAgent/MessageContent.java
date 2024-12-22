@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class MessageContent {
     String action;
-    ArrayList<String> values;
+    public ArrayList<String> values;
 
     public MessageContent(String action, ArrayList<String> values){
         this.action = action;
