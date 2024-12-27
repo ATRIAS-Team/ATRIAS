@@ -3,7 +3,6 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.DelegateInfo;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
@@ -14,10 +13,11 @@ import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Iterator;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.*;
 
@@ -97,16 +97,12 @@ public class Plans {
 
     public void evaluateDecisionTask()
     {
-        boolean finishedForNow = false;
-        while (!finishedForNow) {
-            int changes = 0;
-            for (int i = 0; i < trikeAgent.decisionTaskList.size(); i++) {
-                int currentChanges = utils.selectNextAction(i);
-                changes += currentChanges;
-            }
-            if(changes==0){
-                finishedForNow = true;
-            }
+        Iterator<DecisionTask> iterator = trikeAgent.decistionTasks.values().iterator();
+        while (iterator.hasNext()){
+            boolean hasChanged;
+            do {
+                hasChanged = utils.selectNextAction(iterator);
+            }while (hasChanged);
         }
     }
 
@@ -191,6 +187,7 @@ public class Plans {
     }
 
     public void checkMessagesBuffer() {
+        //  asking area for trikes
         while (!trikeAgent.messagesBuffer.isEmpty()) {
             Message message = trikeAgent.messagesBuffer.read();
 
@@ -198,67 +195,77 @@ public class Plans {
             String jobId = neighbourList.remove(0); //JobID
             neighbourList.remove(0); //#
 
-            int i = 0;
-            boolean found = false;
-            for (; i < utils.delegateTrips.size(); i++) {
-                if(utils.delegateTrips.get(i).tripId.equals(jobId)){
-                    found = true;
-                    break;
-                }
-            }
-
-            if(found){
-                long currentTime = Instant.now().toEpochMilli();
-                if (currentTime < utils.delegateTrips.get(i).ts + 3000){
-                    utils.delegateTrips.get(i).offers.addAll(neighbourList);
+            if(trikeAgent.decistionTasks.containsKey(jobId)){
+                DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobId);
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
+                    decisionTask.getAgentIds().addAll(neighbourList);
                 }
             }
         }
     }
 
-    public void checkDelegates() {
-        long currentTime = Instant.now().toEpochMilli();
-        for (int i = 0; i < utils.delegateTrips.size(); i++) {
-          DelegateTrip delegateTrip = utils.delegateTrips.get(i);
-
-            if (currentTime >= delegateTrip.ts + 3000){
-                int j = 0;
-                while (j < trikeAgent.decisionTaskList.size()) {
-                    if (delegateTrip.tripId.equals(trikeAgent.decisionTaskList.get(j).getJobID())) {
-                        if(delegateTrip.offers.isEmpty()){
-                            String jobCell =
-                                    Cells.locationToCellAddress(trikeAgent.decisionTaskList.get(j).getStartPositionFromJob(),
-                                            Cells.getCellResolution(utils.newCellAddress));
-                            boolean isInArea = utils.newCellAddress.equals(jobCell);
-
-                            if(isInArea){
-                                //  global cnp
-                                ArrayList<String> values = new ArrayList<>();
-                                values.add(trikeAgent.decisionTaskList.get(j).getJobID());
-
-                                delegateTrip.ts = Instant.now().toEpochMilli();
-                                //  need to broadcast cnp
-                                List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
-                                for (String id: areaNeighbourIds) {
-                                    Utils.sendMessage(trikeAgent, id, "request", "trikesInArea", values);
-                                }
-                            }else {
-                                trikeAgent.decisionTaskList.get(j).setStatus("notAssigned");
-                            }
-                        }else{
-                                trikeAgent.decisionTaskList.get(j).setStatus("readyForCFP");
-
-                        }
-
-
+    public void checkCNPBuffer() {
+        while (!trikeAgent.cnpBuffer.isEmpty()){
+            Message message = trikeAgent.cnpBuffer.read();
+            switch (message.getComAct()){
+                case CALL_FOR_PROPOSAL: {
+                    Job job = new Job(message.getContent().getValues());
+                    DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.PROPOSED);
+                    trikeAgent.AddDecisionTask(decisionTask);
+                    break;
+                }
+                case PROPOSE: {
+                    String jobID = message.getContent().getValues().get(0);
+                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
+                        Double propose = Double.parseDouble(message.getContent().getValues().get(2));
+                        String senderID = message.getSenderId();
+                        decisionTask.setUtilityScore(senderID, propose);
+                    }else{
+                        //  reject
+                    }
+                    break;
+                }
+                case ACCEPT_PROPOSAL: {
+                    String jobID = message.getContent().getValues().get(0);
+                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER){
+                        decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
+                    }else{
+                        //  say no
+                    }
+                    break;
+                }
+                case REJECT_PROPOSAL: {
+                    String jobID = message.getContent().getValues().get(0);
+                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
+                        trikeAgent.decistionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                    }
+                    break;
+                }
+                case ACK: {
+                    String jobID = message.getContent().getValues().get(0);
+                    DecisionTask decisionTask = trikeAgent.decistionTasks.remove(jobID);
+                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM){
+                        decisionTask.setStatus(DecisionTask.Status.DELEGATED);
+                        trikeAgent.FinishedDecisionTaskList.add(decisionTask);
                         break;
                     }else{
-                        j++;
+                        //  say no
                     }
                 }
             }
         }
+    }
 
-        utils.delegateTrips.removeIf((delegateTrip -> currentTime >= delegateTrip.ts + 3000));
+
+    public void checkJobBuffer(){
+        while (!trikeAgent.jobsBuffer.isEmpty()){
+            Message message = trikeAgent.jobsBuffer.read();
+            Job job = new Job(message.getContent().getValues());
+            DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
+            trikeAgent.AddDecisionTask(decisionTask);
+        }
     }
 }

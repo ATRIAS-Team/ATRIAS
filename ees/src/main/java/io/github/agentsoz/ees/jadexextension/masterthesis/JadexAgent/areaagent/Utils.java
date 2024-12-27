@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -130,9 +131,12 @@ public class Utils {
             MessageContent messageContent = new MessageContent("", job.toArrayList());
             LocalTime bookingTime = LocalTime.now();
             System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
-            Message message = new Message("0", areaAgent.areaAgentId, closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
+            Message message = new Message(areaAgent.areaAgentId, closestAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-            service.trikeReceiveJob(message.serialize());
+            service.sendMessage(message.serialize());
+
+            areaAgent.sentMessages.add(message);
+
             //remove job from list
             jobList.remove(0);
             System.out.println("AREA AGENT: JOB was SENT");
@@ -165,5 +169,6 @@ public class Utils {
     private void configure(Element classElement) {
         areaAgent.FIREBASE_ENABLED = Boolean.parseBoolean(getClassField(classElement, "FIREBASE_ENABLED"));
         this.CSV_SOURCE = getClassField(classElement, "CSV_SOURCE");
+        AreaConstants.SEND_WAIT_TIME = Integer.parseInt(Objects.requireNonNull(getClassField(classElement, "SEND_WAIT_TIME")));
     }
 }

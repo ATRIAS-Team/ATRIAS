@@ -15,7 +15,7 @@ import jadex.commons.future.IFuture;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.time.Instant;
 
 @Service
 public class AreaAgentService implements IAreaTrikeService
@@ -61,58 +61,35 @@ public class AreaAgentService implements IAreaTrikeService
 	}
 
 
-	///////////////////////////////////////////////////////
-	//	custom functions
 
-
-	//area agent part
-
-	//	updates located agent list
-	public void areaReceiveUpdate(String messageStr)
-	{
-		final AreaAgent areaAgent = (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-		Message messageObj = Message.deserialize(messageStr);
-		ArrayList<String> locationParts = messageObj.getContent().getValues();
-		//Location location = new Location(locationParts.get(0), Double.parseDouble(locationParts.get(1)), Double.parseDouble(locationParts.get(2)));
-		Location location = null;
-		if(locationParts != null){
-			location = new Location("", Double.parseDouble(locationParts.get(0)), Double.parseDouble(locationParts.get(1)));
-		}
-		LocatedAgent locatedAgent = new LocatedAgent(messageObj.getSenderId(), location);
-		areaAgent.locatedAgentList.updateLocatedAgentList(locatedAgent, messageObj.getSimTime(), messageObj.getContent().getAction());
-	}
-
-
-	/** todo: use receiveMessage for everything
-	 *  receives messages
-	 *
-	 * @param messageStr
-	 */
-
-	public void receiveMessage(String messageStr){
+	public void sendMessage(String messageStr){
 
 		final AreaAgent areaAgent	= (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
+		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
+		areaAgent.receivedMessageIds.put(messageObj.getId(), Instant.now().toEpochMilli());
 
-		if(messageObj.getComAct().equals("inform")){
-			if(messageObj.getContent().getAction().equals("")){
-				//todo: handle updates from trike for example their location here
+		switch (messageObj.getComAct()){
+			case INFORM:{
+				areaAgent.trikeMessagesBuffer.write(messageObj);
+				break;
 			}
-		}
-		if(messageObj.getComAct().equals("request")){
-			switch (messageObj.getContent().getAction()){
-				case "trikesInArea":
-					areaAgent.trikeMessagesBuffer.write(messageObj);
-					break;
-				case "BROADCAST":
-					areaAgent.areaMessagesBuffer.write(messageObj);
-					break;
-				case "PROPOSE":
-					areaAgent.proposalBuffer.write(messageObj);
-					break;
-				case "ASSIGN":
-					areaAgent.jobRingBuffer.write(new Job(messageObj.getContent().getValues()));
-					break;
+			case REQUEST:{
+				switch (messageObj.getContent().getAction()){
+					case "trikesInArea":
+						areaAgent.trikeMessagesBuffer.write(messageObj);
+						break;
+					case "BROADCAST":
+						areaAgent.areaMessagesBuffer.write(messageObj);
+						break;
+					case "PROPOSE":
+						areaAgent.proposalBuffer.write(messageObj);
+						break;
+					case "ASSIGN":
+						areaAgent.jobRingBuffer.write(new Job(messageObj.getContent().getValues()));
+						break;
+				}
+				break;
 			}
 		}
 	}

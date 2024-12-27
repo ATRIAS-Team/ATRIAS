@@ -3,15 +3,21 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 import java.time.LocalDateTime;
 
 public class UTScore {
-    private String bidderID;
+    private final String bidderID;
     private LocalDateTime bidTime;
-    private Double score;
+    private final Double score;
 
     private String tag;
 
     public UTScore(String bidderID, Double score){
         this.bidderID = bidderID;
         this.score = score;
+    }
+
+    public UTScore(String bidderID, LocalDateTime bidTime, Double score){
+        this.bidderID = bidderID;
+        this.score = score;
+        this.bidTime = bidTime;
     }
 
     public void setTag(String tag){ this.tag = tag;}
@@ -22,6 +28,5 @@ public class UTScore {
 
     public Double getScore(){ return score;}
 
-    //todo: implement a contructor whioch uses bidTime
-
+    public LocalDateTime getBidTime() {return bidTime;}
 }

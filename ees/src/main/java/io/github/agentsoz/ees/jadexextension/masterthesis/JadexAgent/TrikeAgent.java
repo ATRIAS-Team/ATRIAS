@@ -69,7 +69,7 @@ public class TrikeAgent{
     public Location agentLocation;
 
     @Belief
-    public List<DecisionTask> decisionTaskList = new ArrayList<>();
+    public Map<String, DecisionTask> decistionTasks = new HashMap<>();
 
     @Belief
     public List<DecisionTask> FinishedDecisionTaskList = new ArrayList<>();
@@ -86,6 +86,10 @@ public class TrikeAgent{
     public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(16);
 
     public RingBuffer<Message> messagesBuffer = new RingBuffer<>(32);
+
+    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(32);
+
+    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(64);
 
 
     @Belief
@@ -149,15 +153,16 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
         bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
-        bdiFeature.dispatchTopLevelGoal(new CheckDelegates());
+        bdiFeature.dispatchTopLevelGoal(new CNPBuffer());
+        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
     }
 
     @Goal(recur=true, recurdelay=100)
-    private class CheckDelegates {}
+    private class JobBuffer {}
 
-    @Plan(trigger=@Trigger(goals=CheckDelegates.class))
-    private void checkDelegates() {
-       plans.checkDelegates();
+    @Plan(trigger=@Trigger(goals=JobBuffer.class))
+    private void checkJobBuffer() {
+       plans.checkJobBuffer();
     }
 
 
@@ -188,12 +193,12 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay=100)
+    @Goal(recur=true, recurdelay=50)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         boolean isDecisionEmpty()
         {
-            return decisionTaskList.isEmpty();
+            return decistionTasks.isEmpty();
         }
     }
 
@@ -256,6 +261,14 @@ public class TrikeAgent{
         plans.checkMessagesBuffer();
     }
 
+    @Goal(recur = true, recurdelay = 300)
+    private class CNPBuffer{}
+
+    @Plan(trigger = @Trigger(goals = CNPBuffer.class))
+    private void checkCNPBuffer(){
+        plans.checkCNPBuffer();
+    }
+
 
     public void AddAgentNametoAgentList()
     {
@@ -269,7 +282,7 @@ public class TrikeAgent{
 
     public void AddDecisionTask(DecisionTask decisionTask)
     {
-        decisionTaskList.add(decisionTask);
+        decistionTasks.put(decisionTask.getJobID(), decisionTask);
     }
 
     public void setAgentID(String agentid) {

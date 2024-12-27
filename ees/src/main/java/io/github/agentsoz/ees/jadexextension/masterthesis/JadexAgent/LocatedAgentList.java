@@ -14,7 +14,7 @@ public class LocatedAgentList {
         return LocatedAgentList.size();
     }
 
-    public void updateLocatedAgentList(LocatedAgent newAgent, Double simTime, String action){
+    public void updateLocatedAgentList(LocatedAgent newAgent, long timestamp, String action){
         switch (action){
             case "register": {
                 LocatedAgentList.add(newAgent);
@@ -23,7 +23,7 @@ public class LocatedAgentList {
             case "update": {
                 for (LocatedAgent locatedAgent : LocatedAgentList) {
                     if (newAgent.getAgentID().equals(locatedAgent.getAgentID())) {
-                        locatedAgent.updateLocatedAgent(newAgent.getLastPosition(), simTime);
+                        locatedAgent.updateLocatedAgent(newAgent.getLastPosition(), timestamp);
                     }
                 }
                break;

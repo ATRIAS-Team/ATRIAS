@@ -5,6 +5,7 @@
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.DelegateInfo;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Plans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Utils;
@@ -24,8 +25,7 @@ import jadex.micro.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 @Agent(type = "bdi")
@@ -71,6 +71,9 @@ public class AreaAgent {
     public String areaAgentId = null;
     public String myTag = null;
 
+    public List<Message> sentMessages = new ArrayList<>();
+
+    public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
 
     //  BUFFER
     public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(4);
@@ -108,6 +111,8 @@ public class AreaAgent {
         bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
         bdiFeature.dispatchTopLevelGoal(new CheckTrikeMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
+        //bdiFeature.dispatchTopLevelGoal(new CheckAcks());
+        //bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
     }
 
     @Goal(recur = true, recurdelay = 100 )
@@ -136,10 +141,10 @@ public class AreaAgent {
             if(delegateInfo.ts != -1) return;
             for (String neighbourId: neighbourIds){
                 MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
-                Message message = new Message("0", areaAgentId, neighbourId, "request", JadexModel.simulationtime, messageContent);
+                Message message = new Message(areaAgentId, neighbourId, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
                 IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
                 delegateInfo.ts = Instant.now().toEpochMilli();
-                service.receiveMessage(message.serialize());
+                service.sendMessage(message.serialize());
             }
         }
     }
@@ -209,32 +214,29 @@ public class AreaAgent {
     @Plan(trigger=@Trigger(goals=CheckTrikeMessagesBuffer.class))
     private void checkTrikeMessagesBuffer()
     {
-        if(trikeMessagesBuffer.isEmpty()) return;
-        Message bufferMessage = trikeMessagesBuffer.read();
+       plans.checkTrikeMessagesBuffer();
+    }
 
-        ArrayList<String> locatedAgentIds = new ArrayList<>();
-        locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
-        locatedAgentIds.add("#");
+    @Goal(recur = true, recurdelay = 5000)
+    private class CheckAcks{}
 
-        //todo: when everywhere just the ID and not user: is used remove this
-        String requestID = bufferMessage.getSenderId();
+    @Plan(trigger=@Trigger(goals=CheckAcks.class))
+    private void checkAcks(){
+        plans.checkAcks();
+    }
 
-        if(locatedAgentList.size() > MIN_TRIKES){
-            for (LocatedAgent locatedAgent: this.locatedAgentList.LocatedAgentList) {
-                if ((!locatedAgent.getAgentID().equals(requestID))) {
-                    locatedAgentIds.add(locatedAgent.getAgentID());
-                }
+    @Goal(recur = true, recurdelay = 10000)
+    private class ReceivedMessages{}
+
+    @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
+    private void updateReceivedMessages(){
+        Iterator<Long> iterator = receivedMessageIds.values().iterator();
+        long currentTimeStamp = Instant.now().toEpochMilli();
+        while (iterator.hasNext()){
+            long timeStamp = iterator.next();
+            if(currentTimeStamp >= timeStamp + 30000){
+                iterator.remove();
             }
         }
-
-        MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
-        //todo: crate a unique message id
-        Message message = new Message("1", bufferMessage.getReceiverId(), bufferMessage.getSenderId(),
-                "inform", JadexModel.simulationtime, messageContent);
-        IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
-
-        //	sends back agent ids
-        //todo: replace it by something generic
-        service.trikeReceiveAgentsInArea(message.serialize());
     }
 }

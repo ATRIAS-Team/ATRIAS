@@ -2,29 +2,44 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
 import com.google.gson.Gson;
 
+import java.util.UUID;
+
 public class Message {
+    private final UUID id;
+    private final String senderId;
+    private final String receiverId;
+    private final ComAct comAct;
 
-    private String id;
-    private String senderId;
-    private String receiverId;
+    private long timeStamp;
 
-    private String comAct;
-    private double simTime;
-    private MessageContent content;
+    private final MessageContent content;
 
     // register/deregister/update;<name>,valX,valY
     // Constructor
-    public Message(String id, String senderId, String receiverId, String comAct, double simTime, MessageContent content) {
-        this.id = id;
+    public Message(String senderId, String receiverId, ComAct comAct, long timeStamp, MessageContent content) {
+        this.id = UUID.randomUUID();
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.comAct = comAct;
-        this.simTime = simTime;
+        this.timeStamp = timeStamp;
         this.content = content;
     }
 
+    public Message(String senderId, String receiverId, ComAct comAct, double timeStamp, MessageContent content) {
+        this.id = UUID.randomUUID();
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.comAct = comAct;
+        this.timeStamp = (long) timeStamp;
+        this.content = content;
+    }
+
+    public enum ComAct {
+        INFORM, REQUEST, ACK, CALL_FOR_PROPOSAL, PROPOSE, ACCEPT_PROPOSAL, REJECT_PROPOSAL
+    }
+
     // Getters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -36,14 +51,18 @@ public class Message {
         return receiverId;
     }
 
-    public String getComAct() {
+    public ComAct getComAct() {
         return comAct;
     }
 
-    public Double getSimTime(){return simTime;}
+    public long getTimeStamp(){return timeStamp;}
 
     public MessageContent getContent() {
         return content;
+    }
+
+    public void setTimeStamp(long timeStamp){
+        this.timeStamp = timeStamp;
     }
 
     public String serialize(){
