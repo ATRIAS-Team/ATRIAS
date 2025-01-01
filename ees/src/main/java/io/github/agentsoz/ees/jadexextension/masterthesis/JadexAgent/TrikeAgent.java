@@ -31,6 +31,7 @@ import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
 
+import java.time.Instant;
 import java.util.*;
 
 @Agent(type= BDIAgentFactory.TYPE)
@@ -91,6 +92,10 @@ public class TrikeAgent{
 
     public RingBuffer<Message> cnpBuffer = new RingBuffer<>(64);
 
+    public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
+
+
+    public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
 
     @Belief
     public String agentID = null; // store agent ID from the map
@@ -147,6 +152,7 @@ public class TrikeAgent{
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
         AddAgentNametoAgentList(); // to get an AgentID later
         isMatsimFree = true;
+
         bdiFeature.dispatchTopLevelGoal(new ReactToAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
         bdiFeature.dispatchTopLevelGoal(new Log());
@@ -155,6 +161,8 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new CNPBuffer());
         bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
+        bdiFeature.dispatchTopLevelGoal(new Requests());
     }
 
     @Goal(recur=true, recurdelay=100)
@@ -193,7 +201,7 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay=50)
+    @Goal(recur=true, recurdelay=20)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         boolean isDecisionEmpty()
@@ -253,7 +261,7 @@ public class TrikeAgent{
         plans.sensoryUpdate();
     }
 
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 10)
     private class CheckMessagesBuffer{}
 
     @Plan(trigger = @Trigger(goals = CheckMessagesBuffer.class))
@@ -261,13 +269,37 @@ public class TrikeAgent{
         plans.checkMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 300)
+    @Goal(recur = true, recurdelay = 10)
     private class CNPBuffer{}
 
     @Plan(trigger = @Trigger(goals = CNPBuffer.class))
     private void checkCNPBuffer(){
         plans.checkCNPBuffer();
     }
+
+    @Goal(recur = true, recurdelay = 10000)
+    private class Requests{}
+
+    @Plan(trigger=@Trigger(goals= Requests.class))
+    private void checkRequestTimeouts(){
+        plans.checkRequestTimeouts();
+    }
+
+    @Goal(recur = true, recurdelay = 10000)
+    private class ReceivedMessages{}
+
+    @Plan(trigger=@Trigger(goals= ReceivedMessages.class))
+    private void updateReceivedMessages(){
+        Iterator<Long> iterator = receivedMessageIds.values().iterator();
+        long currentTimeStamp = Instant.now().toEpochMilli();
+        while (iterator.hasNext()){
+            long timeStamp = iterator.next();
+            if(currentTimeStamp >= timeStamp + 30000){
+                iterator.remove();
+            }
+        }
+    }
+
 
 
     public void AddAgentNametoAgentList()

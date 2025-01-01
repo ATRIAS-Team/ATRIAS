@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.assignIfNotNull;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.getClassField;
 
 public class Utils {
@@ -135,7 +136,7 @@ public class Utils {
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
             service.sendMessage(message.serialize());
 
-            areaAgent.sentMessages.add(message);
+            areaAgent.requests.add(message);
 
             //remove job from list
             jobList.remove(0);
@@ -167,8 +168,11 @@ public class Utils {
     }
 
     private void configure(Element classElement) {
-        areaAgent.FIREBASE_ENABLED = Boolean.parseBoolean(getClassField(classElement, "FIREBASE_ENABLED"));
-        this.CSV_SOURCE = getClassField(classElement, "CSV_SOURCE");
-        AreaConstants.SEND_WAIT_TIME = Integer.parseInt(Objects.requireNonNull(getClassField(classElement, "SEND_WAIT_TIME")));
+        assignIfNotNull(classElement,"FIREBASE_ENABLED", Boolean::parseBoolean,
+                value -> areaAgent.FIREBASE_ENABLED = value);
+        assignIfNotNull(classElement,"CSV_SOURCE", String::toString,
+                value -> this.CSV_SOURCE = value);
+        assignIfNotNull(classElement,"SEND_WAIT_TIME", Integer::parseInt,
+                value -> AreaConstants.SEND_WAIT_TIME = value);
     }
 }

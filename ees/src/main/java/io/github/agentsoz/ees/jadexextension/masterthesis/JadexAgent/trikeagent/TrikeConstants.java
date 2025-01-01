@@ -6,6 +6,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class  TrikeConstants {
+    public static int ASK_FOR_TRIKES_WAIT_TIME = 5000;
+
+    public static int MANAGER_WAIT_TIME = 25000;
+
+    public static int CONFIRM_WAIT_TIME = 5000;
+
+    public static int PROPOSALS_WAIT_TIME = 5000;
+
     public static double commitThreshold = 50.0;
     public static double DRIVING_SPEED = 6.0;
     public static boolean CNP_ACTIVE = true;
@@ -14,6 +22,7 @@ public class  TrikeConstants {
     public static double DISTANCE_FACTOR = 3.0; //multiply with distance estimations for energyconsumption, to avoid an underestimation
     public static double CHARGING_THRESHOLD = 0.4; // Threshold to determine when a ChargingTrip should be generated
 
+    public static double REQUEST_WAIT_TIME = 10000;
     public static boolean FIREBASE_ENABLED = false;
 
     //Boston station

@@ -5,10 +5,10 @@ import com.google.gson.Gson;
 import java.util.UUID;
 
 public class Message {
-    private final UUID id;
-    private final String senderId;
-    private final String receiverId;
-    private final ComAct comAct;
+    private UUID id;
+    private String senderId;
+    private String receiverId;
+    private ComAct comAct;
 
     private long timeStamp;
 
@@ -35,12 +35,16 @@ public class Message {
     }
 
     public enum ComAct {
-        INFORM, REQUEST, ACK, CALL_FOR_PROPOSAL, PROPOSE, ACCEPT_PROPOSAL, REJECT_PROPOSAL
+        INFORM, REQUEST, ACK, CALL_FOR_PROPOSAL, PROPOSE, REFUSE, ACCEPT_PROPOSAL, REJECT_PROPOSAL
     }
 
     // Getters
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id){
+        this.id = id;
     }
 
     public String getSenderId() {
@@ -84,5 +88,13 @@ public class Message {
         return new Message(id, senderId, receiverId, comAct, content, simTime);
          */
         return gson.fromJson(messageJson, Message.class);
+    }
+
+    public static Message response(Message message){
+        message.comAct = ComAct.ACK;
+        String temp = message.senderId;
+        message.senderId = message.receiverId;
+        message.receiverId = temp;
+        return message;
     }
 }

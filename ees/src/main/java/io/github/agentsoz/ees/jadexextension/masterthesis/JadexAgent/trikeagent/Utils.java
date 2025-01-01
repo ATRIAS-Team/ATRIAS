@@ -6,6 +6,7 @@ import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
@@ -22,6 +23,7 @@ import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.*;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.assignIfNotNull;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.getClassField;
 
 
@@ -37,15 +39,44 @@ public class Utils {
     }
 
     public void configure(Element classElement) {
-        TrikeConstants.FIREBASE_ENABLED = Boolean.parseBoolean(getClassField(classElement, "FIREBASE_ENABLED"));
-        trikeAgent.chargingTripAvailable = getClassField(classElement, "chargingTripAvailable");
-        TrikeConstants.commitThreshold = Double.parseDouble(getClassField(classElement, "commitThreshold"));
-        TrikeConstants.DRIVING_SPEED = Double.parseDouble(getClassField(classElement, "DRIVING_SPEED"));
-        CNP_ACTIVE = Boolean.parseBoolean(getClassField(classElement, "CNP_ACTIVE"));
-        TrikeConstants.THETA = Double.parseDouble(getClassField(classElement, "THETA"));
-        TrikeConstants.ALLOW_CUSTOMER_MISS = Boolean.parseBoolean(getClassField(classElement, "ALLOW_CUSTOMER_MISS"));
-        DISTANCE_FACTOR = Double.parseDouble(getClassField(classElement, "DISTANCE_FACTOR"));
-        TrikeConstants.CHARGING_THRESHOLD = Double.parseDouble(getClassField(classElement, "CHARGING_THRESHOLD"));
+        assignIfNotNull(classElement,"FIREBASE_ENABLED", Boolean::parseBoolean,
+                value -> TrikeConstants.FIREBASE_ENABLED = value);
+
+        assignIfNotNull(classElement, "chargingTripAvailable", String::toString,
+                value -> trikeAgent.chargingTripAvailable = value);
+
+        assignIfNotNull(classElement, "commitThreshold", Double::parseDouble,
+                value -> TrikeConstants.commitThreshold = value);
+
+        assignIfNotNull(classElement, "DRIVING_SPEED", Double::parseDouble,
+                value -> TrikeConstants.DRIVING_SPEED = value);
+
+        assignIfNotNull(classElement, "CNP_ACTIVE", Boolean::parseBoolean,
+                value -> CNP_ACTIVE = value);
+
+        assignIfNotNull(classElement, "THETA", Double::parseDouble,
+                value -> TrikeConstants.THETA = value);
+
+        assignIfNotNull(classElement, "ALLOW_CUSTOMER_MISS", Boolean::parseBoolean,
+                value -> TrikeConstants.ALLOW_CUSTOMER_MISS = value);
+
+        assignIfNotNull(classElement, "DISTANCE_FACTOR", Double::parseDouble,
+                value -> DISTANCE_FACTOR = value);
+
+        assignIfNotNull(classElement, "CHARGING_THRESHOLD", Double::parseDouble,
+                value -> TrikeConstants.CHARGING_THRESHOLD = value);
+
+        assignIfNotNull(classElement, "ASK_FOR_TRIKES_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.ASK_FOR_TRIKES_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "MANAGER_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.MANAGER_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "CONFIRM_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.CONFIRM_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "PROPOSALS_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.PROPOSALS_WAIT_TIME = value);
     }
 
     public Location getNextChargingStation(){
@@ -144,265 +175,313 @@ public class Utils {
         return batteryChargeAfterTIP;
     }
 
-    public boolean selectNextAction(Iterator<DecisionTask> iterator){
+    public void selectNextAction(Iterator<DecisionTask> iterator){
+        boolean hasChanged = false;
         DecisionTask currentDecisionTask = iterator.next();
-        switch (currentDecisionTask.getStatus()) {
-            case NEW: {
-                //  Execute Utillity here > "commit"|"delegate"
-                Double ownScore = calculateUtility(currentDecisionTask);
-                currentDecisionTask.setUtilityScore(trikeAgent.agentID, ownScore);
+        do{
+            switch (currentDecisionTask.getStatus()) {
+                case NEW: {
+                    //  Execute Utillity here > "commit"|"delegate"
+                    Double ownScore = calculateUtility(currentDecisionTask);
+                    currentDecisionTask.setUtilityScore(trikeAgent.agentID, ownScore);
 
-                if (ownScore < commitThreshold && CNP_ACTIVE) {
-                    currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
-                } else {
-                    currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                    String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                    System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+                    if (ownScore < commitThreshold && CNP_ACTIVE) {
+                        currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                    } else {
+                        currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+                        System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+                    }
+
+                    hasChanged = true;
+                    break;
                 }
-                return true;
-            }
-            case COMMIT: {
-                Trip newTrip = new Trip(currentDecisionTask, currentDecisionTask.getJobID(), "CustomerTrip",
-                        currentDecisionTask.getVATimeFromJob(), currentDecisionTask.getStartPositionFromJob(),
-                        currentDecisionTask.getEndPositionFromJob(), "NotStarted");
+                case COMMIT: {
+                    Trip newTrip = new Trip(currentDecisionTask, currentDecisionTask.getJobID(), "CustomerTrip",
+                            currentDecisionTask.getVATimeFromJob(), currentDecisionTask.getStartPositionFromJob(),
+                            currentDecisionTask.getEndPositionFromJob(), "NotStarted");
 
-                trikeAgent.tripList.add(newTrip);
+                    trikeAgent.tripList.add(newTrip);
 
-                if(FIREBASE_ENABLED){
-                    //  listen to the new child in firebase
-                    ChildEventListener childEventListener = trikeAgent.firebaseHandler.childAddedListener("trips/"+newTrip.tripID, (dataSnapshot, previousChildName, list)->{
-                        System.out.println(dataSnapshot);
-                        // Iterate through messages under this trip
-                        for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-                            String message = (String) messageSnapshot.child("message").getValue();
+                    if(FIREBASE_ENABLED){
+                        //  listen to the new child in firebase
+                        ChildEventListener childEventListener = trikeAgent.firebaseHandler.childAddedListener("trips/"+newTrip.tripID, (dataSnapshot, previousChildName, list)->{
+                            System.out.println(dataSnapshot);
+                            // Iterate through messages under this trip
+                            for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
+                                String message = (String) messageSnapshot.child("message").getValue();
 
-                            // Check if the message is the specific question
-                            if ("How many trips are scheduled before mine?".equals(message)) {
-                                DatabaseReference parent = dataSnapshot.getRef().getParent();
-                                String tripId = parent.getKey();
-                                int numberOfTrips = 0;
-                                System.out.println(list);
-                                for(int i = 0; i < list.size(); i++){
-                                    if(list.get(i).getTripID().equals(tripId)){
-                                        numberOfTrips = i;
-                                        break;
-                                    }
-                                }
-
-
-                                // Push a new message node under the 'messages' node
-                                DatabaseReference newMessageRef = dataSnapshot.getRef().push();
-
-                                // Set the message content
-                                newMessageRef.child("message").setValueAsync("Number of trips before yours: " + numberOfTrips);
-
-                                // Add other necessary fields, e.g., sender and timestamp if needed
-                                newMessageRef.child("sender").setValueAsync("agent");
-
-
-                                // Remove the question message from Firebase
-                                messageSnapshot.getRef().removeValue(new DatabaseReference.CompletionListener() {
-                                    @Override
-                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                        if (databaseError != null) {
-                                            // Handle the error
-                                            System.err.println("Error removing question message: " + databaseError.getMessage());
+                                // Check if the message is the specific question
+                                if ("How many trips are scheduled before mine?".equals(message)) {
+                                    DatabaseReference parent = dataSnapshot.getRef().getParent();
+                                    String tripId = parent.getKey();
+                                    int numberOfTrips = 0;
+                                    System.out.println(list);
+                                    for(int i = 0; i < list.size(); i++){
+                                        if(list.get(i).getTripID().equals(tripId)){
+                                            numberOfTrips = i;
+                                            break;
                                         }
                                     }
-                                });
+
+
+                                    // Push a new message node under the 'messages' node
+                                    DatabaseReference newMessageRef = dataSnapshot.getRef().push();
+
+                                    // Set the message content
+                                    newMessageRef.child("message").setValueAsync("Number of trips before yours: " + numberOfTrips);
+
+                                    // Add other necessary fields, e.g., sender and timestamp if needed
+                                    newMessageRef.child("sender").setValueAsync("agent");
+
+
+                                    // Remove the question message from Firebase
+                                    messageSnapshot.getRef().removeValue(new DatabaseReference.CompletionListener() {
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                            if (databaseError != null) {
+                                                // Handle the error
+                                                System.err.println("Error removing question message: " + databaseError.getMessage());
+                                            }
+                                        }
+                                    });
+                                }
                             }
+                        });
+
+                        trikeAgent.listenerHashMap.put(newTrip.getTripID(), childEventListener);
+
+
+                        //test
+                        DatabaseReference tripRef = FirebaseDatabase.getInstance().getReference().child("trips").child(newTrip.tripID).child("messages");
+
+                        // Push a new message node under the 'messages' node
+                        DatabaseReference newMessageRef = tripRef.push();
+
+                        // Set the message content synchronously
+                        try {
+                            ApiFuture<Void> messageFuture = newMessageRef.child("message").setValueAsync("How many trips are scheduled before mine?");
+                            messageFuture.get(); // Wait for the setValueAsync operation to complete
+                            System.out.println("Message set successfully.");
+                        } catch (Exception e) {
+                            System.err.println("Error setting message: " + e.getMessage());
                         }
-                    });
-
-                    trikeAgent.listenerHashMap.put(newTrip.getTripID(), childEventListener);
-
-
-                    //test
-                    DatabaseReference tripRef = FirebaseDatabase.getInstance().getReference().child("trips").child(newTrip.tripID).child("messages");
-
-                    // Push a new message node under the 'messages' node
-                    DatabaseReference newMessageRef = tripRef.push();
-
-                    // Set the message content synchronously
-                    try {
-                        ApiFuture<Void> messageFuture = newMessageRef.child("message").setValueAsync("How many trips are scheduled before mine?");
-                        messageFuture.get(); // Wait for the setValueAsync operation to complete
-                        System.out.println("Message set successfully.");
-                    } catch (Exception e) {
-                        System.err.println("Error setting message: " + e.getMessage());
                     }
-                }
 
-                estimateBatteryAfterTIP();
-                
-                trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
-                iterator.remove();
+                    estimateBatteryAfterTIP();
 
-                if(FIREBASE_ENABLED){
-                    FirebaseHandler.assignAgentToTripRequest(newTrip.getTripID(), trikeAgent.agentID);
-                }
+                    trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
+                    iterator.remove();
 
-                return true;
-            }
-            case NOT_ASSIGNED: {
-                trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
-                iterator.remove();
-                break;
-            }
-
-            //  manager
-            case DELEGATE: {
-                ArrayList<String> values = new ArrayList<>();
-                values.add(currentDecisionTask.getJobID()); //todo move into a method
-                Location jobLocation = currentDecisionTask.getJob().getStartPosition();
-                String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(newCellAddress));
-                boolean isInArea = newCellAddress.equals(jobCell);
-
-                currentDecisionTask.timeStamp = Instant.now().toEpochMilli();   // to wait for area reply
-
-                if(isInArea){
-                    String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
-                    sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
-                }else{
-                    //  need to broadcast cnp
-                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
-                    for (String id: areaNeighbourIds) {
-                        sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                    if(FIREBASE_ENABLED){
+                        FirebaseHandler.assignAgentToTripRequest(newTrip.getTripID(), trikeAgent.agentID);
                     }
+
+                    hasChanged = false;
+                    break;
                 }
-                currentDecisionTask.setStatus(DecisionTask.Status.WAITING_NEIGHBOURS);
-                break;
-            }
-            case WAITING_NEIGHBOURS:{
-                long currentTime = Instant.now().toEpochMilli();
-                if (currentTime >= currentDecisionTask.timeStamp + 10000) {
-                    if (currentDecisionTask.getAgentIds().isEmpty()) {
-                        String jobCell =
-                                Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
-                                        Cells.getCellResolution(newCellAddress));
-                        boolean isInArea = newCellAddress.equals(jobCell);
+                case NOT_ASSIGNED: {
+                    trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
+                    iterator.remove();
 
-                        if (isInArea) {
-                            //  global cnp
-                            ArrayList<String> values = new ArrayList<>();
-                            currentDecisionTask.getJobID();
+                    hasChanged = false;
+                    break;
+                }
 
-                            currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
-                            //  need to broadcast cnp
-                            List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
-                            for (String id : areaNeighbourIds) {
-                                Utils.sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                //  manager
+                case DELEGATE: {
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_NEIGHBOURS);
+
+                    ArrayList<String> values = new ArrayList<>();
+                    values.add(currentDecisionTask.getJobID()); //todo move into a method
+                    Location jobLocation = currentDecisionTask.getJob().getStartPosition();
+                    String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(newCellAddress));
+                    boolean isInArea = newCellAddress.equals(jobCell);
+
+                    if(isInArea){
+                        String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+                        sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
+                    }else{
+                        //  need to broadcast cnp
+                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                        for (String id: areaNeighbourIds) {
+                            sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                        }
+                    }
+
+                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();   // to wait for area reply
+                    hasChanged = false;
+                    break;
+                }
+                case WAITING_NEIGHBOURS:{
+                    long currentTime = Instant.now().toEpochMilli();
+                    if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME) {
+                        if (currentDecisionTask.getAgentIds().isEmpty()) {
+                            String jobCell =
+                                    Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
+                                            Cells.getCellResolution(newCellAddress));
+                            boolean isInArea = newCellAddress.equals(jobCell);
+
+                            if (isInArea) {
+                                //  global cnp
+                                ArrayList<String> values = new ArrayList<>();
+                                currentDecisionTask.getJobID();
+
+                                //  need to broadcast cnp
+                                List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                                for (String id : areaNeighbourIds) {
+                                    Utils.sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                                }
+
+                                currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                                hasChanged = false;
+                                break;
+                            } else {
+                                currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                             }
                         } else {
-                            currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                            return true;
+                            currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         }
-                    } else {
-                        currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
-                        return true;
+                        hasChanged = true;
+                        break;
                     }
+
+                    hasChanged = false;
+                    break;
                 }
-                break;
-            }
-            case CFP_READY: {
-                Job JobForCFP = currentDecisionTask.getJob();
-                ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
-                for (String agentId : agentIds) {
-                    testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
+                case CFP_READY: {
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_PROPOSALS);
+
+                    Job JobForCFP = currentDecisionTask.getJob();
+                    ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
+                    for (String agentId : agentIds) {
+                        testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
+                    }
+
+                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    hasChanged = false;
+                    break;
                 }
-                currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
-                currentDecisionTask.setStatus(DecisionTask.Status.WAITING_PROPOSALS);
-                break;
-            }
-            case WAITING_PROPOSALS: {
-                long currentTime = Instant.now().toEpochMilli();
-                if (currentTime >= currentDecisionTask.timeStamp + 10000) {
-                    currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
+                case WAITING_PROPOSALS: {
+                    long currentTime = Instant.now().toEpochMilli();
+                    if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME) {
+                        currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
+
+                        hasChanged = true;
+                        break;
+                    }
+
+                    hasChanged = false;
+                    break;
                 }
-                return true;
-            }
-            case DECISION_READY: {
-                /**
-                 *  send agree/cancel > "waitingForConfirmations"
-                 */
-                currentDecisionTask.tagBestScore(trikeAgent.agentID);
-                for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
-                    String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
-                    String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
-                    switch (tag) {
-                        case "AcceptProposal": {
-                            ArrayList<String> values = new ArrayList<>();
-                            values.add(currentDecisionTask.getJobID());
-                            testTrikeToTrikeService(bidderID, Message.ComAct.ACCEPT_PROPOSAL, tag, values);
-                            currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
-                            currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
-                            break;
-                        }
-                        case "RejectProposal": {
-                            ArrayList<String> values = new ArrayList<>();
-                            values.add(currentDecisionTask.getJobID());
-                            testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
-                            break;
-                        }
-                        case "AcceptSelf": {
-                            //todo: selbst zusagen
-                            currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                            String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                            System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
-                            break;
+                case DECISION_READY: {
+                    /**
+                     *  send agree/cancel > "waitingForConfirmations"
+                     */
+                    currentDecisionTask.tagBestScore(trikeAgent.agentID);
+                    for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
+                        String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
+                        String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
+                        switch (tag) {
+                            case "AcceptProposal": {
+                                currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
+                                ArrayList<String> values = new ArrayList<>();
+                                values.add(currentDecisionTask.getJobID());
+                                testTrikeToTrikeService(bidderID, Message.ComAct.ACCEPT_PROPOSAL, tag, values);
+                                break;
+                            }
+                            case "RejectProposal": {
+                                ArrayList<String> values = new ArrayList<>();
+                                values.add(currentDecisionTask.getJobID());
+                                testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
+
+                                break;
+                            }
+                            case "AcceptSelf": {
+                                //todo: selbst zusagen
+                                currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+                                System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+
+                                break;
+                            }
                         }
                     }
+
+                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    hasChanged = true;
+                    break;
                 }
-                return true;
-            }
-            case WAITING_CONFIRM: {
-                long currentTime = Instant.now().toEpochMilli();
-                if (currentTime >= currentDecisionTask.timeStamp + 10000) {
-                    //  trike didn't ack
-                    currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                case WAITING_CONFIRM: {
+                    long currentTime = Instant.now().toEpochMilli();
+                    if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
+                        currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+
+                        hasChanged = true;
+                        break;
+                    }
+
+                    hasChanged = false;
+                    break;
                 }
-                return true;
-            }
 
-            //  child
-            case PROPOSED: {
-                /**
-                 *  send bid > "waitingForManager"
-                 */
-                Double ownScore = calculateUtility(currentDecisionTask);
-                //todo: eigene utillity speichern
-                // send bid
-                // ursprung des proposed job bestimmen
-                ArrayList<String> values = new ArrayList<>();
+                //  child
+                case PROPOSED: {
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_MANAGER);
 
-                values.add(currentDecisionTask.getJobID());
-                values.add("#");
-                values.add(String.valueOf(ownScore));
+                    /**
+                     *  send bid > "waitingForManager"
+                     */
+                    Double ownScore = calculateUtility(currentDecisionTask);
+                    //todo: eigene utillity speichern
+                    // send bid
+                    // ursprung des proposed job bestimmen
+                    ArrayList<String> values = new ArrayList<>();
 
-                //zb. values = jobid # score
-                testTrikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
-                currentDecisionTask.setStatus(DecisionTask.Status.WAITING_MANAGER);
+                    values.add(currentDecisionTask.getJobID());
+                    values.add("#");
+                    values.add(String.valueOf(ownScore));
 
-                return true;
-            }
-            case WAITING_MANAGER: {
-                //  timeout
-                long currentTime = Instant.now().toEpochMilli();
-                if (currentTime >= currentDecisionTask.timeStamp + 10000) {
-                    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                    //zb. values = jobid # score
+                    testTrikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
+
+                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    hasChanged = false;
+                    break;
                 }
-                break;
+                case WAITING_MANAGER: {
+                    //  timeout
+                    long currentTime = Instant.now().toEpochMilli();
+                    if (currentTime >= currentDecisionTask.timeStamp + MANAGER_WAIT_TIME) {
+                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+
+                        hasChanged = true;
+                        break;
+                    }
+
+                    hasChanged = false;
+                    break;
+                }
+                case CONFIRM_READY: {
+                    currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                    String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
+                    System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() +
+                            " TimeStamp: " + timeStampBooked);
+
+                    MessageContent messageContent = new MessageContent("confirmAccept");
+                    messageContent.values.add(currentDecisionTask.getJobID());
+
+                    Message message = new Message(trikeAgent.agentID, currentDecisionTask.getOrigin(), Message.ComAct.ACK,
+                            JadexModel.simulationtime, messageContent);
+                    message.setId(UUID.fromString(currentDecisionTask.extra));
+                    IAreaTrikeService service = messageToService(trikeAgent.agent, message);
+                    service.sendMessage(message.serialize());
+
+                    hasChanged = true;
+                    break;
+                }
             }
-            case CONFIRM_READY: {
-                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
-                ArrayList<String> values = new ArrayList<>();
-                values.add(currentDecisionTask.getJobID());
-                Utils.sendMessage(trikeAgent, currentDecisionTask.getOrigin(), Message.ComAct.INFORM, "confirmAccept", values);
-                currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-            }
-        }
-        return false;
+        }while(hasChanged);
     }
 
     /** Utillity Function

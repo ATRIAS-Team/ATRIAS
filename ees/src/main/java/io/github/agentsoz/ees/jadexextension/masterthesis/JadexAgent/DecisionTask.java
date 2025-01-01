@@ -81,6 +81,9 @@ public class DecisionTask {
         WAITING_NEIGHBOURS, WAITING_PROPOSALS, WAITING_CONFIRM, WAITING_MANAGER,
         DELEGATED, FAILED, NOT_ASSIGNED
     }
+
+    public String extra;
+
     public Status getStatus(){
         return status;
     }

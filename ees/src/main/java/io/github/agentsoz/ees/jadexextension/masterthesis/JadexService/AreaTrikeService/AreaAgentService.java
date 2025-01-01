@@ -66,31 +66,33 @@ public class AreaAgentService implements IAreaTrikeService
 
 		final AreaAgent areaAgent	= (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
+
 		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
 		areaAgent.receivedMessageIds.put(messageObj.getId(), Instant.now().toEpochMilli());
 
 		switch (messageObj.getComAct()){
-			case INFORM:{
-				areaAgent.trikeMessagesBuffer.write(messageObj);
+			case INFORM:
+			case ACK:
+				areaAgent.messagesBuffer.write(messageObj);
 				break;
-			}
-			case REQUEST:{
-				switch (messageObj.getContent().getAction()){
+			case REQUEST:
+				switch (messageObj.getContent().getAction()) {
 					case "trikesInArea":
-						areaAgent.trikeMessagesBuffer.write(messageObj);
+						areaAgent.messagesBuffer.write(messageObj);
 						break;
-					case "BROADCAST":
-						areaAgent.areaMessagesBuffer.write(messageObj);
-						break;
-					case "PROPOSE":
-						areaAgent.proposalBuffer.write(messageObj);
-						break;
-					case "ASSIGN":
-						areaAgent.jobRingBuffer.write(new Job(messageObj.getContent().getValues()));
-						break;
-				}
+					}
 				break;
-			}
+			case CALL_FOR_PROPOSAL:
+			case REJECT_PROPOSAL:
+				areaAgent.areaMessagesBuffer.write(messageObj);
+				break;
+			case PROPOSE:
+			case REFUSE:
+				areaAgent.proposalBuffer.write(messageObj);
+				break;
+			case ACCEPT_PROPOSAL:
+				areaAgent.jobRingBuffer.write(messageObj);
+				break;
 		}
 	}
 }

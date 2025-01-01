@@ -3,6 +3,7 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
@@ -99,10 +100,7 @@ public class Plans {
     {
         Iterator<DecisionTask> iterator = trikeAgent.decistionTasks.values().iterator();
         while (iterator.hasNext()){
-            boolean hasChanged;
-            do {
-                hasChanged = utils.selectNextAction(iterator);
-            }while (hasChanged);
+            utils.selectNextAction(iterator);
         }
     }
 
@@ -230,6 +228,7 @@ public class Plans {
                     String jobID = message.getContent().getValues().get(0);
                     DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER){
+                        decisionTask.extra = message.getId().toString();
                         decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
                     }else{
                         //  say no
@@ -266,6 +265,26 @@ public class Plans {
             Job job = new Job(message.getContent().getValues());
             DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
             trikeAgent.AddDecisionTask(decisionTask);
+
+            Message response = Message.response(message);
+            IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, response);
+            service.sendMessage(message.serialize());
+        }
+    }
+
+    public void checkRequestTimeouts(){
+        Iterator<Message> iterator = trikeAgent.requests.iterator();
+        long currentTimeStamp = Instant.now().toEpochMilli();
+
+        while(iterator.hasNext()){
+            Message message = iterator.next();
+            if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
+                iterator.remove();
+                IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, message);
+                service.sendMessage(message.serialize());
+                message.setTimeStamp(currentTimeStamp);
+                trikeAgent.requests.add(message);
+            }
         }
     }
 }

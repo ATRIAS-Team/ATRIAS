@@ -8,6 +8,7 @@ import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -29,6 +30,10 @@ public class TrikeAgentService implements IAreaTrikeService {
 	public void sendMessage(String messageStr){
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
+
+		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
+		trikeAgent.receivedMessageIds.put(messageObj.getId(), Instant.now().toEpochMilli());
+
 		switch (messageObj.getComAct()){
 			case CALL_FOR_PROPOSAL:
 			case PROPOSE:

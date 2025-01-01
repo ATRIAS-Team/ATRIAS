@@ -26,10 +26,15 @@
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
         <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">1000</field>
+        <field field_name="MANAGER_WAIT_TIME">1500</field>
+        <field field_name="CONFIRM_WAIT_TIME">1000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">1000</field>
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="FIREBASE_ENABLED">false</field>
         <field field_name="CSV_SOURCE">ees/subsample_2_new.csv</field>
+        <field field_name="SEND_WAIT_TIME">5000</field>
     </class>
 
     <!--    BOSTON   -->
