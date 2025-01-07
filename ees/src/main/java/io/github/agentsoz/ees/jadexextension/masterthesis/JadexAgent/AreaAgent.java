@@ -8,6 +8,7 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.DelegateInfo;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Plans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Utils;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
@@ -21,7 +22,6 @@ import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -37,7 +37,6 @@ import java.util.*;
 })
 
 public class AreaAgent {
-
     /**
      * The bdi agent. Automatically injected
      */
@@ -56,7 +55,8 @@ public class AreaAgent {
     @Belief
     public final List<Job> jobList = new ArrayList<>(); // job list for App data
 
-    public List<Job> delegatedJobs = new ArrayList<>();
+    @Belief
+    public List<Job> assignedJobs = new ArrayList<>();
 
     public LocatedAgentList locatedAgentList = new LocatedAgentList();
 
@@ -84,7 +84,6 @@ public class AreaAgent {
     public int MIN_TRIKES = 12;
 
 
-
     public long waitTime = 10000;  //3 sec
 
     public List<DelegateInfo> jobsToDelegate = new ArrayList<>();
@@ -96,42 +95,43 @@ public class AreaAgent {
 
     /** The agent body. */
     @OnStart
-    private void body() throws InterruptedException {
+    private void body() {
         utils = new Utils(this);
         plans = new Plans(this, utils);
         utils.body();
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
-        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeBufferJobs());
-        bdiFeature.dispatchTopLevelGoal(new CheckAreaMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
+        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new CheckProposals());
         bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
-        bdiFeature.dispatchTopLevelGoal(new CheckTrikeMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
         bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
     }
 
-    @Goal(recur = true, recurdelay = 20 )
-    private class CheckAreaMessagesBuffer{}
 
-    @Plan(trigger=@Trigger(goals=CheckAreaMessagesBuffer.class))
+    @Goal(recur = true, recurdelay = 20 )
+    private class AreaMessagesBuffer{}
+    @Plan(trigger=@Trigger(goals=AreaMessagesBuffer.class))
     private void checkAreaMessagesBuffer(){
         plans.checkAreaMessagesBuffer();
     }
 
+
     @Goal(recur = true, recurdelay = 100 )
     private class CheckProposals{}
-
     @Plan(trigger=@Trigger(goals=CheckProposals.class))
     private void checkProposals(){
        plans.checkProposalBuffer();
     }
 
+
     @Goal(recur = true, recurdelay = 100 )
     private class CheckDelegateInfo{}
-
     @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
     private void checkDelegateInfo(){
         plans.checkDelegateInfo();
@@ -140,19 +140,9 @@ public class AreaAgent {
 
     @Goal(recur = true, recurdelay = 200)
     private class DelegateJobs{}
-
     @Plan(trigger=@Trigger(goals=DelegateJobs.class))
     private void delegateJobs(){
-        for (DelegateInfo delegateInfo: jobsToDelegate) {
-            if(delegateInfo.timeStamp != -1) return;
-            for (String neighbourId: neighbourIds){
-                MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
-                Message message = new Message(areaAgentId, neighbourId, Message.ComAct.CALL_FOR_PROPOSAL, JadexModel.simulationtime, messageContent);
-                IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
-                delegateInfo.timeStamp = Instant.now().toEpochMilli();
-                service.sendMessage(message.serialize());
-            }
-        }
+        plans.delegateJobs();
     }
 
 
@@ -162,6 +152,45 @@ public class AreaAgent {
     private void printTime()
     {
         System.out.println("Simulation time: "+JadexModel.simulationtime);
+        if(areaAgentId.equals("area: 1") || areaAgentId.equals("area: 0")){
+            System.out.println(locatedAgentList.size());
+        }
+    }
+
+
+    @Goal(recur = true, recurdelay = 250 )
+    private class MaintainDistributeAssignedJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return assignedJobs.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
+    private void sendAssignedJobs()
+    {
+        utils.sendJobToAgent(assignedJobs);
+    }
+
+
+    @Goal(recur = true, recurdelay = 100 )
+    private class JobBuffer{}
+    @Plan(trigger=@Trigger(goals=JobBuffer.class))
+    private void checkJobBuffer() { plans.checkAssignedJobs(); }
+
+
+    @Goal(recur = true, recurdelay = 1000 )
+    private class MaintainDistributeFirebaseJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return jobList.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
+    private void SendFirebaseJob()
+    {
+        utils.sendJobToAgent(jobList);
     }
 
 
@@ -173,35 +202,6 @@ public class AreaAgent {
             return csvJobList.isEmpty();
         }
     }
-
-
-
-    @Goal(recur = true, recurdelay = 1000 )
-    private class MaintainDistributeFirebaseJobs
-    {
-        @GoalMaintainCondition
-        boolean isListEmpty(){
-            return jobList.isEmpty();
-        }
-    }
-
-    @Goal(recur = true, recurdelay = 100 )
-    private class MaintainDistributeBufferJobs{}
-
-    @Plan(trigger=@Trigger(goals=MaintainDistributeBufferJobs.class))
-    private void maintainDistributeBufferJobs()
-    {
-        plans.checkAssignedJobs();
-    }
-
-
-    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
-    private void SendFirebaseJob()
-    {
-        utils.sendJobToAgent(jobList);
-    }
-
-
     @Plan(trigger=@Trigger(goals=MaintainDistributeCSVJobs.class))
     private void SendCSVJob()
     {
@@ -210,34 +210,26 @@ public class AreaAgent {
 
 
     @Goal(recur = true, recurdelay = 20 )
-    private class CheckTrikeMessagesBuffer{}
-
-    @Plan(trigger=@Trigger(goals=CheckTrikeMessagesBuffer.class))
+    private class TrikeMessagesBuffer{}
+    @Plan(trigger=@Trigger(goals=TrikeMessagesBuffer.class))
     private void checkTrikeMessagesBuffer()
     {
        plans.checkTrikeMessagesBuffer();
     }
 
+
     @Goal(recur = true, recurdelay = 1000)
     private class CheckRequests{}
-
     @Plan(trigger=@Trigger(goals=CheckRequests.class))
     private void checkRequestTimeouts(){
         plans.checkRequestTimeouts();
     }
 
+
     @Goal(recur = true, recurdelay = 10000)
     private class ReceivedMessages{}
-
     @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
     private void cleanupReceivedMessages(){
-        Iterator<Long> iterator = receivedMessageIds.values().iterator();
-        long currentTimeStamp = Instant.now().toEpochMilli();
-        while (iterator.hasNext()){
-            long timeStamp = iterator.next();
-            if(currentTimeStamp >= timeStamp + 30000){
-                iterator.remove();
-            }
-        }
+        SharedPlans.cleanupReceivedMessages(receivedMessageIds);
     }
 }

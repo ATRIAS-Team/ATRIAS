@@ -7,9 +7,7 @@ import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -39,7 +37,8 @@ public class TrikeAgentService implements IAreaTrikeService {
 			case PROPOSE:
 			case ACCEPT_PROPOSAL:
 			case REJECT_PROPOSAL:
-				trikeAgent.cnpBuffer.write(messageObj);
+            case REFUSE:
+                trikeAgent.cnpBuffer.write(messageObj);
 				break;
 			case INFORM:{
 				trikeAgent.messagesBuffer.write(messageObj);
@@ -56,6 +55,6 @@ public class TrikeAgentService implements IAreaTrikeService {
 					}
 				}
 				break;
-		}
+        }
 	}
 }

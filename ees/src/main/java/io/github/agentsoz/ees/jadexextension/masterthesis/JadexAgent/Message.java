@@ -14,8 +14,6 @@ public class Message {
 
     private final MessageContent content;
 
-    // register/deregister/update;<name>,valX,valY
-    // Constructor
     public Message(String senderId, String receiverId, ComAct comAct, long timeStamp, MessageContent content) {
         this.id = UUID.randomUUID();
         this.senderId = senderId;
@@ -70,28 +68,24 @@ public class Message {
     }
 
     public String serialize(){
-        //return "{id:" + getId() + ";" + "senderId:" + getSenderId() + ";" + "receiverId:" + getReceiverId() + ";" + "comAct:" + getComAct().toString() + ";" + "content:" + getContent() + ";" + "simTime:" + getSimTime();
         Gson gson = new Gson();
-        //System.out.println(gson.toJson(this));
         return gson.toJson(this);
     }
     public static Message deserialize(String messageJson){
         Gson gson = new Gson();
-        /*
-        String[] parts = messageStr.split(";");
-        String id = parts[0].split(":")[1];
-        String senderId = parts[1].split(":")[1];
-        String receiverId = parts[2].split(":")[1];
-        String comAct = parts[3].split(":")[1];
-        String content = parts[4].split(":")[1];
-        double simTime = Double.parseDouble(parts[5].split(":")[1]);
-        return new Message(id, senderId, receiverId, comAct, content, simTime);
-         */
         return gson.fromJson(messageJson, Message.class);
     }
 
-    public static Message response(Message message){
+    public static Message ack(Message message){
         message.comAct = ComAct.ACK;
+        String temp = message.senderId;
+        message.senderId = message.receiverId;
+        message.receiverId = temp;
+        return message;
+    }
+
+    public static Message refuse(Message message){
+        message.comAct = ComAct.REFUSE;
         String temp = message.senderId;
         message.senderId = message.receiverId;
         message.receiverId = temp;

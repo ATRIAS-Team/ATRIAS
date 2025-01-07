@@ -13,6 +13,7 @@ import java.util.Map;
 public class Plans {
     private AreaAgent areaAgent;
     private Utils utils;
+
     public Plans(AreaAgent areaAgent, Utils utils){
         this.areaAgent = areaAgent;
         this.utils = utils;
@@ -21,15 +22,13 @@ public class Plans {
     public void checkAssignedJobs(){
         while (!areaAgent.jobRingBuffer.isEmpty()){
             Message message = areaAgent.jobRingBuffer.read();
-            areaAgent.delegatedJobs.add(new Job(message.getContent().getValues()));
+            areaAgent.assignedJobs.add(new Job(message.getContent().getValues()));
 
-            Message responseMsg = Message.response(message);
+            Message responseMsg = Message.ack(message);
             responseMsg.getContent().values = new ArrayList<>();
+
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, responseMsg);
             service.sendMessage(responseMsg.serialize());
-        }
-        if(!areaAgent.delegatedJobs.isEmpty()){
-            utils.sendJobToAgent(areaAgent.delegatedJobs);
         }
     }
 
@@ -75,19 +74,36 @@ public class Plans {
         }
     }
 
+    public void delegateJobs(){
+        for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate) {
+            if(delegateInfo.timeStamp != -1) return;
+            for (String neighbourId: areaAgent.neighbourIds){
+                MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
+                Message message = new Message(areaAgent.areaAgentId, neighbourId,
+                        Message.ComAct.CALL_FOR_PROPOSAL, JadexModel.simulationtime, messageContent);
+                IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                delegateInfo.timeStamp = Instant.now().toEpochMilli();
+                service.sendMessage(message.serialize());
+            }
+        }
+    }
+
     public void checkDelegateInfo(){
         long currentTime = Instant.now().toEpochMilli();
-        for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate) {
+        Iterator<DelegateInfo> iterator = areaAgent.jobsToDelegate.iterator();
+
+        while (iterator.hasNext()) {
+            DelegateInfo delegateInfo = iterator.next();
           if(delegateInfo.timeStamp == -1) return;
           if(currentTime < delegateInfo.timeStamp + areaAgent.waitTime
                   && delegateInfo.agentHops.size() != areaAgent.neighbourIds.size()) return;
 
-          Iterator<Map.Entry<String, Long>> iterator = delegateInfo.agentHops.entrySet().iterator();
+          Iterator<Map.Entry<String, Long>> hopsIterator = delegateInfo.agentHops.entrySet().iterator();
           long bestHops = Long.MAX_VALUE;
           String bestAreaAgent = null;
 
-          while (iterator.hasNext()){
-              Map.Entry<String, Long> entry = iterator.next();
+          while (hopsIterator.hasNext()){
+              Map.Entry<String, Long> entry = hopsIterator.next();
               if(entry.getValue() < bestHops){
                   bestHops = entry.getValue();
                   bestAreaAgent = entry.getKey();
@@ -101,10 +117,9 @@ public class Plans {
             service.sendMessage(message.serialize());
             areaAgent.requests.add(message);
 
-            areaAgent.jobsToDelegate.remove(delegateInfo);
+            iterator.remove();
         }
     }
-
 
     public void checkTrikeMessagesBuffer(){
         if(areaAgent.messagesBuffer.isEmpty()) return;

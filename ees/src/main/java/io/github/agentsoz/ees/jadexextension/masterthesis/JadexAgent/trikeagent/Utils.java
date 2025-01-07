@@ -300,10 +300,12 @@ public class Utils {
 
                     if(isInArea){
                         String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+                        currentDecisionTask.initRequestCount(1);
                         sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
                     }else{
                         //  need to broadcast cnp
                         List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                        currentDecisionTask.initRequestCount(areaNeighbourIds.size());
                         for (String id: areaNeighbourIds) {
                             sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
                         }
@@ -315,7 +317,8 @@ public class Utils {
                 }
                 case WAITING_NEIGHBOURS:{
                     long currentTime = Instant.now().toEpochMilli();
-                    if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME) {
+                    if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
+                            || currentDecisionTask.responseReady()) {
                         if (currentDecisionTask.getAgentIds().isEmpty()) {
                             String jobCell =
                                     Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
@@ -329,8 +332,10 @@ public class Utils {
 
                                 //  need to broadcast cnp
                                 List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                                currentDecisionTask.numRequests = areaNeighbourIds.size();
+                                currentDecisionTask.initRequestCount(areaNeighbourIds.size());
                                 for (String id : areaNeighbourIds) {
-                                    Utils.sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                                    sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
                                 }
 
                                 currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
@@ -354,6 +359,7 @@ public class Utils {
 
                     Job JobForCFP = currentDecisionTask.getJob();
                     ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
+                    currentDecisionTask.initRequestCount(agentIds.size());
                     for (String agentId : agentIds) {
                         testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
                     }
@@ -364,7 +370,8 @@ public class Utils {
                 }
                 case WAITING_PROPOSALS: {
                     long currentTime = Instant.now().toEpochMilli();
-                    if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME) {
+                    if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME
+                            || currentDecisionTask.responseReady()) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
 
                         hasChanged = true;
@@ -387,22 +394,29 @@ public class Utils {
                                 currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
                                 ArrayList<String> values = new ArrayList<>();
                                 values.add(currentDecisionTask.getJobID());
-                                testTrikeToTrikeService(bidderID, Message.ComAct.ACCEPT_PROPOSAL, tag, values);
+
+                                MessageContent messageContent = new MessageContent(tag, values);
+                                Message acceptMessage = new Message(trikeAgent.agentID, bidderID,
+                                        Message.ComAct.ACCEPT_PROPOSAL, JadexModel.simulationtime, messageContent);
+                                trikeAgent.requests.add(acceptMessage);
+                                currentDecisionTask.extra = acceptMessage.getId().toString();
+                                IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
+                                service.sendMessage(acceptMessage.serialize());
                                 break;
                             }
                             case "RejectProposal": {
                                 ArrayList<String> values = new ArrayList<>();
                                 values.add(currentDecisionTask.getJobID());
                                 testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
-
                                 break;
                             }
                             case "AcceptSelf": {
                                 //todo: selbst zusagen
                                 currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
-                                System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
-
+                                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms")
+                                        .format(new java.util.Date());
+                                System.out.println("FINISHED Negotiation - JobID: " +
+                                        currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
                                 break;
                             }
                         }
@@ -415,6 +429,8 @@ public class Utils {
                 case WAITING_CONFIRM: {
                     long currentTime = Instant.now().toEpochMilli();
                     if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
+                        trikeAgent.requests.removeIf(request -> request.getId()
+                                .equals(UUID.fromString(currentDecisionTask.extra)));
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
 
                         hasChanged = true;
@@ -425,7 +441,7 @@ public class Utils {
                     break;
                 }
 
-                //  child
+                //  worker
                 case PROPOSED: {
                     currentDecisionTask.setStatus(DecisionTask.Status.WAITING_MANAGER);
 

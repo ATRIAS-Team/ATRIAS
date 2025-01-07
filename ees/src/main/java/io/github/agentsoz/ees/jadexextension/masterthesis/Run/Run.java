@@ -62,7 +62,7 @@ public class Run implements DataClient {
 
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");
-        FirebaseHandler.init();
+        //FirebaseHandler.init();
         XMLConfig xmlConfig = new XMLConfig();
         xmlConfig.applyConfig(Parsers.parseXML("XMLConfig.xml"));
         Cells.applyConfig();

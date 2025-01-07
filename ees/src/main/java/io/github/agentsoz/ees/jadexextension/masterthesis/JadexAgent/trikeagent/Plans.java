@@ -3,7 +3,6 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
@@ -14,13 +13,13 @@ import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.*;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 
 public class Plans {
     private final Utils utils;
@@ -98,7 +97,7 @@ public class Plans {
 
     public void evaluateDecisionTask()
     {
-        Iterator<DecisionTask> iterator = trikeAgent.decistionTasks.values().iterator();
+        Iterator<DecisionTask> iterator = trikeAgent.decisionTasks.values().iterator();
         while (iterator.hasNext()){
             utils.selectNextAction(iterator);
         }
@@ -193,8 +192,9 @@ public class Plans {
             String jobId = neighbourList.remove(0); //JobID
             neighbourList.remove(0); //#
 
-            if(trikeAgent.decistionTasks.containsKey(jobId)){
-                DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobId);
+            if(trikeAgent.decisionTasks.containsKey(jobId)){
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobId);
+                decisionTask.numResponses++;
                 if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
                     decisionTask.getAgentIds().addAll(neighbourList);
                 }
@@ -214,45 +214,61 @@ public class Plans {
                 }
                 case PROPOSE: {
                     String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                    decisionTask.numResponses++;
+
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
                         Double propose = Double.parseDouble(message.getContent().getValues().get(2));
                         String senderID = message.getSenderId();
                         decisionTask.setUtilityScore(senderID, propose);
                     }else{
-                        //  reject
+                        //  optional: reject proposal
                     }
                     break;
                 }
                 case ACCEPT_PROPOSAL: {
                     String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER){
                         decisionTask.extra = message.getId().toString();
                         decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
                     }else{
-                        //  say no
+                        Message refuseMessage = Message.refuse(message);
+                        IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
+                        service.sendMessage(refuseMessage.serialize());
                     }
                     break;
                 }
                 case REJECT_PROPOSAL: {
                     String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decistionTasks.get(jobID);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
-                        trikeAgent.decistionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                        trikeAgent.decisionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
                     }
                     break;
                 }
                 case ACK: {
                     String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decistionTasks.remove(jobID);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.remove(jobID);
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM){
-                        decisionTask.setStatus(DecisionTask.Status.DELEGATED);
-                        trikeAgent.FinishedDecisionTaskList.add(decisionTask);
-                        break;
+                        if(trikeAgent.requests.stream().anyMatch(request -> request.getId().equals(message.getId()))){
+                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                            decisionTask.setStatus(DecisionTask.Status.DELEGATED);
+                            trikeAgent.FinishedDecisionTaskList.add(decisionTask);
+                        }
                     }else{
-                        //  say no
+                        //  Todo: handle trike didn't confirm on time.
+                        //  it will be delegated to someone else
                     }
+                    break;
+                }
+                case REFUSE:{
+                    String jobID = message.getContent().getValues().get(0);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM){
+                        decisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                    }
+                    break;
                 }
             }
         }
@@ -266,7 +282,7 @@ public class Plans {
             DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
             trikeAgent.AddDecisionTask(decisionTask);
 
-            Message response = Message.response(message);
+            Message response = Message.ack(message);
             IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, response);
             service.sendMessage(message.serialize());
         }

@@ -10,6 +10,9 @@ public class DecisionTask {
 
     public long timeStamp;
 
+    public long numRequests = 0;
+    public long numResponses = 0;
+
 
     private String origin;
 
@@ -18,6 +21,7 @@ public class DecisionTask {
     private Status status;
 
     private ArrayList<String> agentIds = new ArrayList<>();
+
 
 
     private String associatedTrip;
@@ -106,5 +110,14 @@ public class DecisionTask {
 
     public Location getEndPositionFromJob() {
         return job.getEndPosition();
+    }
+
+    public void initRequestCount(long numRequests){
+        this.numRequests = numRequests;
+        this.numResponses = 0;
+    }
+
+    public boolean responseReady(){
+        return numRequests == numResponses;
     }
 }

@@ -3,6 +3,7 @@ import com.google.firebase.database.*;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.Plans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.Utils;
@@ -30,8 +31,6 @@ import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
-
-import java.time.Instant;
 import java.util.*;
 
 @Agent(type= BDIAgentFactory.TYPE)
@@ -70,31 +69,22 @@ public class TrikeAgent{
     public Location agentLocation;
 
     @Belief
-    public Map<String, DecisionTask> decistionTasks = new HashMap<>();
+    public Map<String, DecisionTask> decisionTasks = new HashMap<>();
 
     @Belief
     public List<DecisionTask> FinishedDecisionTaskList = new ArrayList<>();
-
     @Belief
     public List<Trip> tripList = new ArrayList<>(); //contains all the trips
-
-
     @Belief    //contains the current Trip
     public List<Trip> currentTrip = new ArrayList<>();
 
     public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(16);
-
     public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(16);
-
     public RingBuffer<Message> messagesBuffer = new RingBuffer<>(32);
-
     public RingBuffer<Message> jobsBuffer = new RingBuffer<>(32);
-
     public RingBuffer<Message> cnpBuffer = new RingBuffer<>(64);
 
     public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
-
-
     public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
 
     @Belief
@@ -129,7 +119,6 @@ public class TrikeAgent{
     public Utils utils;
     public Plans plans;
 
-    public long ts = -1;
 
     /**
      * The agent body.
@@ -147,7 +136,7 @@ public class TrikeAgent{
             listenerHashMap = new HashMap<>();
         }
 
-        System.out.println("TrikeAgent sucessfully started;");
+        System.out.println("TrikeAgent successfully started;");
         SimActuator = new SimActuator();
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
         AddAgentNametoAgentList(); // to get an AgentID later
@@ -172,7 +161,6 @@ public class TrikeAgent{
     private void checkJobBuffer() {
        plans.checkJobBuffer();
     }
-
 
 
     /**
@@ -206,7 +194,7 @@ public class TrikeAgent{
         @GoalMaintainCondition
         boolean isDecisionEmpty()
         {
-            return decistionTasks.isEmpty();
+            return decisionTasks.isEmpty();
         }
     }
 
@@ -290,16 +278,8 @@ public class TrikeAgent{
 
     @Plan(trigger=@Trigger(goals= ReceivedMessages.class))
     private void updateReceivedMessages(){
-        Iterator<Long> iterator = receivedMessageIds.values().iterator();
-        long currentTimeStamp = Instant.now().toEpochMilli();
-        while (iterator.hasNext()){
-            long timeStamp = iterator.next();
-            if(currentTimeStamp >= timeStamp + 30000){
-                iterator.remove();
-            }
-        }
+        SharedPlans.cleanupReceivedMessages(receivedMessageIds);
     }
-
 
 
     public void AddAgentNametoAgentList()
@@ -314,9 +294,8 @@ public class TrikeAgent{
 
     public void AddDecisionTask(DecisionTask decisionTask)
     {
-        decistionTasks.put(decisionTask.getJobID(), decisionTask);
+        decisionTasks.put(decisionTask.getJobID(), decisionTask);
     }
-
     public void setAgentID(String agentid) {
         agentID = agentid;
     }
@@ -327,5 +306,6 @@ public class TrikeAgent{
 
     //Battery -oemer
     public void setMyLocation(Location location) {
+
     }
 }
