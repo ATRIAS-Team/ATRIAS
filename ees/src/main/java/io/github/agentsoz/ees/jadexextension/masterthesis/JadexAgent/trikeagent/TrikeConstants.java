@@ -25,6 +25,8 @@ public class  TrikeConstants {
     public static double REQUEST_WAIT_TIME = 10000;
     public static boolean FIREBASE_ENABLED = false;
 
+    public static long MIN_CNP_TRIKES = 8;
+
     //Boston station
     public static List<Location> CHARGING_STATION_LIST = Arrays.asList(
             new Location("", 330129.503, 4690968.364),

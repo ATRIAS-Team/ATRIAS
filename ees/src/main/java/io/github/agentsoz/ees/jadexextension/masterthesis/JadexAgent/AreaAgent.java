@@ -81,7 +81,7 @@ public class AreaAgent {
 
     public boolean FIREBASE_ENABLED = false;
 
-    public int MIN_TRIKES = 12;
+    public int MIN_TRIKES = 1;
 
 
     public long waitTime = 10000;  //3 sec

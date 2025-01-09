@@ -319,34 +319,34 @@ public class Utils {
                     long currentTime = Instant.now().toEpochMilli();
                     if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
-                        if (currentDecisionTask.getAgentIds().isEmpty()) {
+                        ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
+
+                        if (agentIds.size() < MIN_CNP_TRIKES) {
                             String jobCell =
                                     Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
                                             Cells.getCellResolution(newCellAddress));
                             boolean isInArea = newCellAddress.equals(jobCell);
 
-                            if (isInArea) {
-                                //  global cnp
-                                ArrayList<String> values = new ArrayList<>();
-                                currentDecisionTask.getJobID();
+                            if (isInArea && currentDecisionTask.numRequests == 1) {
+                                    //  global cnp
+                                    ArrayList<String> values = new ArrayList<>();
 
-                                //  need to broadcast cnp
-                                List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
-                                currentDecisionTask.numRequests = areaNeighbourIds.size();
-                                currentDecisionTask.initRequestCount(areaNeighbourIds.size());
-                                for (String id : areaNeighbourIds) {
-                                    sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
-                                }
+                                    //  need to broadcast cnp
+                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
 
-                                currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
-                                hasChanged = false;
-                                break;
-                            } else {
-                                currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                                    currentDecisionTask.initRequestCount(areaNeighbourIds.size());
+
+                                    for (String id : areaNeighbourIds) {
+                                        sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                                    }
+
+                                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                                    hasChanged = false;
+                                    break;
                             }
-                        } else {
-                            currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         }
+
+                        currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         hasChanged = true;
                         break;
                     }
@@ -355,6 +355,12 @@ public class Utils {
                     break;
                 }
                 case CFP_READY: {
+                    if(currentDecisionTask.getAgentIds().isEmpty()){
+                        currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        hasChanged = true;
+                        break;
+                    }
+
                     currentDecisionTask.setStatus(DecisionTask.Status.WAITING_PROPOSALS);
 
                     Job JobForCFP = currentDecisionTask.getJob();
@@ -1129,4 +1135,5 @@ public class Utils {
             System.out.println(" Newly active Agent " + trikeAgent.agentID + "notifies" + trikeAgent.currentSimInputBroker + " that it finished deliberating");
         }
     }
+
 }

@@ -145,7 +145,7 @@ public class Plans {
                 //todo: when everywhere just the ID and not user: is used remove this
                 String requestID = bufferMessage.getSenderId();
 
-                if(areaAgent.locatedAgentList.size() > areaAgent.MIN_TRIKES){
+                if(areaAgent.locatedAgentList.size() >= areaAgent.MIN_TRIKES){
                     for (LocatedAgent locatedAgent: areaAgent.locatedAgentList.LocatedAgentList) {
                         if ((!locatedAgent.getAgentID().equals(requestID))) {
                             locatedAgentIds.add(locatedAgent.getAgentID());

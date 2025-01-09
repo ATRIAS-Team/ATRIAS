@@ -73,7 +73,7 @@ public class Cells {
     public static List<String> getNeighbours(String origin, int radius){
         List<String> neighbourIds = new ArrayList<>();
         for (String neighbourCell: h3Core.gridDisk(origin, radius)) {
-            if(cellAgentMap.containsKey(neighbourCell)){
+            if(cellAgentMap.containsKey(neighbourCell) && !neighbourCell.equals(origin)){
                 neighbourIds.add(cellAgentMap.get(neighbourCell));
             }
         }
