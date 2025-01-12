@@ -11,7 +11,6 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.U
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.util.RingBuffer;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -21,8 +20,6 @@ import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
-
-import java.time.LocalDate;
 import java.util.*;
 
 
@@ -49,18 +46,17 @@ public class AreaAgent {
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
 
+
+    //  JOB LISTS
     @Belief
     public List<Job> csvJobList = new ArrayList<>(); // job list for historic data
-
     @Belief
     public final List<Job> jobList = new ArrayList<>(); // job list for App data
-
     @Belief
     public List<Job> assignedJobs = new ArrayList<>();
 
-    public LocatedAgentList locatedAgentList = new LocatedAgentList();
 
-    public LocalDate csvDate;
+    public LocatedAgentList locatedAgentList = new LocatedAgentList();
 
     public String cell;
 
@@ -69,22 +65,16 @@ public class AreaAgent {
     public String myTag = null;
 
     public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
-
     public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
 
     //  BUFFER
-    public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(4);
-    public RingBuffer<Message> jobRingBuffer = new RingBuffer<>(8);
-    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(32);
-    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(16);
+    public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> jobRingBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(512);
 
 
-    public boolean FIREBASE_ENABLED = false;
-
-    public int MIN_TRIKES = 1;
-
-
-    public long waitTime = 10000;  //3 sec
+    public volatile boolean canDemand = true;
 
     public List<DelegateInfo> jobsToDelegate = new ArrayList<>();
 
@@ -111,6 +101,7 @@ public class AreaAgent {
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
         bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
+        bdiFeature.dispatchTopLevelGoal(new TrikeCount());
     }
 
 
@@ -146,26 +137,18 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 1000 )
+    @Goal(recur = true, recurdelay = 3000 )
     private class PrintSimTime {}
     @Plan(trigger=@Trigger(goals=PrintSimTime.class))
     private void printTime()
     {
-        System.out.println("Simulation time: "+JadexModel.simulationtime);
-        if(areaAgentId.equals("area: 1") || areaAgentId.equals("area: 0")){
-            System.out.println(locatedAgentList.size());
-        }
+        System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
     }
 
 
     @Goal(recur = true, recurdelay = 250 )
     private class MaintainDistributeAssignedJobs
-    {
-        @GoalMaintainCondition
-        boolean isListEmpty(){
-            return assignedJobs.isEmpty();
-        }
-    }
+    {}
     @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
     private void sendAssignedJobs()
     {
@@ -231,5 +214,12 @@ public class AreaAgent {
     @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
     private void cleanupReceivedMessages(){
         SharedPlans.cleanupReceivedMessages(receivedMessageIds);
+    }
+
+    @Goal(recur = true, recurdelay = 1000)
+    private class TrikeCount{}
+    @Plan(trigger=@Trigger(goals=TrikeCount.class))
+    private void checkTrikeCount(){
+        plans.checkTrikeCount();
     }
 }

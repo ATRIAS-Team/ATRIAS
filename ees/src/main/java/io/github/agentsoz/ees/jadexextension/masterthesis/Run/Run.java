@@ -30,6 +30,7 @@ import io.github.agentsoz.dataInterface.DataServer;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Cells;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.Parsers;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants;
 import io.github.agentsoz.ees.matsim.*;
 import io.github.agentsoz.ees.util.Utils;
 import io.github.agentsoz.util.Global;
@@ -66,6 +67,7 @@ public class Run implements DataClient {
         XMLConfig xmlConfig = new XMLConfig();
         xmlConfig.applyConfig(Parsers.parseXML("XMLConfig.xml"));
         Cells.applyConfig();
+        SharedConstants.configure();
 
         // Read the config
         Config cfg = new Config();

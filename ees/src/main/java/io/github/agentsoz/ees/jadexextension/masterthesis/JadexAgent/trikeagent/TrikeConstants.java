@@ -1,9 +1,12 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent;
 
 import io.github.agentsoz.util.Location;
+import org.w3c.dom.Element;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.assignIfNotNull;
 
 public class  TrikeConstants {
     public static int ASK_FOR_TRIKES_WAIT_TIME = 5000;
@@ -23,9 +26,49 @@ public class  TrikeConstants {
     public static double CHARGING_THRESHOLD = 0.4; // Threshold to determine when a ChargingTrip should be generated
 
     public static double REQUEST_WAIT_TIME = 10000;
-    public static boolean FIREBASE_ENABLED = false;
 
     public static long MIN_CNP_TRIKES = 8;
+
+    public static void configure(Element classElement) {
+        assignIfNotNull(classElement, "MIN_CNP_TRIKES", Long::parseLong,
+                value -> TrikeConstants.MIN_CNP_TRIKES = value);
+
+        assignIfNotNull(classElement, "REQUEST_WAIT_TIME", Long::parseLong,
+                value -> TrikeConstants.REQUEST_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "commitThreshold", Double::parseDouble,
+                value -> TrikeConstants.commitThreshold = value);
+
+        assignIfNotNull(classElement, "DRIVING_SPEED", Double::parseDouble,
+                value -> TrikeConstants.DRIVING_SPEED = value);
+
+        assignIfNotNull(classElement, "CNP_ACTIVE", Boolean::parseBoolean,
+                value -> CNP_ACTIVE = value);
+
+        assignIfNotNull(classElement, "THETA", Double::parseDouble,
+                value -> TrikeConstants.THETA = value);
+
+        assignIfNotNull(classElement, "ALLOW_CUSTOMER_MISS", Boolean::parseBoolean,
+                value -> TrikeConstants.ALLOW_CUSTOMER_MISS = value);
+
+        assignIfNotNull(classElement, "DISTANCE_FACTOR", Double::parseDouble,
+                value -> DISTANCE_FACTOR = value);
+
+        assignIfNotNull(classElement, "CHARGING_THRESHOLD", Double::parseDouble,
+                value -> TrikeConstants.CHARGING_THRESHOLD = value);
+
+        assignIfNotNull(classElement, "ASK_FOR_TRIKES_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.ASK_FOR_TRIKES_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "MANAGER_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.MANAGER_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "CONFIRM_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.CONFIRM_WAIT_TIME = value);
+
+        assignIfNotNull(classElement, "PROPOSALS_WAIT_TIME", Integer::parseInt,
+                value -> TrikeConstants.PROPOSALS_WAIT_TIME = value);
+    }
 
     //Boston station
     public static List<Location> CHARGING_STATION_LIST = Arrays.asList(
@@ -102,7 +145,14 @@ public class  TrikeConstants {
             new Location("", 328678.7676101875, 4684594.920629536),
             new Location("", 329081.35585095023, 4685113.209289537),
             new Location("", 328699.8707663481, 4685580.953568669),
-            new Location("", 328600.20644835127, 4685703.284318363)
+            new Location("", 328600.20644835127, 4685703.284318363),
+
+            new Location("", 331422.333, 4701643.240),
+            new Location("", 317542.818, 4702442.737),
+            new Location("", 306940, 4689177),
+            new Location("", 315324.536, 4673956.624),
+            new Location("", 332951.931, 4670915.936),
+            new Location("", 340547.319, 4685536.832)
     );
     //Goethe stations
     /**

@@ -3,6 +3,8 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
@@ -13,7 +15,6 @@ import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -69,7 +70,7 @@ public class Plans {
                     // Print the initial location for verification
                     System.out.println("Agent " + trikeAgent.agentID + " initial location: " + trikeAgent.agentLocation);
 
-                    if(FIREBASE_ENABLED){
+                    if(SharedConstants.FIREBASE_ENABLED){
                         //update the location of the agent
                         FirebaseHandler.updateAgentLocation(trikeAgent.agentID, trikeAgent.agentLocation);
                     }
@@ -290,7 +291,7 @@ public class Plans {
 
     public void checkRequestTimeouts(){
         Iterator<Message> iterator = trikeAgent.requests.iterator();
-        long currentTimeStamp = Instant.now().toEpochMilli();
+        long currentTimeStamp = SharedUtils.getSimTime();
 
         while(iterator.hasNext()){
             Message message = iterator.next();

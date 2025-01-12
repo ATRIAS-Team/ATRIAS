@@ -57,7 +57,6 @@ public class Cells {
 
         for (int i = resolutions.length - 1; i >= 0; i--){
             String address = h3Core.cellToParentAddress(smallestCell, resolutions[i]);
-            //LatLng latLng = h3Core.cellToLatLng(address);
 
             if(cellAgentMap.containsKey(address)) return address;
         }
@@ -124,5 +123,12 @@ public class Cells {
             double y = Double.parseDouble(activityElement.getAttribute("y"));
             trikeRegisterLocations.put(id, new Location("", x, y));
         }
+    }
+
+    public static Location getCellLocation(String cell){
+        CoordinateConversion coordinateConversion = new CoordinateConversion();
+        LatLng latLng = h3Core.cellToLatLng(cell);
+        String[] utmArr = coordinateConversion.latLon2UTM(latLng.lat, latLng.lng).split(" ");
+        return new Location("", Integer.parseInt(utmArr[2]), Integer.parseInt(utmArr[3]));
     }
 }

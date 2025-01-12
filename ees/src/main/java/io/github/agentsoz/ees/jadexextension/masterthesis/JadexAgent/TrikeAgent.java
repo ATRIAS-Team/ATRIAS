@@ -3,6 +3,7 @@ import com.google.firebase.database.*;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.Plans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants;
@@ -78,11 +79,11 @@ public class TrikeAgent{
     @Belief    //contains the current Trip
     public List<Trip> currentTrip = new ArrayList<>();
 
-    public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(16);
-    public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(16);
-    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(32);
-    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(32);
-    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(64);
+    public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(64);
+    public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(64);
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(128);
+    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(128);
+    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(128);
 
     public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
     public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
@@ -129,9 +130,9 @@ public class TrikeAgent{
         plans = new Plans(this, utils);
 
         Element classElement = XMLConfig.getClassElement("TrikeAgent.java");
-        utils.configure(classElement);
+        TrikeConstants.configure(classElement);
 
-        if(TrikeConstants.FIREBASE_ENABLED){
+        if(SharedConstants.FIREBASE_ENABLED){
             firebaseHandler = new FirebaseHandler<>(this, tripList);
             listenerHashMap = new HashMap<>();
         }

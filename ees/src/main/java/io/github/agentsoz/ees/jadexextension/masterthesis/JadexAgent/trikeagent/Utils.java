@@ -6,77 +6,32 @@ import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
-import org.w3c.dom.Element;
 
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants.FIREBASE_ENABLED;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.*;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
-import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.assignIfNotNull;
-import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.getClassField;
 
 
 public class Utils {
     private final TrikeAgent trikeAgent;
-
 
     private String oldCellAddress = null;
     public String newCellAddress = null;
     
     public Utils(TrikeAgent trikeAgent){
         this.trikeAgent = trikeAgent;
-    }
-
-    public void configure(Element classElement) {
-        assignIfNotNull(classElement,"FIREBASE_ENABLED", Boolean::parseBoolean,
-                value -> TrikeConstants.FIREBASE_ENABLED = value);
-
-        assignIfNotNull(classElement, "chargingTripAvailable", String::toString,
-                value -> trikeAgent.chargingTripAvailable = value);
-
-        assignIfNotNull(classElement, "commitThreshold", Double::parseDouble,
-                value -> TrikeConstants.commitThreshold = value);
-
-        assignIfNotNull(classElement, "DRIVING_SPEED", Double::parseDouble,
-                value -> TrikeConstants.DRIVING_SPEED = value);
-
-        assignIfNotNull(classElement, "CNP_ACTIVE", Boolean::parseBoolean,
-                value -> CNP_ACTIVE = value);
-
-        assignIfNotNull(classElement, "THETA", Double::parseDouble,
-                value -> TrikeConstants.THETA = value);
-
-        assignIfNotNull(classElement, "ALLOW_CUSTOMER_MISS", Boolean::parseBoolean,
-                value -> TrikeConstants.ALLOW_CUSTOMER_MISS = value);
-
-        assignIfNotNull(classElement, "DISTANCE_FACTOR", Double::parseDouble,
-                value -> DISTANCE_FACTOR = value);
-
-        assignIfNotNull(classElement, "CHARGING_THRESHOLD", Double::parseDouble,
-                value -> TrikeConstants.CHARGING_THRESHOLD = value);
-
-        assignIfNotNull(classElement, "ASK_FOR_TRIKES_WAIT_TIME", Integer::parseInt,
-                value -> TrikeConstants.ASK_FOR_TRIKES_WAIT_TIME = value);
-
-        assignIfNotNull(classElement, "MANAGER_WAIT_TIME", Integer::parseInt,
-                value -> TrikeConstants.MANAGER_WAIT_TIME = value);
-
-        assignIfNotNull(classElement, "CONFIRM_WAIT_TIME", Integer::parseInt,
-                value -> TrikeConstants.CONFIRM_WAIT_TIME = value);
-
-        assignIfNotNull(classElement, "PROPOSALS_WAIT_TIME", Integer::parseInt,
-                value -> TrikeConstants.PROPOSALS_WAIT_TIME = value);
     }
 
     public Location getNextChargingStation(){
@@ -90,12 +45,12 @@ public class Utils {
         else {
             startPosition = getLastTripInPipeline().getEndPosition();
         }
-        Double lowestDistance = Double.MAX_VALUE;
-        for (int i=0; i < CHARGING_STATION_LIST.size(); i++){
-            Double compareDistance = Location.distanceBetween(startPosition, CHARGING_STATION_LIST.get(i));
-            if (compareDistance<lowestDistance){
+        double lowestDistance = Double.MAX_VALUE;
+        for (Location location : CHARGING_STATION_LIST) {
+            double compareDistance = Location.distanceBetween(startPosition, location);
+            if (compareDistance < lowestDistance) {
                 lowestDistance = compareDistance;
-                ChargingStation = CHARGING_STATION_LIST.get(i);
+                ChargingStation = location;
             }
         }
 
@@ -311,12 +266,12 @@ public class Utils {
                         }
                     }
 
-                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();   // to wait for area reply
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();   // to wait for area reply
                     hasChanged = false;
                     break;
                 }
                 case WAITING_NEIGHBOURS:{
-                    long currentTime = Instant.now().toEpochMilli();
+                    long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
                         ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
@@ -340,7 +295,7 @@ public class Utils {
                                         sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
                                     }
 
-                                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                                     hasChanged = false;
                                     break;
                             }
@@ -370,12 +325,12 @@ public class Utils {
                         testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
                     }
 
-                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                     hasChanged = false;
                     break;
                 }
                 case WAITING_PROPOSALS: {
-                    long currentTime = Instant.now().toEpochMilli();
+                    long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
@@ -428,12 +383,12 @@ public class Utils {
                         }
                     }
 
-                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                     hasChanged = true;
                     break;
                 }
                 case WAITING_CONFIRM: {
-                    long currentTime = Instant.now().toEpochMilli();
+                    long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
                         trikeAgent.requests.removeIf(request -> request.getId()
                                 .equals(UUID.fromString(currentDecisionTask.extra)));
@@ -467,13 +422,13 @@ public class Utils {
                     //zb. values = jobid # score
                     testTrikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
 
-                    currentDecisionTask.timeStamp = Instant.now().toEpochMilli();
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                     hasChanged = false;
                     break;
                 }
                 case WAITING_MANAGER: {
                     //  timeout
-                    long currentTime = Instant.now().toEpochMilli();
+                    long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + MANAGER_WAIT_TIME) {
                         currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
 
@@ -832,6 +787,7 @@ public class Utils {
 
         //update the cell based on location
         String foundKey = Cells.findKey(trikeAgent.agentLocation);
+
         //int resolution = Cells.getCellResolution(foundKey);
         //newCellAddress = Cells.locationToCellAddress(agentLocation, resolution);
         newCellAddress = foundKey;
@@ -861,6 +817,8 @@ public class Utils {
         IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
         //calls updateAreaAgent of AreaAgentService class
         service.sendMessage(testMessage.serialize());
+
+        System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
 
     }
 

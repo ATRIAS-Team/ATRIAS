@@ -2,6 +2,7 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent;
 
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
@@ -11,18 +12,16 @@ import jadex.bridge.service.IService;
 import jadex.bridge.service.IServiceIdentifier;
 import org.w3c.dom.Element;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.assignIfNotNull;
-import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.getClassField;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants.CSV_SOURCE;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.AreaConstants.configure;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants.FIREBASE_ENABLED;
 
 public class Utils {
     AreaAgent areaAgent;
@@ -55,7 +54,7 @@ public class Utils {
         areaAgent.agent.setTags(sid, areaAgent.areaAgentId);
         System.out.println("locatedAgentList size: " + areaAgent.locatedAgentList.size());
 
-        if(areaAgent.FIREBASE_ENABLED) {
+        if(FIREBASE_ENABLED) {
             //  fetch jobs from firebase
             FirebaseHandler<AreaAgent, Job> firebaseHandler = new FirebaseHandler<AreaAgent, Job>(areaAgent, areaAgent.jobList);
             firebaseHandler.childAddedListener("tripRequests", (dataSnapshot, previousChildName, list) -> {
@@ -107,19 +106,16 @@ public class Utils {
         }
     }
 
-    private String CSV_SOURCE;
 
     public void sendJobToAgent(List<Job> jobList){
+        if(jobList.isEmpty()) return;
         //  current job
         Job job = jobList.get(0);
 
-        //  convert
-        LocalTime simTime = LocalTime.MIDNIGHT
-                .withMinute((int) Math.floor((JadexModel.simulationtime % 3600) / 60))
-                .withHour((int) Math.floor(JadexModel.simulationtime / 3600));
+        long jobTimeStamp = SharedUtils.getTimeStamp(job.getVATime());
+        long simTimeStamp = SharedUtils.getSimTime();
 
-        LocalDateTime simDateTime = LocalDateTime.of(areaAgent.csvDate, simTime);
-        if(!job.getbookingTime().isBefore(simDateTime)) return;
+        if(jobTimeStamp > simTimeStamp) return;
 
         String closestAgent = areaAgent.locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
         if (closestAgent == null){
@@ -146,7 +142,7 @@ public class Utils {
 
 
     private void initJobs() {
-        String csvFilePath = this.CSV_SOURCE;
+        String csvFilePath = CSV_SOURCE;
         char delimiter = ';';
 
         System.out.println("parse json from file:");
@@ -161,18 +157,5 @@ public class Utils {
         for (Job job: areaAgent.csvJobList) {
             System.out.println(job.getID());
         }
-
-        if(!allJobs.isEmpty()) {
-            areaAgent.csvDate = allJobs.get(0).getbookingTime().toLocalDate();
-        }
-    }
-
-    private void configure(Element classElement) {
-        assignIfNotNull(classElement,"FIREBASE_ENABLED", Boolean::parseBoolean,
-                value -> areaAgent.FIREBASE_ENABLED = value);
-        assignIfNotNull(classElement,"CSV_SOURCE", String::toString,
-                value -> this.CSV_SOURCE = value);
-        assignIfNotNull(classElement,"SEND_WAIT_TIME", Integer::parseInt,
-                value -> AreaConstants.SEND_WAIT_TIME = value);
     }
 }
