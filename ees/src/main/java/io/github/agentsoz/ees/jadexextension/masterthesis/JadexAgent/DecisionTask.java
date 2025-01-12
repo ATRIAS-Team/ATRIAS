@@ -1,38 +1,28 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import io.github.agentsoz.util.Location;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.List;
 
 public class DecisionTask {
-    //private String customerID;
-    //private String jobID;
-    //private LocalDateTime bookingTime;
-    //private LocalDateTime vaTime;
-    //private Location startPosition;
-    //private Location endPosition;
-
     private Job job;
 
-    private LocalDateTime creationTime;
+    public long timeStamp;
+
+    public long numRequests = 0;
+    public long numResponses = 0;
+
 
     private String origin;
 
     private ArrayList<UTScore> UTScoreList = new ArrayList<>();
 
-    private String status;
+    private Status status;
 
-    private ArrayList<String> neighbourIDs = new ArrayList<>();
+    private ArrayList<String> agentIds = new ArrayList<>();
+
+
 
     private String associatedTrip;
 
@@ -41,34 +31,26 @@ public class DecisionTask {
     // Constructors
     //####################################################################################
 
-    public DecisionTask(Job job, String origin, String status) {
+    public DecisionTask(Job job, String origin, Status status) {
         this.job = job;
         this.origin = origin;
         this.status = status;
-
-    }
-
-    //todo: maybe find a better way to ensure
-    public boolean testAllProposalsReceived(){
-        boolean complete = false;
-        if (neighbourIDs.size() == UTScoreList.size()-1){
-            complete = true;
-        }
-        return complete;
     }
 
     public void tagBestScore(String ownAgentID){
-        Integer positionBestScore = 0;
-        Double highestScore = 0.0;
+        int positionBestScore = 0;
+        double highestScore = 0.0;
+
         for (int i=0; i<UTScoreList.size(); i++){
             if(UTScoreList.get(i).getScore() > highestScore){
                 highestScore = UTScoreList.get(i).getScore();
                 positionBestScore = i;
             }
         }
-        for (int i=0; i<UTScoreList.size(); i++) {
-            UTScoreList.get(i).setTag("RejectProposal");
+        for (UTScore utScore : UTScoreList) {
+            utScore.setTag("RejectProposal");
         }
+
         if(UTScoreList.get(positionBestScore).getBidderID().equals(ownAgentID)){
             UTScoreList.get(positionBestScore).setTag("AcceptSelf");
         }
@@ -78,15 +60,16 @@ public class DecisionTask {
     }
 
 
-    public void setUtillityScore(String agentID, Double UTScore){
-
+    public void setUtilityScore(String agentID, Double UTScore){
         UTScore agentScore = new UTScore(agentID, UTScore);
         UTScoreList.add(agentScore);
     }
 
-    public void setStatus(String newStatus){ this.status = newStatus;}
+    public void setStatus(Status newStatus){ this.status = newStatus;}
 
-    public void setNeighbourIDs(ArrayList<String> neighbourIDs){this.neighbourIDs = neighbourIDs;}
+    public void setAgentIds(ArrayList<String> agentIds){this.agentIds = agentIds;}
+
+    public void addNeighbourIDs(ArrayList<String> neighbourIDs){this.agentIds.addAll(neighbourIDs);}
 
     public Job getJob(){return job;}
 
@@ -94,18 +77,23 @@ public class DecisionTask {
 
     public ArrayList<UTScore> getUTScoreList(){return UTScoreList;}
 
-    public ArrayList<String> getNeighbourIDs(){return neighbourIDs;}
+    public ArrayList<String> getAgentIds(){return agentIds;}
 
-    public String getStatus(){
+    public enum Status{
+        NEW, DELEGATE, COMMIT, CFP_READY,
+        DECISION_READY, CONFIRM_READY, PROPOSED,
+        WAITING_NEIGHBOURS, WAITING_PROPOSALS, WAITING_CONFIRM, WAITING_MANAGER,
+        DELEGATED, FAILED, NOT_ASSIGNED
+    }
+
+    public String extra;
+
+    public Status getStatus(){
         return status;
     }
 
     public String getOrigin(){
         return origin;
-    }
-
-    public String getIDFromJob(){ //todo:redundant replace it by method below
-        return job.getID();
     }
 
     public String getJobID(){
@@ -124,5 +112,12 @@ public class DecisionTask {
         return job.getEndPosition();
     }
 
+    public void initRequestCount(long numRequests){
+        this.numRequests = numRequests;
+        this.numResponses = 0;
+    }
 
+    public boolean responseReady(){
+        return numRequests == numResponses;
+    }
 }

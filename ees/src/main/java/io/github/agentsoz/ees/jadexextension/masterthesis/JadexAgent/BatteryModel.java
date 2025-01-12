@@ -1,18 +1,11 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.matsim.EvacAgentTracker;
-import io.github.agentsoz.ees.matsim.EvacAgentTracker.VehicleTrackingData;
 import io.github.agentsoz.util.Location;
 import jadex.bdiv3.runtime.IPlan;
 import jadex.commons.future.DelegationResultListener;
 import jadex.commons.future.Future;
 import jadex.commons.future.IFuture;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.Id;
-import org.matsim.core.mobsim.jdeqsim.Vehicle;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.TrikeAgent;
-import java.util.List;
 
 public class BatteryModel {
 
