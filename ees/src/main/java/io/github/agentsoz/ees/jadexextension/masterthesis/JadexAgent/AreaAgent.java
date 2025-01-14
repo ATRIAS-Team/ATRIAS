@@ -9,8 +9,10 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.D
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Plans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Utils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
 import io.github.agentsoz.ees.util.RingBuffer;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -20,7 +22,11 @@ import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
+
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils.getCurrentDateTime;
 
 
 @Agent(type = "bdi")
@@ -142,6 +148,8 @@ public class AreaAgent {
     @Plan(trigger=@Trigger(goals=PrintSimTime.class))
     private void printTime()
     {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        System.out.println("Simulation Time: " + getCurrentDateTime().format(dateTimeFormatter));
         System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
     }
 

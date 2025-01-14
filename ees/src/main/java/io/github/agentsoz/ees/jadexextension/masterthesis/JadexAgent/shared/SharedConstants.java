@@ -15,6 +15,8 @@ public class SharedConstants {
 
     private static String SIMULATION_START_TIME = "01.12.2019 00:00";
 
+    public static LocalDateTime SIMULATION_START_TIME_DT;
+
     public static long initDateTS = 0;
 
     public static void configure(){
@@ -26,10 +28,9 @@ public class SharedConstants {
         assignIfNotNull(classElement,"CLEANUP_TIMER", Integer::parseInt,
                 value -> SharedConstants.CLEANUP_TIMER = value);
 
-        initDateTS = LocalDateTime
-                .parse(SIMULATION_START_TIME, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]"))
-                .toInstant(ZoneOffset.UTC)
-                .toEpochMilli();
+        SIMULATION_START_TIME_DT = LocalDateTime
+                .parse(SIMULATION_START_TIME, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]"));
 
+        initDateTS = SIMULATION_START_TIME_DT.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 }
