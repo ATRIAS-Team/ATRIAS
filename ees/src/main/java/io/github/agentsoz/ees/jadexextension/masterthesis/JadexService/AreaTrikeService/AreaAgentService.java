@@ -1,7 +1,7 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.util.Location;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.OnStart;
@@ -68,7 +68,7 @@ public class AreaAgentService implements IAreaTrikeService
 		Message messageObj = Message.deserialize(messageStr);
 
 		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
-		areaAgent.receivedMessageIds.put(messageObj.getId(), Instant.now().toEpochMilli());
+		areaAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
 		switch (messageObj.getComAct()){
 			case INFORM:

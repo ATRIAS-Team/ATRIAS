@@ -1,7 +1,7 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService;
 
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.Utils;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
@@ -30,7 +30,7 @@ public class TrikeAgentService implements IAreaTrikeService {
 		Message messageObj = Message.deserialize(messageStr);
 
 		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
-		trikeAgent.receivedMessageIds.put(messageObj.getId(), Instant.now().toEpochMilli());
+		trikeAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
 		switch (messageObj.getComAct()){
 			case CALL_FOR_PROPOSAL:
