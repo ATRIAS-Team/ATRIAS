@@ -5,35 +5,22 @@
  */
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent;
 
-import io.github.agentsoz.ees.firebase.FirebaseHandler;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.DelegateInfo;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Plans;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent.Utils;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedPlans;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.TrikeMain;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig;
-import io.github.agentsoz.util.Location;
+import io.github.agentsoz.ees.util.RingBuffer;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
-import jadex.bridge.service.IService;
-import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
 import jadex.micro.annotation.*;
-import org.w3c.dom.Element;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.getClassField;
+import java.util.*;
 
 
 @Agent(type = "bdi")
@@ -47,211 +34,192 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.Run.XMLConfig.g
 })
 
 public class AreaAgent {
-
     /**
      * The bdi agent. Automatically injected
      */
     @Agent
-    private IInternalAccess agent;
+    public IInternalAccess agent;
     @AgentFeature
-    protected IBDIAgentFeature bdiFeature;
+    public IBDIAgentFeature bdiFeature;
     @AgentFeature
     protected IExecutionFeature execFeature;
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
 
-    @Belief
-    private List<Job> csvJobList = new ArrayList<>(); // job list for historic data
 
+    //  JOB LISTS
     @Belief
-    private final List<Job> jobList = new ArrayList<>(); // job list for App data
+    public List<Job> csvJobList = new ArrayList<>(); // job list for historic data
+    @Belief
+    public final List<Job> jobList = new ArrayList<>(); // job list for App data
+    @Belief
+    public List<Job> assignedJobs = new ArrayList<>();
+
 
     public LocatedAgentList locatedAgentList = new LocatedAgentList();
-    boolean done;
 
-    LocalDate csvDate;
-
-    String cell;
+    public String cell;
 
     @Belief
-    private String areaAgentId = null;
+    public String areaAgentId = null;
     public String myTag = null;
 
-    boolean FIREBASE_ENABLED = false;
+    public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
+    public Map<UUID, Long> receivedMessageIds = new HashMap<>(64);
+
+    //  BUFFER
+    public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> jobRingBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(512);
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(512);
+
+
+    public volatile boolean canDemand = true;
+
+    public List<DelegateInfo> jobsToDelegate = new ArrayList<>();
+
+    public List<String> neighbourIds = null;
+
+    public Utils utils;
+    public Plans plans;
 
     /** The agent body. */
     @OnStart
-    private void body() throws InterruptedException {
-        Element classElement = XMLConfig.getClassElement("AreaAgent.java");
-        configure(classElement);
-        Pattern pattern = Pattern.compile("[0-9]+");
-        Matcher matcher = pattern.matcher(agent.getId().getLocalName());
-        int index = 0;
-
-        if (matcher.find()) {
-            index = Integer.parseInt(matcher.group());
-        }
-
-        areaAgentId = "area: " + index;
-        myTag = areaAgentId;
-        cell = Cells.areaAgentCells.get(index);
-        Cells.cellAgentMap.put(cell, areaAgentId);
-
-        System.out.println("AreaAgent " + areaAgentId + " sucessfully started;");
-        initJobs();
-
-        IServiceIdentifier sid = ((IService) agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
-        agent.setTags(sid, areaAgentId);
-        System.out.println("locatedAgentList size: " + locatedAgentList.size());
-
-        if(FIREBASE_ENABLED) {
-            //  fetch jobs from firebase
-            FirebaseHandler<AreaAgent, Job> firebaseHandler = new FirebaseHandler<AreaAgent, Job>(this, jobList);
-            firebaseHandler.childAddedListener("tripRequests", (dataSnapshot, previousChildName, list) -> {
-                // A new child node has been added
-                String tripRequestId = dataSnapshot.getKey();
-                System.out.println("New trip request added: " + tripRequestId);
-
-                // Access data of the new trip request
-                //String assignedAgent = dataSnapshot.child("assignedAgent").getValue(String.class);
-                String customerId = dataSnapshot.child("customerId").getValue(String.class);
-                String startTimeStr = dataSnapshot.child("startTime").getValue(String.class);
-                String timestampStr = dataSnapshot.child("timestamp").getValue(String.class);
-
-                //System.out.println("Assigned Agent: " + assignedAgent);
-                System.out.println("Customer ID: " + customerId);
-                System.out.println("Start Time: " + startTimeStr);
-                System.out.println("Timestamp: " + timestampStr);
-
-
-                Location startPosition = new Location("", 0, 0);
-                startPosition.x = dataSnapshot.child("startLocation").child("longitude").getValue(Double.class);
-                startPosition.y = dataSnapshot.child("startLocation").child("latitude").getValue(Double.class);
-
-                Location endPosition = new Location("", 0, 0);
-                endPosition.x = dataSnapshot.child("endLocation").child("longitude").getValue(Double.class);
-                endPosition.y = dataSnapshot.child("endLocation").child("latitude").getValue(Double.class);
-
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS'Z'");
-                System.out.println(startTimeStr);
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
-                LocalTime localTime = LocalTime.parse(startTimeStr, dtf);
-                LocalDateTime startTime = LocalDateTime.of(LocalDate.now(), localTime);
-                LocalDateTime vaTime = LocalDateTime.parse(timestampStr, formatter);
-                Job job = new Job(customerId, tripRequestId, startTime, vaTime, startPosition, endPosition);
-
-                String jobCell = Cells.locationToCellAddress(job.getStartPosition(), Cells.getCellResolution(cell));
-                if (jobCell.equals(cell)) {
-                    list.add(job);
-                }
-            });
-        }
-        bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
-
-        while (TrikeMain.TrikeAgentNumber != JadexModel.TrikeAgentnumber) {
-            Thread.sleep(1000);
-        }
-
+    private void body() {
+        utils = new Utils(this);
+        plans = new Plans(this, utils);
+        utils.body();
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
-    }
-
-    @Goal(recur = true, recurdelay = 1000 )
-    class PrintSimTime {}
-    @Plan(trigger=@Trigger(goals=PrintSimTime.class))
-    private void printTime()
-    {
-        System.out.println("Simulation time: "+JadexModel.simulationtime);
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
+        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckProposals());
+        bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
+        bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
+        bdiFeature.dispatchTopLevelGoal(new CheckRequests());
+        bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
+        bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
+        bdiFeature.dispatchTopLevelGoal(new TrikeCount());
     }
 
 
     @Goal(recur = true, recurdelay = 20 )
-    class MaintainDistributeCSVJobs
-    {
-        @GoalMaintainCondition
-        boolean isListEmpty(){
-            return csvJobList.isEmpty();
-        }
+    private class AreaMessagesBuffer{}
+    @Plan(trigger=@Trigger(goals=AreaMessagesBuffer.class))
+    private void checkAreaMessagesBuffer(){
+        plans.checkAreaMessagesBuffer();
     }
 
+
+    @Goal(recur = true, recurdelay = 50 )
+    private class CheckProposals{}
+    @Plan(trigger=@Trigger(goals=CheckProposals.class))
+    private void checkProposals(){
+       plans.checkProposalBuffer();
+    }
+
+
+    @Goal(recur = true, recurdelay = 50 )
+    private class CheckDelegateInfo{}
+    @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
+    private void checkDelegateInfo(){
+        plans.checkDelegateInfo();
+    }
+
+
+    @Goal(recur = true, recurdelay = 100)
+    private class DelegateJobs{}
+    @Plan(trigger=@Trigger(goals=DelegateJobs.class))
+    private void delegateJobs(){
+        plans.delegateJobs();
+    }
+
+
+    @Goal(recur = true, recurdelay = 3000 )
+    private class PrintSimTime {}
+    @Plan(trigger=@Trigger(goals=PrintSimTime.class))
+    private void printTime()
+    {
+        System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
+    }
+
+
+    @Goal(recur = true, recurdelay = 100 )
+    private class MaintainDistributeAssignedJobs
+    {}
+    @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
+    private void sendAssignedJobs()
+    {
+        utils.sendJobToAgent(assignedJobs);
+    }
+
+
+    @Goal(recur = true, recurdelay = 100 )
+    private class JobBuffer{}
+    @Plan(trigger=@Trigger(goals=JobBuffer.class))
+    private void checkJobBuffer() { plans.checkAssignedJobs(); }
+
+
     @Goal(recur = true, recurdelay = 1000 )
-    class MaintainDistributeFirebaseJobs
+    private class MaintainDistributeFirebaseJobs
     {
         @GoalMaintainCondition
         boolean isListEmpty(){
             return jobList.isEmpty();
         }
     }
-
     @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
     private void SendFirebaseJob()
     {
-        sendJobToAgent(jobList);
+        utils.sendJobToAgent(jobList);
     }
 
 
+    @Goal(recur = true, recurdelay = 20 )
+    private class MaintainDistributeCSVJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return csvJobList.isEmpty();
+        }
+    }
     @Plan(trigger=@Trigger(goals=MaintainDistributeCSVJobs.class))
     private void SendCSVJob()
     {
-        sendJobToAgent(csvJobList);
-    }
-
-    /**
-     * sending data to specific TrikeAgent by calling its serviceTag
-     */
-    private void sendJobToAgent(List<Job> jobList){
-        //  current job
-        Job job = jobList.get(0);
-
-        //  convert
-        LocalTime simTime = LocalTime.MIDNIGHT
-                .withMinute((int) Math.floor((JadexModel.simulationtime % 3600) / 60))
-                .withHour((int) Math.floor(JadexModel.simulationtime / 3600));
-
-        LocalDateTime simDateTime = LocalDateTime.of(csvDate, simTime);
-        if(job.getbookingTime().compareTo(simDateTime) >= 0) return;
-
-        String closestAgent = locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
-        if (closestAgent.equals("NoAgentsLocated")){
-            System.out.println("ERROR: No Agent located at this AreaAgent");
-        }
-        else{
-            //message creation
-            MessageContent messageContent = new MessageContent("", job.toArrayList());
-            LocalTime bookingTime = LocalTime.now();
-            System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
-            Message message = new Message("0", areaAgentId, "" + closestAgent, "PROVIDE", JadexModel.simulationtime, messageContent);
-            IAreaTrikeService service = IAreaTrikeService.messageToService(agent, message);
-            service.trikeReceiveJob(message.serialize());
-            //remove job from list
-            jobList.remove(0);
-            System.out.println("AREA AGENT: JOB was SENT");
-        }
+        utils.sendJobToAgent(csvJobList);
     }
 
 
-    private void initJobs() {
-        String csvFilePath = "ees/subsample_2.csv";
-        char delimiter = ';';
-
-        System.out.println("parse json from file:");
-        List<Job> allJobs = Job.csvToJobs(csvFilePath, delimiter);
-        for (Job job : allJobs) {
-            String jobCell = Cells.locationToCellAddress(job.getStartPosition(), Cells.getCellResolution(cell));
-            if(jobCell.equals(cell)){
-                csvJobList.add(job);
-            }
-        }
-
-        for (Job job: csvJobList) {
-            System.out.println(job.getID());
-        }
-        if(!csvJobList.isEmpty()) {
-            csvDate = csvJobList.get(0).getbookingTime().toLocalDate();
-        }
+    @Goal(recur = true, recurdelay = 20 )
+    private class TrikeMessagesBuffer{}
+    @Plan(trigger=@Trigger(goals=TrikeMessagesBuffer.class))
+    private void checkTrikeMessagesBuffer()
+    {
+       plans.checkTrikeMessagesBuffer();
     }
 
-    private void configure(Element classElement) {
-        this.FIREBASE_ENABLED = Boolean.parseBoolean(getClassField(classElement, "FIREBASE_ENABLED"));
+
+    @Goal(recur = true, recurdelay = 5000)
+    private class CheckRequests{}
+    @Plan(trigger=@Trigger(goals=CheckRequests.class))
+    private void checkRequestTimeouts(){
+        plans.checkRequestTimeouts();
+    }
+
+
+    @Goal(recur = true, recurdelay = 10000)
+    private class ReceivedMessages{}
+    @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
+    private void cleanupReceivedMessages(){
+        SharedPlans.cleanupReceivedMessages(receivedMessageIds);
+    }
+
+    @Goal(recur = true, recurdelay = 1000)
+    private class TrikeCount{}
+    @Plan(trigger=@Trigger(goals=TrikeCount.class))
+    private void checkTrikeCount(){
+        plans.checkTrikeCount();
     }
 }
