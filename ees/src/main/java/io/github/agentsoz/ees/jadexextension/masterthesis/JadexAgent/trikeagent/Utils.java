@@ -27,8 +27,7 @@ import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.Ar
 public class Utils {
     private final TrikeAgent trikeAgent;
 
-    private String oldCellAddress = null;
-    public String newCellAddress = null;
+    public String cell = null;
     
     public Utils(TrikeAgent trikeAgent){
         this.trikeAgent = trikeAgent;
@@ -158,6 +157,17 @@ public class Utils {
 
                     trikeAgent.tripList.add(newTrip);
 
+                    Location destination = currentDecisionTask.getEndPositionFromJob();
+                    String destinationCell = Cells.findKey(destination);
+                    boolean isInArea = cell.equals(destinationCell);
+
+                    if(!isInArea){
+                        String originArea = Cells.cellAgentMap.get(cell);
+                        String newArea = Cells.cellAgentMap.get(destinationCell);
+                        changeArea(originArea, newArea);
+                        cell = destinationCell;
+                    }
+
                     if(FIREBASE_ENABLED){
                         //  listen to the new child in firebase
                         ChildEventListener childEventListener = trikeAgent.firebaseHandler.childAddedListener("trips/"+newTrip.tripID, (dataSnapshot, previousChildName, list)->{
@@ -250,11 +260,11 @@ public class Utils {
                     ArrayList<String> values = new ArrayList<>();
                     values.add(currentDecisionTask.getJobID()); //todo move into a method
                     Location jobLocation = currentDecisionTask.getJob().getStartPosition();
-                    String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(newCellAddress));
-                    boolean isInArea = newCellAddress.equals(jobCell);
+                    String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(cell));
+                    boolean isInArea = cell.equals(jobCell);
 
                     if(isInArea){
-                        String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+                        String areaAgentTag = Cells.cellAgentMap.get(cell);
                         currentDecisionTask.initRequestCount(1);
                         sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
                     }else{
@@ -279,8 +289,8 @@ public class Utils {
                         if (agentIds.size() < MIN_CNP_TRIKES) {
                             String jobCell =
                                     Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
-                                            Cells.getCellResolution(newCellAddress));
-                            boolean isInArea = newCellAddress.equals(jobCell);
+                                            Cells.getCellResolution(cell));
+                            boolean isInArea = cell.equals(jobCell);
 
                             if (isInArea && currentDecisionTask.numRequests == 1) {
                                     //  global cnp
@@ -785,29 +795,13 @@ public class Utils {
         values.add(Double.toString(trikeAgent.agentLocation.getX()));
         values.add(Double.toString(trikeAgent.agentLocation.getY()));
 
-        //update the cell based on location
-        String foundKey = Cells.findKey(trikeAgent.agentLocation);
-
-        //int resolution = Cells.getCellResolution(foundKey);
-        //newCellAddress = Cells.locationToCellAddress(agentLocation, resolution);
-        newCellAddress = foundKey;
-
         //  init register of trikes
         if (action.equals("register")){
-            oldCellAddress = newCellAddress;
-        }
-
-        // if the cell address has changed, change the area and leave the method
-        if (!oldCellAddress.equals(newCellAddress)){
-            String originArea = Cells.cellAgentMap.get(oldCellAddress);
-            String newArea = Cells.cellAgentMap.get(newCellAddress);
-            changeArea(originArea, newArea);
-            oldCellAddress = newCellAddress;
-            return;
+            cell = Cells.findKey(trikeAgent.agentLocation);
         }
 
         //  get target AreaAgent tag based on the cell address
-        String areaAgentTag = Cells.cellAgentMap.get(newCellAddress);
+        String areaAgentTag = Cells.cellAgentMap.get(cell);
 
         //  update/register message
         MessageContent messageContent = new MessageContent(action, values);

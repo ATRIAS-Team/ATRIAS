@@ -41,7 +41,7 @@ public class Job {
     public Job(ArrayList<String> values) {
 
         //String str = "1986-04-08 12:30";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss]");
         //LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
 
         Double startPosX = Double.parseDouble(values.get(5));

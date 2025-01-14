@@ -200,10 +200,9 @@ public class Plans {
     public void checkTrikeCount(){
         if(areaAgent.canDemand && areaAgent.locatedAgentList.size() < AreaConstants.MIN_TRIKES && JadexModel.simulationtime > 0){
             Location cellLocation = Cells.getCellLocation(areaAgent.cell);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]");
-            LocalDateTime dt = LocalDateTime.parse("01.12.2019 00:00", formatter);
+            LocalDateTime dt = SharedUtils.getCurrentDateTime();
 
-            Job job = new Job(UUID.randomUUID().toString(), areaAgent.areaAgentId + "   " + UUID.randomUUID().toString(),
+            Job job = new Job(areaAgent.areaAgentId, areaAgent.areaAgentId + "   " + UUID.randomUUID(),
                     dt, dt, cellLocation, cellLocation);
             DelegateInfo delegateInfo = new DelegateInfo(job);
             areaAgent.jobsToDelegate.add(delegateInfo);
