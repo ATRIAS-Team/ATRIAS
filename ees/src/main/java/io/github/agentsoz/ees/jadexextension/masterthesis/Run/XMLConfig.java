@@ -9,6 +9,8 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class XMLConfig {
     public void applyConfig(Element configRoot){
@@ -243,5 +245,12 @@ public class XMLConfig {
             }
         }
         return null;
+    }
+
+    public static <T> void assignIfNotNull(Element classElement, String fieldName, Function<String, T> parser, Consumer<T> setter) {
+        String value = getClassField(classElement, fieldName);
+        if (value != null) {
+            setter.accept(parser.apply(value));
+        }
     }
 }

@@ -2,23 +2,14 @@
 <configuration>
 
     <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
-
     </file>
 
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/jadexextension/masterthesis/Run/TrikeWorld.application.xml">
         <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
-        <component target_path="component->type=AreaAgent" config_mode="modify" number="7" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
     </file>
-    <!--
-        <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/matsim_config.xml">
-            <param target_path="module->name=qsim/param->name=startTime" config_mode="modify" value="00:00:00" />
-            <param target_path="module->name=qsim/param->name=endTime" config_mode="modify" value="23:59:59" />
-        </file>
-        -->
 
     <class class_name="TrikeAgent.java">
-        <field field_name="FIREBASE_ENABLED">false</field>
-        <field field_name="chargingTripAvailable">0</field>
         <field field_name="commitThreshold">50.0</field>
         <field field_name="DRIVING_SPEED">6.0</field>
         <field field_name="CNP_ACTIVE">true</field>
@@ -26,12 +17,27 @@
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
         <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">120000</field>
+        <field field_name="MANAGER_WAIT_TIME">120000</field>
+        <field field_name="CONFIRM_WAIT_TIME">120000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">120000</field>
+        <field field_name="REQUEST_WAIT_TIME">120000</field>
+        <field field_name="MIN_CNP_TRIKES">8</field>
     </class>
     <class class_name="AreaAgent.java">
+        <field field_name="CSV_SOURCE">ees/subsample_2.csv</field>
+        <field field_name="REQUEST_WAIT_TIME">120000</field>
+        <field field_name="MIN_TRIKES">4</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">120000</field>
+    </class>
+    <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>
+        <field field_name="SIMULATION_START_TIME">01.12.2019 00:00</field>
+        <field field_name="CLEANUP_TIMER">120000</field>
     </class>
 
     <!--    BOSTON   -->
+<!--
     <cells resolutions="5">
         <areaagent>
             <cell>852a3067fffffff</cell>
@@ -43,6 +49,15 @@
             <cell>852a302bfffffff</cell>
         </areaagent>
     </cells>
+-->
+
+    <!--    BOSTON 1 AREA  -->
+
+        <cells resolutions="2">
+            <areaagent>
+                <cell>822a37fffffffff</cell>
+            </areaagent>
+        </cells>
 
     <!--    FRANKFURT   -->
     <!--

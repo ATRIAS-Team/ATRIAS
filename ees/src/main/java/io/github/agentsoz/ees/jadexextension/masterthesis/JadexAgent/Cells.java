@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class Cells {
     public static int[] resolutions = null;
@@ -27,11 +28,11 @@ public class Cells {
 
     //  area
     static int areaAgentIdCounter = 0;
-    static ArrayList<String> areaAgentCells = new ArrayList<>();
-    static HashMap<String, String> cellAgentMap = new HashMap<>();
+    public static ArrayList<String> areaAgentCells = new ArrayList<>();
+    public static HashMap<String, String> cellAgentMap = new HashMap<>();
 
     //  trike
-    static HashMap<String, Location> trikeRegisterLocations = new HashMap<>();
+    public static HashMap<String, Location> trikeRegisterLocations = new HashMap<>();
 
     public static String locationToCellAddress(Location location, int resolution) {
         CoordinateConversion coordinateConversion = new CoordinateConversion();
@@ -56,7 +57,6 @@ public class Cells {
 
         for (int i = resolutions.length - 1; i >= 0; i--){
             String address = h3Core.cellToParentAddress(smallestCell, resolutions[i]);
-            //LatLng latLng = h3Core.cellToLatLng(address);
 
             if(cellAgentMap.containsKey(address)) return address;
         }
@@ -68,6 +68,18 @@ public class Cells {
         return h3Core.getResolution(cell);
     }
 
+
+    public static List<String> getNeighbours(String origin, int radius){
+        List<String> neighbourIds = new ArrayList<>();
+        for (String neighbourCell: h3Core.gridDisk(origin, radius)) {
+            if(cellAgentMap.containsKey(neighbourCell) && !neighbourCell.equals(origin)){
+                neighbourIds.add(cellAgentMap.get(neighbourCell));
+            }
+        }
+        return neighbourIds;
+    }
+
+    public static long getHops(String cell1, String cell2){return h3Core.gridDistance(cell1, cell2);}
 
 
     public static void applyConfig(){
@@ -94,6 +106,7 @@ public class Cells {
             Node cellNode = cellsNL.item(i);
             if(cellNode.getNodeType() != Node.ELEMENT_NODE) continue;
             areaAgentCells.add(cellNode.getTextContent());
+            cellAgentMap.put(cellNode.getTextContent(), "");
         }
     }
 
@@ -110,5 +123,12 @@ public class Cells {
             double y = Double.parseDouble(activityElement.getAttribute("y"));
             trikeRegisterLocations.put(id, new Location("", x, y));
         }
+    }
+
+    public static Location getCellLocation(String cell){
+        CoordinateConversion coordinateConversion = new CoordinateConversion();
+        LatLng latLng = h3Core.cellToLatLng(cell);
+        String[] utmArr = coordinateConversion.latLon2UTM(latLng.lat, latLng.lng).split(" ");
+        return new Location("", Integer.parseInt(utmArr[2]), Integer.parseInt(utmArr[3]));
     }
 }
