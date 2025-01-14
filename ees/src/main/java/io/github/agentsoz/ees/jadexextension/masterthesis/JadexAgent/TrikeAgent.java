@@ -155,7 +155,7 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new Requests());
     }
 
-    @Goal(recur=true, recurdelay=100)
+    @Goal(recur=true, recurdelay=20)
     private class JobBuffer {}
 
     @Plan(trigger=@Trigger(goals=JobBuffer.class))
@@ -175,7 +175,7 @@ public class TrikeAgent{
         System.out.println("agentID " + agentID +  " simtime " + JadexModel.simulationtime);
     }
 
-    @Goal(recur = true, recurdelay = 100)
+    @Goal(recur = true, recurdelay = 50)
     private class MaintainBatteryLoaded {
         @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
         public MaintainBatteryLoaded() {
@@ -209,7 +209,7 @@ public class TrikeAgent{
      *  desired behavior:
      *  start: when new trip is generated
      */
-    @Goal(recur = true, recurdelay = 100)
+    @Goal(recur = true, recurdelay = 20)
     private class MaintainTripService {
         @GoalMaintainCondition
         boolean sentToMATSIM() {
@@ -242,7 +242,7 @@ public class TrikeAgent{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 
-    @Goal(recur = true,recurdelay = 300)
+    @Goal(recur = true,recurdelay = 50)
     private class PerformSIMReceive {}
 
     @Plan(trigger = @Trigger(goals = PerformSIMReceive.class))
@@ -250,7 +250,7 @@ public class TrikeAgent{
         plans.sensoryUpdate();
     }
 
-    @Goal(recur = true, recurdelay = 10)
+    @Goal(recur = true, recurdelay = 20)
     private class CheckMessagesBuffer{}
 
     @Plan(trigger = @Trigger(goals = CheckMessagesBuffer.class))
@@ -258,7 +258,7 @@ public class TrikeAgent{
         plans.checkMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 10)
+    @Goal(recur = true, recurdelay = 20)
     private class CNPBuffer{}
 
     @Plan(trigger = @Trigger(goals = CNPBuffer.class))

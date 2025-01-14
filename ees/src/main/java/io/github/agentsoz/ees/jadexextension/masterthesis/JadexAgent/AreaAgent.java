@@ -113,7 +113,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 100 )
+    @Goal(recur = true, recurdelay = 50 )
     private class CheckProposals{}
     @Plan(trigger=@Trigger(goals=CheckProposals.class))
     private void checkProposals(){
@@ -121,7 +121,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 100 )
+    @Goal(recur = true, recurdelay = 50 )
     private class CheckDelegateInfo{}
     @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
     private void checkDelegateInfo(){
@@ -129,7 +129,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 200)
+    @Goal(recur = true, recurdelay = 100)
     private class DelegateJobs{}
     @Plan(trigger=@Trigger(goals=DelegateJobs.class))
     private void delegateJobs(){
@@ -146,7 +146,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 250 )
+    @Goal(recur = true, recurdelay = 100 )
     private class MaintainDistributeAssignedJobs
     {}
     @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
@@ -201,7 +201,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 1000)
+    @Goal(recur = true, recurdelay = 5000)
     private class CheckRequests{}
     @Plan(trigger=@Trigger(goals=CheckRequests.class))
     private void checkRequestTimeouts(){
