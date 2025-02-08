@@ -1,5 +1,27 @@
 package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.areaagent;
 
+/*-
+ * #%L
+ * Emergency Evacuation Simulator
+ * %%
+ * Copyright (C) 2014 - 2025 by its authors. See AUTHORS file.
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.*;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedUtils;
@@ -117,8 +139,17 @@ public class Utils {
 
         if(jobTimeStamp > simTimeStamp) return;
 
-        String closestAgent = areaAgent.locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
-        if (closestAgent == null){
+        String selectedAgent;
+        if (job.getPrecalculatedVehicle() != null) {
+            // select precalculated Agent
+            selectedAgent = job.getPrecalculatedVehicle();
+        } else {
+            // select closest Agent
+            selectedAgent = areaAgent.locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
+        }
+
+
+        if (selectedAgent == null){
             areaAgent.jobsToDelegate.add(new DelegateInfo(job));
             System.out.println(job.getID() + " is delegated");
             jobList.remove(0);
@@ -128,7 +159,7 @@ public class Utils {
             MessageContent messageContent = new MessageContent("", job.toArrayList());
             LocalTime bookingTime = LocalTime.now();
             System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
-            Message message = new Message(areaAgent.areaAgentId, closestAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
+            Message message = new Message(areaAgent.areaAgentId, selectedAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
             service.sendMessage(message.serialize());
 
@@ -154,8 +185,14 @@ public class Utils {
             }
         }
 
-        for (Job job: areaAgent.csvJobList) {
-            System.out.println(job.getID());
+        if (allJobs.get(0).getPrecalculatedVehicle() != null) {
+            for (Job job: areaAgent.csvJobList) {
+                System.out.println(job.getID() + ", assigned to " +job.getPrecalculatedVehicle());
+            }
+        } else {
+            for (Job job: areaAgent.csvJobList) {
+                System.out.println(job.getID());
+            }
         }
     }
 }

@@ -10,3 +10,4 @@
 *.ipr
 *.iws
 .Rproj.user
+/platform_auto.conf
