@@ -70,7 +70,7 @@ public class csvLogger {
         try {
             writer = new FileWriter("LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
             writer.append(String.join( ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
-                    "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "arrivalTime", "Origin", "Location_X", "Location_Y") + "\n");
+                    "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "arrivalTime", "Origin", "Start_Pos", "End_Pos") + "\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {

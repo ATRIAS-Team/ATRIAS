@@ -953,7 +953,10 @@ public class Utils {
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
             origin = "trike:" + trip.getDecisionTaskD().getOrigin();
         }
-        csvLogger.addLog(trikeAgent.agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR, "trike:" + trikeAgent.agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin, String.valueOf(trikeAgent.agentLocation.x), String.valueOf(trikeAgent.agentLocation.y));
+        csvLogger.addLog(trikeAgent.agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD,
+                commitThreshold, DISTANCE_FACTOR, "trike:" + trikeAgent.agentID, tripID, driveOperationNumber,
+                tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin,
+                String.valueOf(trip.startPosition), String.valueOf(trip.endPosition));
     }
 
     public Double ArrivalTime(LocalDateTime vATime){

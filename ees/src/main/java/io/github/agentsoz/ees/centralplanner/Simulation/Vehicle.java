@@ -1,6 +1,7 @@
 package io.github.agentsoz.ees.centralplanner.Simulation;
 
 import io.github.agentsoz.ees.centralplanner.Graph.*;
+import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -15,42 +16,47 @@ public class Vehicle {
     public String currentPosition; //position vehicle has at a given timestep
     public String home; //home node
     public LocalDateTime busyUntil;
-    public double powerConsumption;
-    public double battery;
     public ArrayList<Trip> queuedTrips = new ArrayList<>();
     public ArrayList<Trip> takenTrips = new ArrayList<>();
+    public BatteryModel battery = new BatteryModel();
+    public BatteryModel futureBattery = new BatteryModel();
+    public float chargingThreshold;
 
-    public Vehicle(int id, String home, float powerConsumption, float battery) {
+    public Vehicle(int id, String home, float chargingThreshold) {
         this.name = "Vehicle-" + id;
         this.id = id;
         this.futurePosition = home;
         this.home = home;
-        this.powerConsumption = powerConsumption;
-        this.battery = battery;
-    }
-    public Vehicle(int id, String home) {
-        this.name = "Vehicle-" + id;
-        this.id = id;
-        this.futurePosition = home;
-        this.home = home;
-        this.powerConsumption = 1;
-        this.battery = 1000;
+        this.chargingThreshold = chargingThreshold;
     }
 
     //allocates trip to the vehicle by adding it to the queue
     public void queueTrip(Trip trip){
-        //check if trip starts and ends on the same node
-        if (trip.calculatedPath.distance == 0){
-            return;
-        }
 
         //add trip to queue
         queuedTrips.add(trip);
-        battery = trip.batteryLevel;
-        futurePosition = trip.calculatedPath.path.get(trip.calculatedPath.path.size()-1).to.id;
+        futureBattery.discharge(trip.calculatedPath.distance, 0);
+        futurePosition = trip.nearestEndNode;
 
         //calculates when a vehicle is done with its jobs
         busyUntil = trip.vaTime.plusSeconds((long) Math.ceil(trip.calculatedPath.travelTime));
+
+    }
+
+    public void queueChargingTrip(Graph graph){
+        String nearestChargingStation = graph.getNearestChargingStation(futurePosition);
+        Trip vehicleChargingTrip = new Trip(name,
+                "Charging Trip",
+                busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                graph.getNodeCoordinates(futurePosition)[0],
+                graph.getNodeCoordinates(futurePosition)[1],
+                graph.getNodeCoordinates(nearestChargingStation)[0],
+                graph.getNodeCoordinates(nearestChargingStation)[1]
+        );
+        vehicleChargingTrip.calculateTrip(graph);
+        queueTrip(vehicleChargingTrip);
+        futureBattery.loadBattery();
     }
 
     public void refreshVehicle(LocalDateTime currentTime){
@@ -63,6 +69,12 @@ public class Vehicle {
 
             // if the trip has ended, move it to the takenTrips list and remove it from the queue
             if (currentTime.isAfter(tripEndsAt) || currentTime.isEqual(tripEndsAt)) {
+                battery.discharge(currentTrip.calculatedPath.distance, 0);
+
+                if (currentTrip.TripID.equals("Charging Trip")){
+                    battery.loadBattery();
+                }
+                currentTrip.batteryLevel = battery.getMyChargestate();
                 takenTrips.add(currentTrip);
                 iterator.remove(); // Safe removal during iteration
             } else {
@@ -79,7 +91,7 @@ public class Vehicle {
         if (queuedTrips.isEmpty()){
             //if vehicle has no queued trips, it should be at the destination of the last taken trip
             Trip lastTakenTrip = takenTrips.get(takenTrips.size()-1);
-            futurePosition = lastTakenTrip.calculatedPath.path.get(lastTakenTrip.calculatedPath.path.size()-1).to.id;
+            futurePosition = lastTakenTrip.nearestEndNode;
         } else {
             //if the vehicle has queued trips, it should be on route of the currently first queued trip.
             Trip currentQueuedTrip = queuedTrips.get(0);
@@ -109,6 +121,7 @@ public class Vehicle {
         if (busyUntil.isBefore(customerTrip.bookingTime)){
             busyUntil = customerTrip.bookingTime;
         }
+
         //first generate trip to get to the customer
         Trip vehicleApproachTrip = new Trip(name,
                 customerTrip.TripID+"-approach",

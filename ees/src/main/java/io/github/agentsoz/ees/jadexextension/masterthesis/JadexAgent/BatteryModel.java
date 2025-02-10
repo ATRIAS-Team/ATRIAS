@@ -69,7 +69,7 @@ public class BatteryModel {
         //distanceTraveled = tripLink.getLength();
 
         //   distanceTraveled = trackingData.getDistanceSinceStart();
-        System.out.println("Distance traveled by the specific vehicle: " + metersDriven + " meters");
+//        System.out.println("Distance traveled by the specific vehicle: " + metersDriven + " meters");
         //  } else {
         //     System.out.println("Tracking data not found for the specific vehicle.");
         // }

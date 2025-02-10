@@ -3,17 +3,22 @@ package io.github.agentsoz.ees.centralplanner.Graph;
 import java.util.*;
 import java.io.*;
 import javax.xml.parsers.*;
+
+import io.github.agentsoz.util.Location;
 import org.w3c.dom.*;
 
 import static io.github.agentsoz.ees.centralplanner.util.ProgressTracker.showProgress;
+import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.CHARGING_STATION_LIST;
 
 public class Graph {
     private final HashMap<String, Node> nodes; // Maps node ID to Node object
     private final HashMap<Node, List<Edge>> adjacencyList;
+    private final ArrayList<String> chargingStations;
 
     public Graph() {
         nodes = new HashMap<String, Node>();
         adjacencyList = new HashMap<Node, List<Edge>>();
+        chargingStations = new ArrayList<>();
     }
 
     // Add a new node to the graph
@@ -60,6 +65,19 @@ public class Graph {
         return nearestNodeId;
     }
 
+    public String getNearestChargingStation(String currentNode) {
+        String nearestStation = null;
+        double travelTime = Double.MAX_VALUE;
+        for (String chargingStation : chargingStations) {
+            Path path = dijkstra(currentNode, chargingStation);
+            if (path.travelTime < travelTime) {
+                nearestStation = chargingStation;
+                travelTime = path.travelTime;
+            }
+        }
+        return nearestStation;
+    }
+
     public void generateFromXmlFile(String path){
         try {
             System.out.println("Generating Graph from XML file");
@@ -101,6 +119,12 @@ public class Graph {
                 String modes = edgeElement.getAttribute("modes");
 
                 this.addEdge(from, to, id, length, freespeed, capacity, permlanes, oneway, modes);
+            }
+
+            // add charging stations
+            for (Location location : CHARGING_STATION_LIST) {
+                String station = getNearestNodeID(String.valueOf(location.x), String.valueOf(location.y));
+                chargingStations.add(station);
             }
 
         } catch (Exception e) {
@@ -165,7 +189,6 @@ public class Graph {
 
         return path;
     }
-
 
     @Override
     public String toString() {

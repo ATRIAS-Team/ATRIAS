@@ -17,11 +17,10 @@ import java.util.*;
 import static io.github.agentsoz.ees.centralplanner.util.ProgressTracker.showProgress;
 
 public class Simulation {
-    private final ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();
+    private final ArrayList<Vehicle> vehicles = new ArrayList<>();
     private final HashMap<String, Integer> bestVehicleMap = new HashMap<>();
     private final ArrayList<Trip> requestedTrips;
     private final Graph graph;
-    private double elapsedWaitingTime = 0.0;
     private final String outputFilePath;
 
     public Simulation(String vehicleConfigFilePath, String requestsFilePath, String populationFilePath, String outputFilePath, Graph graph) {
@@ -69,13 +68,19 @@ public class Simulation {
             bestVehicleMap.put(customerTrip.TripID, bestVehicle.id);
 
             bestVehicle.queueTrip(bestApproach);
-            elapsedWaitingTime += bestApproach.calculatedPath.travelTime;
             customerTrip.vaTime = bestApproach.vaTime.plusSeconds((long) Math.ceil(bestApproach.calculatedPath.travelTime));
 
+            //queue the trip for the best vehicle
             bestVehicle.queueTrip(customerTrip);
+            //evaluate if charging is necessary
+            if (bestVehicle.futureBattery.getMyChargestate() <= bestVehicle.chargingThreshold){
+                //calculates the closest charging station and queues a trip
+                bestVehicle.queueChargingTrip(graph);
+            }
         }
         //update rest of queued trips from vehicles, even after last booking came in
         for (Vehicle vehicle : vehicles){
+//            if (vehicle.id == 1 && trip.)
             if (!vehicle.queuedTrips.isEmpty()){
                 Trip lastTrip = vehicle.queuedTrips.get(vehicle.queuedTrips.size()-1);
                 vehicle.refreshVehicle(lastTrip.vaTime.plusSeconds((long) Math.ceil(lastTrip.calculatedPath.travelTime)));
@@ -245,7 +250,7 @@ public class Simulation {
 
             for (int i=0;i<Integer.parseInt(configMap.get("VEHICLES"));i++){
                 String homeNode = graph.getNearestNodeID(populationMap.get(i).get(0), populationMap.get(i).get(1));
-                Vehicle vehicle = new Vehicle(i, homeNode);
+                Vehicle vehicle = new Vehicle(i, homeNode, Float.parseFloat(configMap.get("CHARGING_THRESHOLD")));
                 vehicles.add(vehicle);
             }
 
