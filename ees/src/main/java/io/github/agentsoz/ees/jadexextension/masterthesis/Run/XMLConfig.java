@@ -6,7 +6,7 @@ import org.w3c.dom.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -199,9 +199,10 @@ public class XMLConfig {
         }
 
         DOMSource source = new DOMSource(targetFileRoot.getOwnerDocument());
-        StreamResult result = new StreamResult(new File(path));
+
 
         try {
+            StreamResult result = new StreamResult(new FileOutputStream(path));
             transformer.transform(source, result);
             if (result.getOutputStream() != null) {
                 result.getOutputStream().flush();
