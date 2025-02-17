@@ -2,6 +2,12 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 
 import com.google.api.core.ApiFuture;
 import com.google.firebase.database.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
@@ -10,13 +16,18 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.Shar
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
+import io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants.FIREBASE_ENABLED;
@@ -29,7 +40,9 @@ public class Utils {
 
     private String oldCellAddress = null;
     public String newCellAddress = null;
-    
+
+    EventTracker<List<Trip>> eventTracker = new EventTracker<>();
+
     public Utils(TrikeAgent trikeAgent){
         this.trikeAgent = trikeAgent;
     }
@@ -142,6 +155,7 @@ public class Utils {
 
                     if (ownScore < commitThreshold && CNP_ACTIVE) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                        System.out.println("Trike " + trikeAgent.agentID + " will delegate " + currentDecisionTask.getJobID());
                     } else {
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
@@ -157,6 +171,22 @@ public class Utils {
                             currentDecisionTask.getEndPositionFromJob(), "NotStarted");
 
                     trikeAgent.tripList.add(newTrip);
+
+                        try {
+                            Event<List<Trip>> event = new Event<>();
+                            event.content.eventType = "eventType";
+                            event.content.data.location = "location";
+                            event.content.data.trace = "trace";
+                            event.summary = "summary";
+
+                            eventTracker.addEvent(event, trikeAgent.tripList,
+                                    "trike_events/Trike " + trikeAgent.agentID + ".json");
+
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
+                            throw new RuntimeException(e);
+                        }
+
 
                     if(FIREBASE_ENABLED){
                         //  listen to the new child in firebase
@@ -259,7 +289,7 @@ public class Utils {
                         sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
                     }else{
                         //  need to broadcast cnp
-                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 0);
                         currentDecisionTask.initRequestCount(areaNeighbourIds.size());
                         for (String id: areaNeighbourIds) {
                             sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
@@ -275,6 +305,7 @@ public class Utils {
                     if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
                         ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
+                        System.out.println("Trike " + trikeAgent.agentID + " received for " + currentDecisionTask.getJobID() + " " + agentIds.size() + " agent ids");
 
                         if (agentIds.size() < MIN_CNP_TRIKES) {
                             String jobCell =
@@ -287,7 +318,7 @@ public class Utils {
                                     ArrayList<String> values = new ArrayList<>();
 
                                     //  need to broadcast cnp
-                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 0);
 
                                     currentDecisionTask.initRequestCount(areaNeighbourIds.size());
 
@@ -312,6 +343,7 @@ public class Utils {
                 case CFP_READY: {
                     if(currentDecisionTask.getAgentIds().isEmpty()){
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        System.out.println("Trike " + trikeAgent.agentID + " will commit himself " + currentDecisionTask.getJobID());
                         hasChanged = true;
                         break;
                     }
@@ -324,6 +356,8 @@ public class Utils {
                     for (String agentId : agentIds) {
                         testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
                     }
+
+                    System.out.println("Trike " + trikeAgent.agentID + " proposed " + currentDecisionTask.getJobID());
 
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                     hasChanged = false;
@@ -350,6 +384,7 @@ public class Utils {
                     for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
                         String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
                         String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
+                        System.out.println("Trike " + trikeAgent.agentID + " tag " + tag);
                         switch (tag) {
                             case "AcceptProposal": {
                                 currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
@@ -363,6 +398,7 @@ public class Utils {
                                 currentDecisionTask.extra = acceptMessage.getId().toString();
                                 IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
                                 service.sendMessage(acceptMessage.serialize());
+                                System.out.println("Trike " + trikeAgent.agentID + " accepted " + currentDecisionTask.getJobID() + " " + currentDecisionTask.extra);
                                 break;
                             }
                             case "RejectProposal": {
