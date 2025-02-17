@@ -10,18 +10,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class EventTracker<V> {
-    public V oldValue;
+public class EventTracker {
+    public Object oldValue;
 
     private long counter = 0;
 
     private static final Gson gson = new GsonBuilder()
             .create();
 
-    public void addEvent(Event<V> event, V newValue, String path) throws IOException {
+    public <V> void addEvent(Event<V> event, V newValue, String path) throws IOException {
         event.content.eventNumber = this.counter++;
         event.updated = "" + SharedUtils.getSimTime();
-        event.content.data.oldValue = oldValue;
+        event.content.data.oldValue = (V) oldValue;
         event.content.data.newValue = newValue;
         Type listType = new TypeToken<V>() {}.getType();
         this.oldValue = gson.fromJson(gson.toJson(event.content.data.newValue), listType);

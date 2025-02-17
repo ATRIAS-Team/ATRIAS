@@ -2,12 +2,6 @@ package io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent
 
 import com.google.api.core.ApiFuture;
 import com.google.firebase.database.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
@@ -16,18 +10,13 @@ import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.Shar
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.jadexextension.masterthesis.Run.JadexModel;
-import io.github.agentsoz.ees.jadexextension.masterthesis.Run.Run;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.shared.SharedConstants.FIREBASE_ENABLED;
@@ -41,7 +30,7 @@ public class Utils {
     private String oldCellAddress = null;
     public String newCellAddress = null;
 
-    EventTracker<List<Trip>> eventTracker = new EventTracker<>();
+    EventTracker eventTracker = new EventTracker();
 
     public Utils(TrikeAgent trikeAgent){
         this.trikeAgent = trikeAgent;
