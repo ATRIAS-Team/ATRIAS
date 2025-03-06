@@ -24,28 +24,19 @@ import io.github.agentsoz.bdiabm.ABMServerInterface;
  */
 
 import com.google.common.collect.ObjectArrays;
-import com.google.gson.Gson;
-import io.github.agentsoz.bdiabm.ABMServerInterface;
 import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
-import io.github.agentsoz.bdiabm.data.ActionContent;
-import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.bdimatsim.MATSimModel;
 import io.github.agentsoz.bdimatsim.Replanner;
 import io.github.agentsoz.dataInterface.DataClient;
 import io.github.agentsoz.dataInterface.DataServer;
-import io.github.agentsoz.ees.Constants;
-import io.github.agentsoz.ees.Disruption;
-import io.github.agentsoz.ees.EmergencyMessage;
+import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.ees.matsim.router.ExampleRoutingAlgorithmFactory;
-import io.github.agentsoz.ees.util.Utils;
 import io.github.agentsoz.nonmatsim.PAAgent;
 import io.github.agentsoz.nonmatsim.PAAgentManager;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
@@ -61,14 +52,11 @@ import org.matsim.core.gbl.Gbl;
 import org.matsim.core.mobsim.framework.MobsimAgent;
 import org.matsim.core.mobsim.qsim.AbstractQSimModule;
 import org.matsim.core.mobsim.qsim.agents.AgentFactory;
-import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.NetworkRoutingProvider;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
 import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
-import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.GeometryUtils;
-import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.withinday.trafficmonitoring.WithinDayTravelTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +64,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Singleton;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static io.github.agentsoz.bdimatsim.MATSimModel.convertTimeToSeconds;
 
 /**
  * @author Dhi Singh
@@ -565,7 +551,7 @@ public final class MATSimEvacModel implements ABMServerInterface, QueryPerceptIn
         return matsimModel.getEvents();
     }
 
-    public void setAgentDataContainer(io.github.agentsoz.bdiabm.v2.AgentDataContainer adc_from_abm) {
+    public void setAgentDataContainer(AgentDataContainer adc_from_abm) {
         matsimModel.setAgentDataContainer(adc_from_abm);
     }
 

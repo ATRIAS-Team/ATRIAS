@@ -4,7 +4,7 @@ package io.github.agentsoz.ees.matsim;
  * #%L
  * Emergency Evacuation Simulator
  * %%
- * Copyright (C) 2014 - 2023 by its authors. See AUTHORS file.
+ * Copyright (C) 2014 - 2025 by its authors. See AUTHORS file.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -23,14 +23,13 @@ package io.github.agentsoz.ees.matsim;
  */
 
 import io.github.agentsoz.bdiabm.data.PerceptContent;
-import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.nonmatsim.PAAgent;
 import io.github.agentsoz.nonmatsim.PAAgentManager;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.population.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
