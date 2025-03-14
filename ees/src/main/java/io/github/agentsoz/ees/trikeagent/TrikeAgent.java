@@ -142,6 +142,8 @@ public class TrikeAgent{
     public Utils utils;
     public Plans plans;
 
+    public String cell = null;
+
 
     /**
      * The agent body.

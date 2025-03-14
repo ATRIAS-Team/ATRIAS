@@ -22,6 +22,7 @@ package io.github.agentsoz.ees.util;
  * #L%
  */
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -34,6 +35,24 @@ public class csvLogger {
     public csvLogger(){}
 
 
+
+    private static String getLogDirectory() {
+        // Read directory from environment variable
+        String logDir = System.getenv("LOG_DIR");
+
+        // Default to current directory if not set
+        if (logDir == null || logDir.trim().isEmpty()) {
+            logDir = ".";
+        }
+
+        // Ensure directory exists
+        File dir = new File(logDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        return logDir;
+    }
 
     public csvLogger(String agentID){
         //his.filename = "LogAgent_" + agentID + ".csv";

@@ -98,9 +98,6 @@ public class AreaAgent {
     public RingBuffer<Message> proposalBuffer = new RingBuffer<>(256);
     public RingBuffer<Message> messagesBuffer = new RingBuffer<>(256);
 
-
-    public volatile boolean canDemand = true;
-
     public List<DelegateInfo> jobsToDelegate = new ArrayList<>();
 
     public List<String> neighbourIds = null;
@@ -114,19 +111,19 @@ public class AreaAgent {
         utils = new Utils(this);
         plans = new Plans(this, utils);
         utils.body();
-        //bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
-        //bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
-        //bdiFeature.dispatchTopLevelGoal(new JobBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new CheckProposals());
-        //bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
+        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckProposals());
+        bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
         bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
-        //bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
+        bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
-        //bdiFeature.dispatchTopLevelGoal(new TrikeCount());
+        bdiFeature.dispatchTopLevelGoal(new TrikeCount());
     }
 
 
@@ -243,7 +240,7 @@ public class AreaAgent {
         SharedPlans.cleanupReceivedMessages(receivedMessageIds);
     }
 
-    @Goal(recur = true, recurdelay = 1000)
+    @Goal(recur = true, recurdelay = 5000)
     private class TrikeCount{}
     @Plan(trigger=@Trigger(goals=TrikeCount.class))
     private void checkTrikeCount(){

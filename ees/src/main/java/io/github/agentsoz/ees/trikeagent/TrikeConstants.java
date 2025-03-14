@@ -175,20 +175,72 @@ public class  TrikeConstants {
             new Location("", 306940, 4689177),
             new Location("", 315324.536, 4673956.624),
             new Location("", 332951.931, 4670915.936),
-            new Location("", 340547.319, 4685536.832)
-    );
-    //Goethe stations
-    /**
-     public List<Location> CHARGING_STATION_LIST = Arrays.asList(
-     new Location("", 476142.33,5553197.70),
-     new Location("", 476172.65,5552839.64),
-     new Location("", 476482.10,5552799.06),
-     new Location("", 476659.13,5553054.12),
-     new Location("", 476787.10,5552696.95),
-     new Location("", 476689.45,5552473.11),
-     new Location("", 476405.41,5552489.17),
-     new Location("", 476100.86,5552372.79)
-     );
-     */
+            new Location("", 340547.319, 4685536.832),
 
+            //  area: 6
+            new Location("", 342506.613, 4685425.680),
+            new Location("", 340927.806, 4688170.551),
+            new Location("", 337256.870, 4685997.157),
+            new Location("", 343663.398, 4694144.325),
+            new Location("", 347301.740, 4689609.292),
+            new Location("", 338974.064, 4681610.205),
+
+            //  area: 5
+            new Location("", 335012.986, 4678947.723),
+            new Location("", 331462.326, 4668561.816),
+            new Location("", 337808.129, 4670676.160),
+            new Location("", 328224.475, 4675371.403),
+            new Location("", 339305.088, 4671660.061),
+            new Location("", 333120.947, 4681074.690),
+
+            //  area:4
+            new Location("", 318665.670, 4673971.325),
+            new Location("", 316115.453, 4676186.372),
+            new Location("", 309335.179, 4672803.605),
+            new Location("", 313835.963, 4669288.080),
+            new Location("",310604.083, 4677802.641),
+            new Location("", 319115.465, 4669716.434),
+
+            //  area:3
+            new Location("", 306177.304, 4692212.045),
+            new Location("", 311073.739, 4685022.329),
+            new Location("", 308458.516, 4688763.312),
+            new Location("", 304244.868, 4685779.333),
+            new Location("",313704.578, 4690263.477),
+            new Location("", 309502.239, 4695847.404),
+
+            //  area:2
+            new Location("", 317361.512, 4702344.471),
+            new Location("", 312361.542, 4705405.997),
+            new Location("", 318619.074, 4707267.199),
+            new Location("", 321940.533, 4698112.786),
+            new Location("", 323445.260, 4703990.277),
+            new Location("", 314889.663, 4696435.758),
+
+            //  area:1
+            new Location("", 339229.989, 4703101.642),
+            new Location("", 334279.393, 4696682.031),
+            new Location("", 329213.345, 4702100.621),
+            new Location("", 329987.908, 4708387.461),
+            new Location("", 336597.464, 4708791.975),
+            new Location("", 327642.541, 4700223.901),
+
+            //  area:0
+            new Location("", 325185.807, 4683248.595),
+            new Location("", 318704.896, 4684429.613),
+            new Location("", 318453.611, 4690024.866),
+            new Location("", 332170.726, 4686341.474),
+            new Location("", 325273.587, 4686622.956),
+            new Location("", 321397.585, 4685534.919),
+
+            //  TEMP: goethe stations
+            new Location("", 476142.33,5553197.70),
+            new Location("", 476172.65,5552839.64),
+            new Location("", 476482.10,5552799.06),
+            new Location("", 476659.13,5553054.12),
+            new Location("", 476787.10,5552696.95),
+            new Location("", 476689.45,5552473.11),
+            new Location("", 476405.41,5552489.17),
+            new Location("", 476100.86,5552372.79)
+    );
 }

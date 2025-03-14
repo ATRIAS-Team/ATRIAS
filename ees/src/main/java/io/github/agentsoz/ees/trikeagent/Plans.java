@@ -309,6 +309,13 @@ public class Plans {
     public void checkJobBuffer(){
         while (!trikeAgent.jobsBuffer.isEmpty()){
             Message message = trikeAgent.jobsBuffer.read();
+            if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
+                Message response = Message.nack(message);
+                IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, response);
+                service.sendMessage(message.serialize());
+                return;
+            }
+
             Job job = new Job(message.getContent().getValues());
             DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
             System.out.println("Job " + job.getID() + " accepted!");

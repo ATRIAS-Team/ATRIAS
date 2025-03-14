@@ -62,7 +62,7 @@ public class Utils {
         areaAgent.myTag = areaAgent.areaAgentId;
         areaAgent.cell = Cells.areaAgentCells.get(index);
         Cells.cellAgentMap.put(areaAgent.cell, areaAgent.areaAgentId);
-        areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell, 0);
+        areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell, 1);
 
         System.out.println("AreaAgent " + areaAgent.areaAgentId + " sucessfully started;");
         initJobs();

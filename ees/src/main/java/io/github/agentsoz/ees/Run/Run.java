@@ -37,6 +37,7 @@ import io.github.agentsoz.util.Time;
 import org.matsim.api.core.v01.Scenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
 import java.util.*;
 
@@ -64,9 +65,13 @@ public class Run implements DataClient {
         Thread.currentThread().setName("ees");
         //FirebaseHandler.init();
         XMLConfig xmlConfig = new XMLConfig();
-        xmlConfig.applyConfig(Parser.parseXML("configs/" + System.getenv("ConfigFile")));
-        Cells.applyConfig("configs/" + System.getenv("ConfigFile"));
+        String configPath = "configs/" + System.getenv("ConfigFile");
+        Element xmlConfigRoot = Parser.parseXML(configPath);
+        xmlConfig.applyConfig(xmlConfigRoot);
+        Cells.applyConfig(configPath);
         SharedConstants.configure();
+
+        args = xmlConfig.setArgs(xmlConfigRoot);
 
         // Read the config
         Config cfg = new Config();

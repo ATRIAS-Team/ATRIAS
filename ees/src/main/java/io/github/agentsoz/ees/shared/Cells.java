@@ -96,9 +96,13 @@ public class Cells {
         List<String> neighbourIds = new ArrayList<>();
         for (String neighbourCell: h3Core.gridDisk(origin, radius)) {
             if(cellAgentMap.containsKey(neighbourCell) && !neighbourCell.equals(origin)){
+                if (cellAgentMap.get(neighbourCell).equals("")){
+                    System.out.println("");
+                }
                 neighbourIds.add(cellAgentMap.get(neighbourCell));
             }
         }
+        System.out.println(origin + " " + neighbourIds);
         return neighbourIds;
     }
 
@@ -129,7 +133,7 @@ public class Cells {
             Node cellNode = cellsNL.item(i);
             if(cellNode.getNodeType() != Node.ELEMENT_NODE) continue;
             areaAgentCells.add(cellNode.getTextContent());
-            cellAgentMap.put(cellNode.getTextContent(), "");
+            cellAgentMap.put(cellNode.getTextContent(), "area: " + cellAgentMap.size());
         }
     }
 

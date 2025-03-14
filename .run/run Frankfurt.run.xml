@@ -7,7 +7,6 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
-    <option name="PROGRAM_PARAMETERS" value="--config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">
       <option name="Make" enabled="true" />
