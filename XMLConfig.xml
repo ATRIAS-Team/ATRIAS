@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <file target_file="ees/scenarios/matsim-boston/boston-population.xml">
-    </file>
-<!--    <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">-->
+<!--    <file target_file="ees/scenarios/matsim-boston/boston-population.xml">-->
 <!--    </file>-->
+    <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
+    </file>
 
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/jadexextension/masterthesis/Run/TrikeWorld.application.xml">
         <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
@@ -27,8 +27,8 @@
         <field field_name="MIN_CNP_TRIKES">8</field>
     </class>
     <class class_name="AreaAgent.java">
-<!--        <field field_name="CSV_SOURCE">ees/data-utm-1000.csv</field>-->
-        <field field_name="CSV_SOURCE">ees/results.csv</field>
+        <field field_name="CSV_SOURCE">ees/data-utm-1000.csv</field>
+<!--        <field field_name="CSV_SOURCE">ees/results.csv</field>-->
 <!--        <field field_name="CSV_SOURCE">ees/subsample_2.csv</field>-->
         <field field_name="REQUEST_WAIT_TIME">120000</field>
         <field field_name="MIN_TRIKES">4</field>
@@ -57,14 +57,14 @@
 
     <!--    BOSTON 1 AREA  -->
 
-        <cells resolutions="2">
-            <areaagent>
-                <cell>822a37fffffffff</cell>
-            </areaagent>
-        </cells>
+<!--        <cells resolutions="2">-->
+<!--            <areaagent>-->
+<!--                <cell>822a37fffffffff</cell>-->
+<!--            </areaagent>-->
+<!--        </cells>-->
 
     <!--    FRANKFURT   -->
-    <!--
+
     <cells resolutions="7,8,9">
         <areaagent>
             <cell>871faeaadffffff</cell>
@@ -76,7 +76,7 @@
             <cell>871faea1affffff</cell>
         </areaagent>
     </cells>
-    -->
+
 </configuration>
 
         <!--

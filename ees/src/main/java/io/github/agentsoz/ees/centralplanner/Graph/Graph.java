@@ -7,7 +7,7 @@ import javax.xml.parsers.*;
 import io.github.agentsoz.util.Location;
 import org.w3c.dom.*;
 
-import static io.github.agentsoz.ees.centralplanner.util.ProgressTracker.showProgress;
+import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.CHARGING_STATION_LIST;
 
 public class Graph {
@@ -130,6 +130,58 @@ public class Graph {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Path fast_dijkstra(String startId, String endId) {
+        Node startNode = nodes.get(startId);
+        Node endNode = nodes.get(endId);
+
+        // Data structures
+        Map<Node, Double> distances = new HashMap<>(); // Store shortest distances
+        Map<Node, Edge> crossedEdges = new HashMap<>(); // Store the shortest path tree
+        PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingDouble(distances::get));
+        Set<Node> visited = new HashSet<>();
+
+        // Initialize start node distance
+        distances.put(startNode, 0.0);
+        pq.add(startNode);
+
+        // Dijkstra's algorithm
+        while (!pq.isEmpty()) {
+            Node currentNode = pq.poll();
+
+            // Skip if already visited
+            if (!visited.add(currentNode)) continue;
+
+            // If reached the destination node, stop
+            if (currentNode.equals(endNode)) break;
+
+            // Relaxation step
+            for (Edge edge : adjacencyList.get(currentNode)) {
+                Node neighbor = edge.to;
+                if (visited.contains(neighbor)) continue;
+
+                double newDist = distances.get(currentNode) + edge.travelTime;
+
+                if (newDist < distances.getOrDefault(neighbor, Double.MAX_VALUE)) {
+                    distances.put(neighbor, newDist);
+                    crossedEdges.put(neighbor, edge);
+                    pq.add(neighbor);
+                }
+            }
+        }
+
+        Path path = new Path();
+        for (Edge bestEdge = crossedEdges.get(endNode); bestEdge != null; bestEdge = crossedEdges.get(bestEdge.from)) {
+            path.addEdge(bestEdge);
+        }
+
+        // If the start node is not in the path, no path was found
+        if (!path.path.isEmpty() && !path.path.get(0).from.id.equals(startId)) {
+            throw new RuntimeException("No path found from " + startId + " to " + endId);
+        }
+
+        return path;
     }
 
     public Path dijkstra(String startId, String endId) {

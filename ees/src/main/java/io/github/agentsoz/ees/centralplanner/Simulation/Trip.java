@@ -34,7 +34,7 @@ public class Trip {
         nearestStartNode = graph.getNearestNodeID(startX, startY);
         nearestEndNode = graph.getNearestNodeID(endX, endY);
 
-        calculatedPath = graph.dijkstra(nearestStartNode, nearestEndNode);
+        calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
     }
 
     private LocalDateTime timeParser(String time){

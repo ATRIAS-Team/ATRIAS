@@ -3,6 +3,7 @@ package io.github.agentsoz.ees.centralplanner.Simulation;
 import io.github.agentsoz.ees.centralplanner.Graph.*;
 import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
 
+import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,22 +26,31 @@ public class Vehicle {
     public Vehicle(int id, String home, float chargingThreshold) {
         this.name = "Vehicle-" + id;
         this.id = id;
+        this.currentPosition = home;
         this.futurePosition = home;
         this.home = home;
         this.chargingThreshold = chargingThreshold;
     }
 
+    public Vehicle(Vehicle other) {
+        // for copying and mutating the vehicle
+        this.name = other.name;
+        this.id = other.id;
+        this.currentPosition = other.currentPosition;
+        this.futurePosition = other.currentPosition;
+        this.home = other.home;
+        this.busyUntil = other.busyUntil;
+        this.chargingThreshold = other.chargingThreshold;
+    }
+
     //allocates trip to the vehicle by adding it to the queue
     public void queueTrip(Trip trip){
-
+        if (queuedTrips.contains(trip)){
+            return;
+        }
         //add trip to queue
         queuedTrips.add(trip);
-        futureBattery.discharge(trip.calculatedPath.distance, 0);
-        futurePosition = trip.nearestEndNode;
-
-        //calculates when a vehicle is done with its jobs
-        busyUntil = trip.vaTime.plusSeconds((long) Math.ceil(trip.calculatedPath.travelTime));
-
+        reevaluateQueuedTrips();
     }
 
     public void queueChargingTrip(Graph graph){
@@ -138,5 +148,88 @@ public class Vehicle {
         return vehicleApproachTrip;
     }
 
+    public double getTotalTravelTime(){
+        double totalTravelTime = 0;
+        for (Trip trip: queuedTrips){
+            totalTravelTime += trip.calculatedPath.travelTime;
+        }
+        return totalTravelTime;
+    }
 
+    public ArrayList<Trip> getOpenQueuedTrips() {
+        // Ensure the list is not empty to avoid IndexOutOfBoundsException
+        ArrayList<Trip> openTrips = new ArrayList<>();
+        for (Trip trip: queuedTrips){
+            if (!trip.customerID.equals(name)){
+                openTrips.add(trip);
+            }
+        }
+        if (!openTrips.isEmpty()){
+            //remove the trip that is currently in progress
+            openTrips.remove(0);
+        }
+
+        // Return a new ArrayList containing all elements except the first
+        return openTrips;
+    }
+
+    public void removeQueuedTrip(Trip trip){
+        queuedTrips.removeIf(approach -> approach.TripID.contains(trip.TripID));
+        queuedTrips.remove(trip);
+        reevaluateQueuedTrips();
+    }
+
+    private void reevaluateQueuedTrips(){
+        if (queuedTrips.isEmpty()){
+            return;
+        }
+        LocalDateTime vaTime = queuedTrips.get(0).vaTime;
+        double travelTime = queuedTrips.get(0).calculatedPath.travelTime;
+        double accumulatedDistance = queuedTrips.get(0).calculatedPath.distance;
+
+        for (int i = 1; i < queuedTrips.size(); i++){
+            queuedTrips.get(i).vaTime = vaTime.plusSeconds((long) Math.ceil(travelTime));
+            vaTime = queuedTrips.get(i).vaTime;
+            travelTime = queuedTrips.get(i).calculatedPath.travelTime;
+            accumulatedDistance += queuedTrips.get(i).calculatedPath.distance;
+
+            if (i == queuedTrips.size()-1){
+                busyUntil = vaTime.plusSeconds((long) Math.ceil(travelTime));
+                futurePosition = queuedTrips.get(i).nearestEndNode;
+
+                futureBattery = new BatteryModel();
+                futureBattery.my_chargestate = battery.getMyChargestate();
+                futureBattery.discharge(accumulatedDistance, 0);
+            }
+        }
+    }
+
+    public void handleCharging(Graph graph){
+        //evaluate if charging is necessary
+        if (futureBattery.getMyChargestate() <= chargingThreshold){
+            //calculates the closest charging station and queues a trip
+            queueChargingTrip(graph);
+        }
+    }
+
+    public Vehicle cloneVehicle(){
+        Vehicle clonedVehicle = new Vehicle(this);
+        clonedVehicle.queuedTrips = queuedTrips;
+        clonedVehicle.takenTrips = takenTrips;
+        clonedVehicle.battery.my_chargestate = battery.my_chargestate;
+        clonedVehicle.futureBattery.my_chargestate = futureBattery.my_chargestate;
+        clonedVehicle.futurePosition = futurePosition;
+        return clonedVehicle;
+    }
+
+    public void resetVehicle(){
+        //this resets the vehicle so that it has the attributes from object initialization
+        futurePosition = home;
+        currentPosition = home;
+        busyUntil = null;
+        queuedTrips = new ArrayList<>();
+        takenTrips = new ArrayList<>();
+        battery = new BatteryModel();
+        futureBattery = new BatteryModel();
+    }
 }

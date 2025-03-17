@@ -3,33 +3,50 @@ package io.github.agentsoz.ees.centralplanner;
 import io.github.agentsoz.ees.centralplanner.Graph.*;
 import io.github.agentsoz.ees.centralplanner.Simulation.*;
 
+import io.github.agentsoz.ees.centralplanner.Simulation.Scheduler.*;
+
+import java.util.ArrayList;
+
+import static io.github.agentsoz.ees.centralplanner.util.Util.generateFromXmlFile;
+import static io.github.agentsoz.ees.centralplanner.util.Util.initializeOutputFolder;
+
 public class Main {
     public static void main(String[] args) {
 //        String vehicleConfigFilePath = "scenarios/frankfurt/vehicle-config.xml";
         String vehicleConfigFilePath = "XMLConfig.xml";
 
-//        String mapFilePath = "scenarios/frankfurt/campus-layer-utm.xml";
-        String mapFilePath = "ees/scenarios/matsim-boston/boston_matsim-JOSM-UTM.xml";
+        String mapFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-layer-utm.xml";
+//        String mapFilePath = "ees/scenarios/matsim-boston/boston_matsim-JOSM-UTM.xml";
 
-//        String requestsFilePath = "scenarios/frankfurt/data-utm-1000.csv";
-        String requestsFilePath = "ees/subsample_2.csv";
+//        String requestsFilePath = "ees/data-utm-1000.csv";
+//        String requestsFilePath = "ees/data-utm-1000-simul.csv";
+        String requestsFilePath = "ees/data-utm-100-simul.csv";
+//        String requestsFilePath = "ees/subsample_2.csv";
 
-        String populationFilePath = "ees/scenarios/matsim-boston/boston-population.xml";
+        String populationFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml";
+//        String populationFilePath = "ees/scenarios/matsim-boston/boston-population.xml";
 
-//        String outputFilePath = "scenarios/frankfurt/output";
         String outputFilePath = "centralplanner";
 
         // create Graph of given map
         Graph graph = new Graph();
         graph.generateFromXmlFile(mapFilePath);
+        // create vehicles
+        ArrayList<Vehicle> vehicles = generateFromXmlFile(vehicleConfigFilePath, graph);
 
         // initialize vehicles
-        Simulation sim = new Simulation(vehicleConfigFilePath, requestsFilePath, populationFilePath, outputFilePath, graph);
+//        AntColonyScheduler sim = new AntColonyScheduler(vehicles, requestsFilePath, outputFilePath, graph);
+        AntColonyScheduler sim = new AntColonyScheduler(vehicles, requestsFilePath, outputFilePath, graph);
+//        GeneticAlgorithmScheduler sim = new GeneticAlgorithmScheduler(vehicles, requestsFilePath, outputFilePath, graph);
+//        BruteForceScheduler sim = new BruteForceScheduler(vehicles, requestsFilePath, outputFilePath, graph);
+//        GreedyScheduler sim = new GreedyScheduler(vehicles, requestsFilePath, outputFilePath, graph);
+//        GreedyWithReschedulingScheduler sim = new GreedyWithReschedulingScheduler(vehicles, requestsFilePath, outputFilePath, graph);
         sim.run();
 
-        sim.saveIndividualVehicleTrips();
-        sim.saveBestVehicleRequestMapping();
-        sim.dataAnalysis();
+        initializeOutputFolder(outputFilePath);
+        sim.saveVehicleTrips();
+        sim.saveBestVehicleMapping();
+        sim.vehicleSummary();
     }
 }
 

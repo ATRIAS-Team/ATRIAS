@@ -58,7 +58,8 @@ public class Cells {
 
     public static String locationToCellAddress(Location location, int resolution) {
         CoordinateConversion coordinateConversion = new CoordinateConversion();
-        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+//        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+        String zone = "32 U ";  // BOSTON or "32 U " for Frankfurt
         String UTM = zone + location.x + " " + location.y;
         double[] latlng = coordinateConversion.utm2LatLon(UTM);
         double lat = latlng[0];
@@ -69,7 +70,8 @@ public class Cells {
 
     public static String findKey(Location location){
         CoordinateConversion coordinateConversion = new CoordinateConversion();
-        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+//        String zone = "19 T ";  // BOSTON or "32 U " for Frankfurt
+        String zone = "32 U ";  // BOSTON or "32 U " for Frankfurt
         String UTM = zone + location.x + " " + location.y;
         double[] latlng = coordinateConversion.utm2LatLon(UTM);
         double lat = latlng[0];
@@ -133,7 +135,8 @@ public class Cells {
     }
 
     private static void setTrikeLocations(){
-        String path = "ees/scenarios/matsim-boston/boston-population.xml";
+        String path = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml";
+//        String path = "ees/scenarios/matsim-boston/boston-population.xml";
         Element doc = Parsers.parseXML(path);
 
         NodeList personNL = doc.getElementsByTagName("person");
