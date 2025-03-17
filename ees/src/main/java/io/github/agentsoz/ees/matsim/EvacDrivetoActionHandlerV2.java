@@ -23,20 +23,13 @@ package io.github.agentsoz.ees.matsim;
  */
 
 import io.github.agentsoz.bdiabm.data.ActionContent;
-import io.github.agentsoz.bdiabm.data.PerceptContent;
-import io.github.agentsoz.bdimatsim.EventsMonitorRegistry.MonitoredEventType;
 import io.github.agentsoz.bdimatsim.MATSimModel;
-import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.nonmatsim.BDIActionHandler;
-import io.github.agentsoz.nonmatsim.BDIPerceptHandler;
-import io.github.agentsoz.nonmatsim.EventData;
-import io.github.agentsoz.nonmatsim.PAAgent;
-import io.github.agentsoz.util.Global;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.gbl.Gbl;

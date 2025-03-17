@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run Frankfurt" type="Application" factoryName="Application">
+  <configuration default="false" name="Boston" type="Application" factoryName="Application">
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
-      <env name="ConfigFile" value="Frankfurt_A1_T32_CNP_TRUE.xml" />
+      <env name="ConfigFile" value="Boston_A1_T32_CNP_TRUE_S1.xml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
-    <option name="PROGRAM_PARAMETERS" value="--config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml" />
+    <option name="PROGRAM_PARAMETERS" value="--config ees\scenarios\matsim-boston\ees_ffm.xml" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">
       <option name="Make" enabled="true" />

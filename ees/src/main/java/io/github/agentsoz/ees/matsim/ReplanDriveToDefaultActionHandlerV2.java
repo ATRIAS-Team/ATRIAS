@@ -24,7 +24,7 @@ package io.github.agentsoz.ees.matsim;
 
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdimatsim.MATSimModel;
-import io.github.agentsoz.ees.Constants;
+import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.nonmatsim.BDIActionHandler;
 import org.matsim.core.gbl.Gbl;
 import org.matsim.core.mobsim.framework.MobsimAgent;
