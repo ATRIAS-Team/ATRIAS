@@ -182,7 +182,7 @@ public class Utils {
                     String destinationCell = Cells.findKey(destination);
                     boolean isInArea = trikeAgent.cell.equals(destinationCell);
 
-                    if(!isInArea){
+                    if(!isInArea && destinationCell != null){
                         String originArea = Cells.cellAgentMap.get(trikeAgent.cell);
                         String newArea = Cells.cellAgentMap.get(destinationCell);
                         changeArea(originArea, newArea);
