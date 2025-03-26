@@ -189,6 +189,7 @@ public class Utils {
                         trikeAgent.cell = destinationCell;
                     }
 
+                    currentDecisionTask.setStatus(DecisionTask.Status.COMMITTED);
 
                     if(FIREBASE_ENABLED){
                         //  listen to the new child in firebase
@@ -257,17 +258,17 @@ public class Utils {
 
                     estimateBatteryAfterTIP();
 
-                    trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
-                    iterator.remove();
-
                     if(FIREBASE_ENABLED){
                         FirebaseHandler.assignAgentToTripRequest(newTrip.getTripID(), trikeAgent.agentID);
                     }
 
-                    hasChanged = false;
+                    hasChanged = true;
                     break;
                 }
-                case NOT_ASSIGNED: {
+                case NOT_ASSIGNED:
+                case DELEGATED:
+                case COMMITTED:
+                {
                     trikeAgent.FinishedDecisionTaskList.add(currentDecisionTask);
                     iterator.remove();
 
@@ -291,7 +292,7 @@ public class Utils {
                         sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
                     }else{
                         //  need to broadcast cnp
-                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell);
                         currentDecisionTask.initRequestCount(areaNeighbourIds.size());
                         for (String id: areaNeighbourIds) {
                             sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
@@ -310,7 +311,6 @@ public class Utils {
 
 
                         if (agentIds.size() < MIN_CNP_TRIKES) {
-
                             String jobCell =
                                     Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
                                             Cells.getCellResolution(trikeAgent.cell));
@@ -321,7 +321,7 @@ public class Utils {
                                     ArrayList<String> values = new ArrayList<>();
 
                                     //  need to broadcast cnp
-                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell, 1);
+                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell);
 
                                     currentDecisionTask.initRequestCount(areaNeighbourIds.size());
 
@@ -329,11 +329,18 @@ public class Utils {
                                         sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
                                     }
 
+                                    if(areaNeighbourIds.isEmpty()){
+                                        currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
+                                        hasChanged = true;
+                                        break;
+                                    }
+
                                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
                                     hasChanged = false;
                                     break;
                             }
                         }
+
                         currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         hasChanged = true;
                         break;
@@ -380,11 +387,12 @@ public class Utils {
                      *  send agree/cancel > "waitingForConfirmations"
                      */
                     currentDecisionTask.tagBestScore(trikeAgent.agentID);
-                    hasChanged = false;
 
                     for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
                         String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
                         String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
+                        hasChanged = false;
+
                         switch (tag) {
                             case "AcceptProposal": {
                                 currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
@@ -394,6 +402,7 @@ public class Utils {
                                 MessageContent messageContent = new MessageContent(tag, values);
                                 Message acceptMessage = new Message(trikeAgent.agentID, bidderID,
                                         Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
+
                                 trikeAgent.requests.add(acceptMessage);
                                 currentDecisionTask.extra = acceptMessage.getId().toString();
                                 IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
@@ -413,6 +422,7 @@ public class Utils {
                                         .format(new java.util.Date());
                                 System.out.println("FINISHED Negotiation - JobID: " +
                                         currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+                                hasChanged = true;
                                 break;
                             }
                         }
@@ -424,12 +434,12 @@ public class Utils {
                 case WAITING_CONFIRM: {
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
-                        //trikeAgent.requests.removeIf(request -> request.getId()
-                        //        .equals(UUID.fromString(currentDecisionTask.extra)));
+                        trikeAgent.requests.removeIf(request -> request.getId()
+                            .equals(UUID.fromString(currentDecisionTask.extra)));
                         //currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
-                        //currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                        //hasChanged = true;
-                        //break;
+                        currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        hasChanged = true;
+                        break;
                     }
 
                     hasChanged = false;
@@ -464,9 +474,8 @@ public class Utils {
                     //  timeout
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + MANAGER_WAIT_TIME) {
-                        //currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
-
-                        //hasChanged = true;
+                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                        hasChanged = true;
                         break;
                     }
 
@@ -474,6 +483,13 @@ public class Utils {
                     break;
                 }
                 case CONFIRM_READY: {
+                    long currentTime = SharedUtils.getSimTime();
+                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME){
+                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                        hasChanged = true;
+                        break;
+                    }
+
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                     System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() +
@@ -491,6 +507,10 @@ public class Utils {
                     hasChanged = true;
                     break;
                 }
+
+                default:
+                    hasChanged = false;
+                    break;
             }
         }while(hasChanged);
     }
@@ -757,7 +777,7 @@ public class Utils {
 
             utillityScore = Math.max(0.0, (a * uPunctuality + b * uBattery + c * uDistance));
         }
-        System.out.println("trikeAgent.agentID: " + trikeAgent.agentID + "utillity: " + utillityScore);
+        //System.out.println("trikeAgent.agentID: " + trikeAgent.agentID + "utillity: " + utillityScore);
         return utillityScore;
     }
     
@@ -836,7 +856,7 @@ public class Utils {
         //calls updateAreaAgent of AreaAgentService class
         service.sendMessage(testMessage.serialize());
 
-        System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
+        //System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
 
     }
 
@@ -906,13 +926,13 @@ public class Utils {
             FirebaseHandler.updateAgentLocation(trikeAgent.agentID, trikeAgent.agentLocation);
         }
 
-        System.out.println("Neue Position: " + trikeAgent.agentLocation);
+        //System.out.println("Neue Position: " + trikeAgent.agentLocation);
         sendAreaAgentUpdate("update");
 
 
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
         //TODO: @Mahkam send Updates to AreaAgent
-        currentTripStatus();
+        //currentTripStatus();
     }
 
     public void terminateTripList(){
@@ -987,7 +1007,7 @@ public class Utils {
         Trip CurrentTripUpdate = trikeAgent.currentTrip.get(0);
         CurrentTripUpdate.setProgress(newProgress);
         trikeAgent.currentTrip.set(0, CurrentTripUpdate);
-        currentTripStatus();
+        //currentTripStatus();
     }
 
     public boolean customerMiss(Trip trip) {

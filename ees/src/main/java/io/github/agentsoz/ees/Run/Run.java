@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Emergency Evacuation Simulator (EES) main program.
@@ -65,11 +66,12 @@ public class Run implements DataClient {
         Thread.currentThread().setName("ees");
         //FirebaseHandler.init();
         XMLConfig xmlConfig = new XMLConfig();
-        String configPath = "configs/" + System.getenv("ConfigFile");
+        String configPath = System.getenv("ConfigFile");
         Element xmlConfigRoot = Parser.parseXML(configPath);
         xmlConfig.applyConfig(xmlConfigRoot);
         Cells.applyConfig(configPath);
         SharedConstants.configure();
+
 
         args = xmlConfig.setArgs(xmlConfigRoot);
 

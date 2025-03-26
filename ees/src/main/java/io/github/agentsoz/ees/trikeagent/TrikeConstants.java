@@ -91,6 +91,7 @@ public class  TrikeConstants {
 
         assignIfNotNull(classElement, "PROPOSALS_WAIT_TIME", Integer::parseInt,
                 value -> TrikeConstants.PROPOSALS_WAIT_TIME = value);
+
     }
 
     //Boston station

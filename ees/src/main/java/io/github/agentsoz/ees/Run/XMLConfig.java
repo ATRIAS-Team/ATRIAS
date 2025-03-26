@@ -247,7 +247,7 @@ public class XMLConfig {
     }
 
     public static Element getClassElement(String className){
-        Element rootElement = Parser.parseXML("configs/" + System.getenv("ConfigFile"));
+        Element rootElement = Parser.parseXML(System.getenv("ConfigFile"));
         NodeList classNL = rootElement.getElementsByTagName("class");
 
         for (int i = 0; i < classNL.getLength(); i++) {

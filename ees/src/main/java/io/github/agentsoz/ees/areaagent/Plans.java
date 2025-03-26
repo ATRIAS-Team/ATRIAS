@@ -147,8 +147,8 @@ public class Plans {
             messageContent.values = delegateInfo.job.toArrayList();
             Message message = new Message( areaAgent.areaAgentId, bestAreaAgent, Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-            service.sendMessage(message.serialize());
             areaAgent.requests.add(message);
+            service.sendMessage(message.serialize());
 
             iterator.remove();
         }
@@ -211,9 +211,9 @@ public class Plans {
             if(currentTimeStamp >= message.getTimeStamp() + AreaConstants.REQUEST_WAIT_TIME){
                 iterator.remove();
                 IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                service.sendMessage(message.serialize());
                 message.setTimeStamp(currentTimeStamp);
                 areaAgent.requests.add(message);
+                service.sendMessage(message.serialize());
             }
         }
     }

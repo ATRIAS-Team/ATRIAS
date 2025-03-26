@@ -11,7 +11,7 @@
 
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
         <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
-        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="7" />
     </file>
 
     <class class_name="TrikeAgent.java">
@@ -41,15 +41,28 @@
         <field field_name="CLEANUP_TIMER">3600000</field>
     </class>
 
-    <cells resolutions="2">
+    <cells resolutions="5">
         <areaagent>
-            <cell>822a37fffffffff</cell>
+            <cell>852a3067fffffff</cell>
+            <cell>852a3077fffffff</cell>
+            <cell>852a3063fffffff</cell>
+            <cell>852a306ffffffff</cell>
+            <cell>852a339bfffffff</cell>
+            <cell>852a3393fffffff</cell>
+            <cell>852a302bfffffff</cell>
         </areaagent>
         <zone>19 T</zone>
-        <radius>0</radius>
+        <radius>1</radius>
     </cells>
 </configuration>
 
+<!--
+                <cell>852a3063fffffff</cell>
+            <cell>852a306ffffffff</cell>
+            <cell>852a339bfffffff</cell>
+            <cell>852a3393fffffff</cell>
+            <cell>852a302bfffffff</cell>
+-->
         <!--
            schema:
             <file target_file=<path to target file>>

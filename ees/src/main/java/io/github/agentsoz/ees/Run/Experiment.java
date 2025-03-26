@@ -10,12 +10,12 @@ package io.github.agentsoz.ees.Run;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class Experiment {
 
@@ -36,7 +37,7 @@ public class Experiment {
     public static void main(String[] args) {
         System.out.println("Project Root: " + projectRoot);
         // List of environment variables to apply for each run
-        File[] configFiles = new File("configs").listFiles();
+        File[] configFiles = new File("experiment").listFiles();
 
         // create jar
         String[] mavenBuildCommand = {"./mvnw.cmd", "clean", "package", "-DskipTests"};
@@ -44,8 +45,13 @@ public class Experiment {
         runCommand(mavenBuildCommand, new HashMap<>());
 
         for (File configFile : configFiles) {
+            Optional<String> javaPath = ProcessHandle.current().info().command();
+            if(javaPath.isEmpty()){
+                throw new RuntimeException("JAVA PATH NOT FOUND!");
+            }
+
             String[] cmd = {
-                    "C:\\Program Files\\Java\\jdk-11.0.17\\bin\\java.exe",
+                    javaPath.get(),
                     "-jar",
                     "ees/out-fat.jar"
             };
@@ -53,7 +59,7 @@ public class Experiment {
             // Run the pre-built application with the environment variables
             System.out.println("Running...");
             Map<String, String> env = new HashMap<>();
-            env.put("ConfigFile", configFile.getName());
+            env.put("ConfigFile", "experiment/" + configFile.getName());
             int runResult = runCommand(cmd, env);
             System.out.println("Run finished!" + "Code: " + runResult);
         }
@@ -92,7 +98,7 @@ public class Experiment {
         if (process != null && process.isAlive()) {
             process.destroy();
             try {
-                if (!process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                if (!process.waitFor(4, java.util.concurrent.TimeUnit.SECONDS)) {
                     process.destroyForcibly();
                 }
             } catch (InterruptedException e) {
