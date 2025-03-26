@@ -44,6 +44,7 @@ public class SharedUtils {
         Duration duration = Duration.ofSeconds(simTime);
        return SharedConstants.SIMULATION_START_TIME_DT
                .withHour(duration.toHoursPart())
-               .withMinute(duration.toMinutesPart());
+               .withMinute(duration.toMinutesPart())
+               .withSecond(duration.toSecondsPart());
     }
 }

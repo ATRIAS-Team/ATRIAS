@@ -67,6 +67,7 @@ public class TrikeAgentReceiveService implements INotifyService {
 		if (activestatus)
 		{
 			trikeAgent.isMatsimFree = true;
+			trikeAgent.plans.sensoryUpdate();
 		}
 	}
 }

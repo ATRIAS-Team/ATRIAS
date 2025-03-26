@@ -177,6 +177,12 @@ public class Utils {
                             currentDecisionTask.getEndPositionFromJob(), "NotStarted");
 
                     trikeAgent.tripList.add(newTrip);
+                    System.out.println(SharedUtils.getSimTime());
+                    System.out.println(SharedUtils.getTimeStamp(newTrip.getVATime()));
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(newTrip.getVATime())) / 1000;
+
+                    System.out.println("Trip " + newTrip.getTripID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta + " sec delay!");
 
                     Location destination = currentDecisionTask.getEndPositionFromJob();
                     String destinationCell = Cells.findKey(destination);

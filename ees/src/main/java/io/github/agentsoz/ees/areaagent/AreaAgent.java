@@ -114,11 +114,11 @@ public class AreaAgent {
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
-        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
-        bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
-        bdiFeature.dispatchTopLevelGoal(new CheckProposals());
+        //bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        //bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
+        //bdiFeature.dispatchTopLevelGoal(new CheckProposals());
         bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
-        bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
+        //bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
         bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
@@ -127,7 +127,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 1500 )
+    @Goal(recur = true, recurdelay = 1000 )
     private class AreaMessagesBuffer{}
     @Plan(trigger=@Trigger(goals=AreaMessagesBuffer.class))
     private void checkAreaMessagesBuffer(){
@@ -135,7 +135,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 1200 )
+    @Goal(recur = true, recurdelay = 1000 )
     private class CheckProposals{}
     @Plan(trigger=@Trigger(goals=CheckProposals.class))
     private void checkProposals(){
@@ -143,7 +143,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 1100 )
+    @Goal(recur = true, recurdelay = 1000 )
     private class CheckDelegateInfo{}
     @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
     private void checkDelegateInfo(){
@@ -186,7 +186,7 @@ public class AreaAgent {
     private void checkJobBuffer() { plans.checkAssignedJobs(); }
 
 
-    @Goal(recur = true, recurdelay = 5000 )
+    @Goal(recur = true, recurdelay = 30000 )
     private class MaintainDistributeFirebaseJobs
     {
         @GoalMaintainCondition
@@ -201,7 +201,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 2000 )
+    @Goal(recur = true, recurdelay = 10 )
     private class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition
@@ -216,7 +216,7 @@ public class AreaAgent {
     }
 
 
-@Goal(recur = true, recurdelay = 400 )
+@Goal(recur = true, recurdelay = 1000 )
     private class TrikeMessagesBuffer{}
     @Plan(trigger=@Trigger(goals=TrikeMessagesBuffer.class))
     private void checkTrikeMessagesBuffer()
@@ -240,7 +240,7 @@ public class AreaAgent {
         SharedPlans.cleanupReceivedMessages(receivedMessageIds);
     }
 
-    @Goal(recur = true, recurdelay = 10000)
+    @Goal(recur = true, recurdelay = 3000)
     private class TrikeCount{}
     @Plan(trigger=@Trigger(goals=TrikeCount.class))
     private void checkTrikeCount(){
