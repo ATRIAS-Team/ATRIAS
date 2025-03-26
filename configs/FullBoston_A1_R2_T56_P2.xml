@@ -3,15 +3,12 @@
 
     <scenario>
         <config>ees\scenarios\matsim-boston\ees_ffm.xml</config>
-        <population>ees\scenarios\matsim-boston\boston-population.xml</population>
+        <population>ees\scenarios\matsim-boston\boston-population2.xml</population>
     </scenario>
 
-    <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
-    </file>
-
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
-        <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
-        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="56" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="7" />
     </file>
 
     <class class_name="TrikeAgent.java">
@@ -30,7 +27,7 @@
         <field field_name="MIN_CNP_TRIKES">4</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/subsample_2.csv</field>
+        <field field_name="CSV_SOURCE">ees/boston.csv</field>
         <field field_name="REQUEST_WAIT_TIME">1200000</field>
         <field field_name="MIN_TRIKES">4</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">1200000</field>

@@ -175,6 +175,13 @@ public class XMLConfig {
         }
     }
 
+    public String[] setArgs(Element configRoot){
+        String[] args = new String[2];
+        args[0] = "--config";
+        args[1] = configRoot.getElementsByTagName("config").item(0).getTextContent();
+        return args;
+    }
+
     /**
      * checks if node satisfies all attributes, converts the node to element and returns back
      * */
@@ -240,7 +247,7 @@ public class XMLConfig {
     }
 
     public static Element getClassElement(String className){
-        Element rootElement = Parser.parseXML("configs/" + System.getenv("ConfigFile"));
+        Element rootElement = Parser.parseXML(System.getenv("ConfigFile"));
         NodeList classNL = rootElement.getElementsByTagName("class");
 
         for (int i = 0; i < classNL.getLength(); i++) {

@@ -27,18 +27,18 @@
         <field field_name="CONFIRM_WAIT_TIME">1200000</field>
         <field field_name="PROPOSALS_WAIT_TIME">1200000</field>
         <field field_name="REQUEST_WAIT_TIME">1200000</field>
-        <field field_name="MIN_CNP_TRIKES">8</field>
+        <field field_name="MIN_CNP_TRIKES">4</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/subsample_2.csv</field>
+        <field field_name="CSV_SOURCE">ees/subsample_1.csv</field>
         <field field_name="REQUEST_WAIT_TIME">1200000</field>
         <field field_name="MIN_TRIKES">4</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">1200000</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>
-        <field field_name="SIMULATION_START_TIME">01.12.2019 00:00</field>
-        <field field_name="CLEANUP_TIMER">10800000</field>
+        <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
+        <field field_name="CLEANUP_TIMER">3600000</field>
     </class>
 
     <cells resolutions="2">
@@ -46,6 +46,7 @@
             <cell>822a37fffffffff</cell>
         </areaagent>
         <zone>19 T</zone>
+        <radius>0</radius>
     </cells>
 </configuration>
 

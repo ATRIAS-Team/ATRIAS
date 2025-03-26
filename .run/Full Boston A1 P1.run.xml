@@ -1,14 +1,14 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run Frankfurt" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+  <configuration default="false" name="Full Boston A1 P1" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="corretto-11" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
-      <env name="ConfigFile" value="Frankfurt_A1_T32_CNP_TRUE.xml" />
+      <env name="ConfigFile" value="configs/FullBoston_A1_R2_T56_P1.xml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
-    <option name="PROGRAM_PARAMETERS" value="--config ees/scenarios/matsim-drt-frankfurt-campus-westend-example/ees_ffm.xml" />
     <shortenClasspath name="ARGS_FILE" />
+    <option name="VM_PARAMETERS" value="-Dorg.slf4j.simpleLogger.defaultLogLevel=off -Dlogback.configurationFile=/dev/null" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

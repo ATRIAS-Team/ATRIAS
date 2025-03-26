@@ -2,8 +2,8 @@
 <configuration>
 
     <scenario>
-        <config>ees\scenarios\matsim-boston\ees_ffm.xml</config>
-        <population>ees\scenarios\matsim-boston\boston-population.xml</population>
+        <config>ees\scenarios\matsim-drt-frankfurt-campus-westend-example\ees_ffm.xml</config>
+        <population>ees\scenarios\matsim-drt-frankfurt-campus-westend-example\campus-population.xml</population>
     </scenario>
 
     <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
@@ -30,7 +30,7 @@
         <field field_name="MIN_CNP_TRIKES">4</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/subsample_2.csv</field>
+        <field field_name="CSV_SOURCE">ees/data-utm-1000.csv</field>
         <field field_name="REQUEST_WAIT_TIME">1200000</field>
         <field field_name="MIN_TRIKES">4</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">1200000</field>
@@ -41,11 +41,11 @@
         <field field_name="CLEANUP_TIMER">3600000</field>
     </class>
 
-    <cells resolutions="2">
+    <cells resolutions="3">
         <areaagent>
-            <cell>822a37fffffffff</cell>
+            <cell>831faefffffffff</cell>
         </areaagent>
-        <zone>19 T</zone>
+        <zone>32 U</zone>
         <radius>0</radius>
     </cells>
 </configuration>

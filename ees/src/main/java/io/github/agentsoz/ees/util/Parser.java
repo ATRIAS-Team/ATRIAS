@@ -23,6 +23,7 @@ package io.github.agentsoz.ees.util;
  */
 
 import com.google.gson.*;
+import io.github.agentsoz.ees.shared.SharedConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,7 +38,6 @@ public class Parser {
     public static void csvToJSON(String csvPath, String jsonPath, char delimiter){
         JsonArray jsonArray = new JsonArray();
         JsonObject jsonObject;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
             String line;
@@ -52,8 +52,8 @@ public class Parser {
                 String[] fields = line.split(Character.toString(delimiter));
 
                 //  time
-                LocalDateTime bookingTime = LocalDateTime.parse(fields[2], formatter);
-                LocalDateTime vaTime = LocalDateTime.parse(fields[3], formatter);
+                LocalDateTime bookingTime = LocalDateTime.parse(fields[2], SharedConstants.dateTimeFormatter);
+                LocalDateTime vaTime = LocalDateTime.parse(fields[3], SharedConstants.dateTimeFormatter);
 
                 //  start position added -oemer
                 JsonObject start = new JsonObject();

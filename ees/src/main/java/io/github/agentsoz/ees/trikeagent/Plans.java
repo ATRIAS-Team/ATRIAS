@@ -40,7 +40,9 @@ import jadex.bridge.service.search.ServiceQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.UUID;
 
+import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 import static io.github.agentsoz.ees.trikeagent.TrikeConstants.*;
 
 public class Plans {
@@ -134,16 +136,18 @@ public class Plans {
         }
 
         if (current != null) {
-            utils.currentTripStatus();
             switch (current.getProgress()) {
                 case "NotStarted": {
+                    utils.currentTripStatus();
                     trikeAgent.canExecute = false;
                     trikeAgent.isMatsimFree = false;
                     utils.sendDriveTotoAdc();
                     utils.updateCurrentTripProgress("DriveToStart");
+                    utils.currentTripStatus();
                     break;
                 }
                 case "AtStartLocation": {
+                    utils.currentTripStatus();
                     switch (current.getTripType()) {
                         case "ChargingTrip": {
                             trikeAgent.trikeBattery.loadBattery();
@@ -155,11 +159,13 @@ public class Plans {
                         case "CustomerTrip": {
                             if (utils.customerMiss(current)) { // customer not there
                                 utils.updateCurrentTripProgress("Failed");
+                                executeTrips();
                             } else {
                                 trikeAgent.canExecute = false;
                                 trikeAgent.isMatsimFree = false;
                                 utils.sendDriveTotoAdc();
                                 utils.updateCurrentTripProgress("DriveToEnd");
+                                utils.currentTripStatus();
                             }
                             break;
                         }
@@ -172,14 +178,15 @@ public class Plans {
                     break;
                 }
                 case "AtEndLocation": {
+                    utils.currentTripStatus();
                     utils.updateCurrentTripProgress("Finished");
                     executeTrips();
                     break;
                 }
                 case "Finished":
                 case "Failed": {
-                    trikeAgent.currentTrip.remove(0);
                     utils.currentTripStatus();
+                    trikeAgent.currentTrip.remove(0);
                     executeTrips();
                     break;
                 }
@@ -190,20 +197,19 @@ public class Plans {
 
     public void sensoryUpdate() {
         while (!trikeAgent.actionContentRingBuffer.isEmpty()){
-        ActionContent actionContent = trikeAgent.actionContentRingBuffer.read();
-        if (trikeAgent.isMatsimFree && !trikeAgent.currentTrip.isEmpty()) {
-            if (actionContent.getAction_type().equals("drive_to") && actionContent.getState() == ActionContent.State.PASSED) {
-                System.out.println("Agent " + trikeAgent.agentID + " finished with the previous trip and now can take the next trip");
-                System.out.println("AgentID: " + trikeAgent.agentID + actionContent.getParameters()[0]);
-                double metersDriven = Double.parseDouble((String) actionContent.getParameters()[1]);
-                utils.updateBeliefAfterAction(metersDriven);
-                trikeAgent.canExecute = true;
-                executeTrips();
-                utils.updateAtInputBroker();
+            ActionContent actionContent = trikeAgent.actionContentRingBuffer.read();
+            if (trikeAgent.isMatsimFree && !trikeAgent.currentTrip.isEmpty()) {
+                if (actionContent.getAction_type().equals("drive_to") && actionContent.getState() == ActionContent.State.PASSED) {
+                    System.out.println("Agent " + trikeAgent.agentID + " finished with the previous trip and now can take the next trip");
+                    System.out.println("AgentID: " + trikeAgent.agentID + actionContent.getParameters()[0]);
+                    double metersDriven = Double.parseDouble((String) actionContent.getParameters()[1]);
+                    utils.updateBeliefAfterAction(metersDriven);
+                    trikeAgent.canExecute = true;
+                    executeTrips();
+                    utils.updateAtInputBroker();
+                }
             }
         }
-        utils.currentTripStatus();
-    }
     }
 
     public void checkMessagesBuffer() {
@@ -255,15 +261,14 @@ public class Plans {
                     DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if (decisionTask == null) break;
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
-                        //decisionTask.extra = message.getId().toString();
-                        //decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
+                        decisionTask.extra = message.getId().toString();
+                        decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
+                        decisionTask.timeStamp = SharedUtils.getSimTime();
                     } else {
-                        //Message refuseMessage = Message.refuse(message);
-                        //IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
-                        //service.sendMessage(refuseMessage.serialize());
+                        Message refuseMessage = Message.refuse(message);
+                        IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
+                        service.sendMessage(refuseMessage.serialize());
                     }
-                    decisionTask.extra = message.getId().toString();
-                    decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
                     break;
                 }
                 case REJECT_PROPOSAL: {
@@ -278,17 +283,11 @@ public class Plans {
                 }
                 case ACK: {
                     String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.remove(jobID);
+                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if (decisionTask == null) break;
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
-                        if (trikeAgent.requests.stream().anyMatch(request -> request.getId().equals(message.getId()))) {
-                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
-                            decisionTask.setStatus(DecisionTask.Status.DELEGATED);
-                            trikeAgent.FinishedDecisionTaskList.add(decisionTask);
-                        }
-                    }else{
-                        //  Todo: handle trike didn't confirm on time.
-                        //  it will be delegated to someone else
+                        decisionTask.setStatus(DecisionTask.Status.DELEGATED);
+                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
                     }
                     break;
                 }
@@ -297,7 +296,9 @@ public class Plans {
                     DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if (decisionTask == null) break;
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
+                        //decisionTask.setStatus(DecisionTask.Status.DELEGATE);
                         decisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
                     }
                     break;
                 }
@@ -306,16 +307,23 @@ public class Plans {
     }
 
 
-    public void checkJobBuffer(){
+    public void  checkJobBuffer(){
         while (!trikeAgent.jobsBuffer.isEmpty()){
             Message message = trikeAgent.jobsBuffer.read();
+            if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
+                Message response = Message.nack(message);
+                IAreaTrikeService service = messageToService(trikeAgent.agent, response);
+                service.sendMessage(message.serialize());
+                return;
+            }
+
             Job job = new Job(message.getContent().getValues());
             DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
             System.out.println("Job " + job.getID() + " accepted!");
             trikeAgent.AddDecisionTask(decisionTask);
 
             Message response = Message.ack(message);
-            IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, response);
+            IAreaTrikeService service = messageToService(trikeAgent.agent, response);
             service.sendMessage(message.serialize());
         }
     }
@@ -328,10 +336,10 @@ public class Plans {
             Message message = iterator.next();
             if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
                 iterator.remove();
-                IAreaTrikeService service = IAreaTrikeService.messageToService(trikeAgent.agent, message);
-                service.sendMessage(message.serialize());
+                IAreaTrikeService service = messageToService(trikeAgent.agent, message);
                 message.setTimeStamp(currentTimeStamp);
                 trikeAgent.requests.add(message);
+                service.sendMessage(message.serialize());
             }
         }
     }

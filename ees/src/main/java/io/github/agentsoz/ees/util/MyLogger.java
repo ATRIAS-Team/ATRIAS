@@ -22,6 +22,8 @@ package io.github.agentsoz.ees.util;
  * #L%
  */
 
+import io.github.agentsoz.ees.shared.SharedConstants;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,7 +41,7 @@ public class MyLogger {
 
     public MyLogger(String logFilePath, Status status) throws IOException {
         this.writer = new BufferedWriter(new FileWriter(logFilePath, true)); // Append mode
-        this.dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        this.dtf = SharedConstants.dateTimeFormatter;
         this.status = status;
     }
 
