@@ -21,7 +21,7 @@
         <field field_name="THETA">420.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
-        <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="CHARGING_THRESHOLD">-1</field>
         <field field_name="ASK_FOR_TRIKES_WAIT_TIME">120000</field>
         <field field_name="MANAGER_WAIT_TIME">120000</field>
         <field field_name="CONFIRM_WAIT_TIME">120000</field>
@@ -30,14 +30,16 @@
         <field field_name="MIN_CNP_TRIKES">8</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/data-utm-1000.csv</field>
+<!--        <field field_name="CSV_SOURCE">ees/data-utm-1000-simul.csv</field>-->
+        <field field_name="CSV_SOURCE">centralplanner/results.csv</field>
         <field field_name="REQUEST_WAIT_TIME">120000</field>
         <field field_name="MIN_TRIKES">4</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">120000</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>
-        <field field_name="SIMULATION_START_TIME">01.12.2019 00:00</field>
+        <field field_name="SIMULATION_START_TIME">31.07.2016 00:00</field>
+<!--        <field field_name="SIMULATION_START_TIME">01.12.2019 00:00</field>-->
         <field field_name="CLEANUP_TIMER">120000</field>
     </class>
 

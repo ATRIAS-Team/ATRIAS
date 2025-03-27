@@ -20,11 +20,11 @@ public class AntColonyScheduler extends AbstractScheduler {
 
     public AntColonyScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
         super(vehicles, requestsFilePath, outputFilePath, graph);
-        this.numAnts = 100;         // Tunable
+        this.numAnts = 10;         // Tunable
         this.alpha = 1.0;          // Pheromone weight
         this.beta = 2.0;           // Heuristic weight
         this.evaporationRate = 0.1; // Pheromone decay
-        this.maxIterations = 100;   // Iterations limit
+        this.maxIterations = 10;   // Iterations limit
         this.pheromones = new HashMap<>();
         initializePheromones();
     }

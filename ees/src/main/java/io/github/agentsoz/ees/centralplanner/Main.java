@@ -12,19 +12,20 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.initializeOutputFo
 
 public class Main {
     public static void main(String[] args) {
-//        String vehicleConfigFilePath = "scenarios/frankfurt/vehicle-config.xml";
-        String vehicleConfigFilePath = "XMLConfig.xml";
+//        String vehicleConfigFilePath = "configs/Frankfurt_A1_T32_CNP_TRUE.xml";
+        String vehicleConfigFilePath = "configs/Boston_A1_T32_CNP_TRUE_S1.xml";
 
-        String mapFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-layer-utm.xml";
-//        String mapFilePath = "ees/scenarios/matsim-boston/boston_matsim-JOSM-UTM.xml";
+//        String mapFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-layer-utm.xml";
+        String mapFilePath = "ees/scenarios/matsim-boston/boston_matsim-JOSM-UTM.xml";
 
 //        String requestsFilePath = "ees/data-utm-1000.csv";
 //        String requestsFilePath = "ees/data-utm-1000-simul.csv";
-        String requestsFilePath = "ees/data-utm-100-simul.csv";
+//        String requestsFilePath = "ees/data-utm-100-simul.csv";
 //        String requestsFilePath = "ees/subsample_2.csv";
+        String requestsFilePath = "ees/test_requests.csv";
 
-        String populationFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml";
-//        String populationFilePath = "ees/scenarios/matsim-boston/boston-population.xml";
+//        String populationFilePath = "ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml";
+        String populationFilePath = "ees/scenarios/matsim-boston/boston-population.xml";
 
         String outputFilePath = "centralplanner";
 

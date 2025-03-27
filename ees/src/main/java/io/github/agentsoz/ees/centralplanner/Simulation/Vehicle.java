@@ -1,7 +1,7 @@
 package io.github.agentsoz.ees.centralplanner.Simulation;
 
 import io.github.agentsoz.ees.centralplanner.Graph.*;
-import io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.BatteryModel;
+import io.github.agentsoz.ees.trikeagent.BatteryModel;
 
 import java.lang.reflect.Array;
 import java.time.Duration;

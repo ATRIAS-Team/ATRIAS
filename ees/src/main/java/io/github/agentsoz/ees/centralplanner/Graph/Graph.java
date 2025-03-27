@@ -8,7 +8,7 @@ import io.github.agentsoz.util.Location;
 import org.w3c.dom.*;
 
 import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
-import static io.github.agentsoz.ees.jadexextension.masterthesis.JadexAgent.trikeagent.TrikeConstants.CHARGING_STATION_LIST;
+import static io.github.agentsoz.ees.trikeagent.TrikeConstants.CHARGING_STATION_LIST;
 
 public class Graph {
     private final HashMap<String, Node> nodes; // Maps node ID to Node object
