@@ -32,6 +32,8 @@ import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
+import io.github.agentsoz.ees.util.Event;
+import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.ees.util.csvLogger;
 import io.github.agentsoz.util.Location;
 import jadex.bridge.service.ServiceScope;
@@ -150,6 +152,12 @@ public class Utils {
         return batteryChargeAfterTIP;
     }
 
+    //////////////////////////////////////////////////
+    //  JSON LOGGER
+    EventTracker eventTracker = new EventTracker();
+
+    //////////////////////////////////////////////////
+
     public void selectNextAction(Iterator<DecisionTask> iterator){
         boolean hasChanged = false;
         DecisionTask currentDecisionTask = iterator.next();
@@ -178,11 +186,36 @@ public class Utils {
 
                     trikeAgent.tripList.add(newTrip);
 
+                    /*
+
+                    //////////////////////////////////////////////////
+                    // JSON LOGGER
+
+
+                    try {
+                        Event<List<Trip>> event = new Event<>();
+                        event.content.eventType = "eventType";
+                        event.content.data.location = "location";
+                        event.content.data.trace = "trace";
+                        event.summary = "summary";
+
+                        eventTracker.addEvent(event, trikeAgent.tripList,
+                                "trike_events/Trike " + trikeAgent.agentID + ".json");
+
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+
+                    //////////////////////////////////////////////////
+
+                     */
+
                     Location destination = currentDecisionTask.getEndPositionFromJob();
                     String destinationCell = Cells.findKey(destination);
                     boolean isInArea = trikeAgent.cell.equals(destinationCell);
 
-                    if(!isInArea){
+                    if(!isInArea && destinationCell != null){
                         String originArea = Cells.cellAgentMap.get(trikeAgent.cell);
                         String newArea = Cells.cellAgentMap.get(destinationCell);
                         changeArea(originArea, newArea);
@@ -286,6 +319,7 @@ public class Utils {
                     String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(trikeAgent.cell));
                     boolean isInArea = trikeAgent.cell.equals(jobCell);
 
+                    /*
                     if(isInArea){
                         String areaAgentTag = Cells.cellAgentMap.get(trikeAgent.cell);
                         currentDecisionTask.initRequestCount(1);
@@ -299,6 +333,11 @@ public class Utils {
                         }
                     }
 
+                     */
+                    String areaAgentTag = Cells.cellAgentMap.get(trikeAgent.cell);
+                    currentDecisionTask.initRequestCount(1);
+                    sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
+
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();   // to wait for area reply
                     hasChanged = false;
                     break;
@@ -309,12 +348,13 @@ public class Utils {
                             || currentDecisionTask.responseReady()) {
                         ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
 
-
+                        /*
                         if (agentIds.size() < MIN_CNP_TRIKES) {
                             String jobCell =
                                     Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
                                             Cells.getCellResolution(trikeAgent.cell));
                             boolean isInArea = trikeAgent.cell.equals(jobCell);
+
 
                             if (isInArea && currentDecisionTask.numRequests == 1) {
                                     //  global cnp
@@ -341,6 +381,7 @@ public class Utils {
                             }
                         }
 
+                         */
                         currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         hasChanged = true;
                         break;
