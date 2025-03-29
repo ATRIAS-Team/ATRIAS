@@ -147,8 +147,8 @@ public class Plans {
             messageContent.values = delegateInfo.job.toArrayList();
             Message message = new Message( areaAgent.areaAgentId, bestAreaAgent, Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
             IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-            service.sendMessage(message.serialize());
             areaAgent.requests.add(message);
+            service.sendMessage(message.serialize());
 
             iterator.remove();
         }
@@ -168,9 +168,6 @@ public class Plans {
                     }
                     LocatedAgent locatedAgent = new LocatedAgent(bufferMessage.getSenderId(), location);
                     areaAgent.locatedAgentList.updateLocatedAgentList(locatedAgent, bufferMessage.getTimeStamp(), bufferMessage.getContent().getAction());
-                    if(bufferMessage.getContent().getAction().equals("register")){
-                        areaAgent.canDemand = true;
-                    }
                     break;
                 }
                 case REQUEST: {
@@ -214,24 +211,22 @@ public class Plans {
             if(currentTimeStamp >= message.getTimeStamp() + AreaConstants.REQUEST_WAIT_TIME){
                 iterator.remove();
                 IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                service.sendMessage(message.serialize());
                 message.setTimeStamp(currentTimeStamp);
                 areaAgent.requests.add(message);
+                service.sendMessage(message.serialize());
             }
         }
     }
 
     public void checkTrikeCount(){
-        if(areaAgent.canDemand && areaAgent.locatedAgentList.size() < AreaConstants.MIN_TRIKES && SharedUtils.getSimTime() > 0){
+        if(areaAgent.locatedAgentList.size() < AreaConstants.MIN_TRIKES && JadexModel.simulationtime > 0 && areaAgent.jobsToDelegate.size() < AreaConstants.MIN_TRIKES){
             Location cellLocation = Cells.getCellLocation(areaAgent.cell);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]");
-            LocalDateTime dt = LocalDateTime.parse("01.12.2019 00:00", formatter);
+            LocalDateTime dt = SharedUtils.getCurrentDateTime();
 
             Job job = new Job(UUID.randomUUID().toString(), areaAgent.areaAgentId + "   " + UUID.randomUUID().toString(),
                     dt, dt, cellLocation, cellLocation);
             DelegateInfo delegateInfo = new DelegateInfo(job);
             areaAgent.jobsToDelegate.add(delegateInfo);
-            areaAgent.canDemand = false;
         }
     }
 }

@@ -96,6 +96,7 @@ public class AreaAgentService implements IAreaTrikeService {
         switch (messageObj.getComAct()) {
             case INFORM:
             case ACK:
+            case NACK:
                 areaAgent.messagesBuffer.write(messageObj);
                 break;
             case REQUEST:

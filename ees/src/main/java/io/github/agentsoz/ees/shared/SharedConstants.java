@@ -35,7 +35,7 @@ public class SharedConstants {
     public static boolean FIREBASE_ENABLED = false;
     public static int CLEANUP_TIMER = 30000;
 
-    private static String SIMULATION_START_TIME = "01.12.2019 00:00";
+    private static String SIMULATION_START_TIME = "01.12.2019T00:00";
 
     public static LocalDateTime SIMULATION_START_TIME_DT;
 
@@ -51,8 +51,10 @@ public class SharedConstants {
                 value -> SharedConstants.CLEANUP_TIMER = value);
 
         SIMULATION_START_TIME_DT = LocalDateTime
-                .parse(SIMULATION_START_TIME, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]"));
+                .parse(SIMULATION_START_TIME, dateTimeFormatter);
 
         initDateTS = SIMULATION_START_TIME_DT.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
+
+    public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm");
 }

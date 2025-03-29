@@ -89,7 +89,6 @@ public class TrikeAgent {
     @Belief
     public Location agentLocation;
 
-    @Belief
     public Map<String, DecisionTask> decisionTasks = new HashMap<>();
 
     @Belief
@@ -105,7 +104,7 @@ public class TrikeAgent {
     public RingBuffer<Message> jobsBuffer = new RingBuffer<>(256);
     public RingBuffer<Message> cnpBuffer = new RingBuffer<>(256);
 
-    public Map<UUID, Long> receivedMessageIds = new HashMap<>(256);
+    public Map<UUID, Long> receivedMessageIds = new HashMap<>(2048);
     public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
 
     @Belief
@@ -138,6 +137,8 @@ public class TrikeAgent {
 
     public Utils utils;
     public Plans plans;
+
+    public String cell = null;
 
     /**
      * The agent body.
@@ -173,7 +174,7 @@ public class TrikeAgent {
         bdiFeature.dispatchTopLevelGoal(new Requests());
     }
 
-    @Goal(recur = true, recurdelay = 40)
+    @Goal(recur = true, recurdelay = 700)
     private class JobBuffer {
     }
 
@@ -190,11 +191,12 @@ public class TrikeAgent {
     private class Log {
     }
 
-//    @Plan(trigger=@Trigger(goals=Log.class))
-//    private void log() {
-//        System.out.println("agentID " + agentID +  " simtime " + JadexModel.simulationtime);
-//    }
-    @Goal(recur = true, recurdelay = 50)
+    @Plan(trigger = @Trigger(goals = Log.class))
+    private void log() {
+        System.out.println("agentID " + agentID + " simtime " + JadexModel.simulationtime);
+    }
+
+    @Goal(recur = true, recurdelay = 1500)
     private class MaintainBatteryLoaded {
 
         @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
@@ -210,13 +212,8 @@ public class TrikeAgent {
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 1000)
     private class MaintainManageJobs {
-
-        @GoalMaintainCondition
-        boolean isDecisionEmpty() {
-            return decisionTasks.isEmpty();
-        }
     }
 
     @Plan(trigger = @Trigger(goals = MaintainManageJobs.class))
@@ -228,7 +225,7 @@ public class TrikeAgent {
      * MaintainTripService former SendDrivetoTooutAdc desired behavior: start:
      * when new trip is generated
      */
-    @Goal(recur = true, recurdelay = 30)
+    @Goal(recur = true, recurdelay = 2000)
     private class MaintainTripService {
 
         @GoalMaintainCondition
@@ -259,7 +256,7 @@ public class TrikeAgent {
     //Goals and Plans : to print out something when the data from MATSIM is
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 500)
     private class PerformSIMReceive {
     }
 
@@ -268,7 +265,7 @@ public class TrikeAgent {
         plans.sensoryUpdate();
     }
 
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 1000)
     private class CheckMessagesBuffer {
     }
 
@@ -277,7 +274,7 @@ public class TrikeAgent {
         plans.checkMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 20)
+    @Goal(recur = true, recurdelay = 700)
     private class CNPBuffer {
     }
 
@@ -286,7 +283,7 @@ public class TrikeAgent {
         plans.checkCNPBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 10000)
+    @Goal(recur = true, recurdelay = 5000)
     private class Requests {
     }
 

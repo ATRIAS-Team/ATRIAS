@@ -86,11 +86,6 @@ public class Job {
 
 
     public Job(ArrayList<String> values) {
-
-        //String str = "1986-04-08 12:30";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-        //LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
-
         Double startPosX = Double.parseDouble(values.get(5));
         Double startPosY = Double.parseDouble(values.get(6));
         Double endPosX = Double.parseDouble(values.get(8));
@@ -98,8 +93,8 @@ public class Job {
 
         this.customerID = values.get(0);
         this.jobID = values.get(1);
-        this.bookingTime = LocalDateTime.parse(values.get(2), formatter);
-        this.vaTime = LocalDateTime.parse(values.get(3), formatter);
+        this.bookingTime = LocalDateTime.parse(values.get(2), SharedConstants.dateTimeFormatter);
+        this.vaTime = LocalDateTime.parse(values.get(3), SharedConstants.dateTimeFormatter);
         this.startPosition = new Location(values.get(4), startPosX, startPosY);
         this.endPosition = new Location(values.get(7), endPosX, endPosY);
     }
@@ -112,8 +107,8 @@ public class Job {
         ArrayList<String> arrayList = new ArrayList<>(10);
         arrayList.add(customerID);
         arrayList.add(jobID);
-        arrayList.add(bookingTime.toString());
-        arrayList.add(vaTime.toString());
+        arrayList.add(bookingTime.format(SharedConstants.dateTimeFormatter));
+        arrayList.add((vaTime.format(SharedConstants.dateTimeFormatter)));
         arrayList.add(startPosition.getName());
         arrayList.add(Double.toString(startPosition.getX()));
         arrayList.add(Double.toString(startPosition.getY()));
@@ -151,8 +146,6 @@ public class Job {
     //  built-in parsers
     public static ArrayList<Job> csvToJobs(String csvPath, char delimiter){
         ArrayList<Job> jobs = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm[:ss]");
-
         try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
             String line;
 
@@ -163,8 +156,8 @@ public class Job {
                 String[] fields = line.split(Character.toString(delimiter));
 
                 //  time
-                LocalDateTime bookingTime = LocalDateTime.parse(fields[2], formatter);
-                LocalDateTime vaTime = LocalDateTime.parse(fields[3], formatter);
+                LocalDateTime bookingTime = LocalDateTime.parse(fields[2], SharedConstants.dateTimeFormatter);
+                LocalDateTime vaTime = LocalDateTime.parse(fields[3], SharedConstants.dateTimeFormatter);
 
                 //location
                 Location startLocation = new Location("", Double.parseDouble(fields[4]),Double.parseDouble(fields[5]));

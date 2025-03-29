@@ -2,55 +2,72 @@
 <configuration>
 
     <scenario>
-        <config>ees\scenarios\matsim-drt-frankfurt-campus-westend-example\ees_ffm.xml</config>
-        <population>ees\scenarios\matsim-drt-frankfurt-campus-westend-example\campus-population.xml</population>
+        <config>ees\scenarios\matsim-boston\ees_ffm.xml</config>
+        <population>ees\scenarios\matsim-boston\boston-population.xml</population>
     </scenario>
 
-    <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
-    </file>
-
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
-        <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
-        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="56" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="7" />
     </file>
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
         <field field_name="DRIVING_SPEED">6.0</field>
-        <field field_name="CNP_ACTIVE">false</field>
+        <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">420.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
-        <field field_name="CHARGING_THRESHOLD">-1</field>
-        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">120000</field>
-        <field field_name="MANAGER_WAIT_TIME">120000</field>
-        <field field_name="CONFIRM_WAIT_TIME">120000</field>
-        <field field_name="PROPOSALS_WAIT_TIME">120000</field>
-        <field field_name="REQUEST_WAIT_TIME">120000</field>
-        <field field_name="MIN_CNP_TRIKES">8</field>
+        <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">1200000</field>
+        <field field_name="MANAGER_WAIT_TIME">1200000</field>
+        <field field_name="CONFIRM_WAIT_TIME">1200000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">1200000</field>
+        <field field_name="REQUEST_WAIT_TIME">1200000</field>
+        <field field_name="MIN_CNP_TRIKES">4</field>
     </class>
     <class class_name="AreaAgent.java">
-<!--        <field field_name="CSV_SOURCE">ees/data-utm-1000-simul.csv</field>-->
-        <field field_name="CSV_SOURCE">centralplanner/results.csv</field>
-        <field field_name="REQUEST_WAIT_TIME">120000</field>
+        <field field_name="CSV_SOURCE">ees/boston.csv</field>
+        <field field_name="REQUEST_WAIT_TIME">1200000</field>
         <field field_name="MIN_TRIKES">4</field>
-        <field field_name="NEIGHBOURS_WAIT_TIME">120000</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">1200000</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>
-        <field field_name="SIMULATION_START_TIME">31.07.2016 00:00</field>
-<!--        <field field_name="SIMULATION_START_TIME">01.12.2019 00:00</field>-->
-        <field field_name="CLEANUP_TIMER">120000</field>
+        <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
+        <field field_name="CLEANUP_TIMER">3600000</field>
     </class>
 
-    <cells resolutions="3">
+    <cells resolutions="6">
         <areaagent>
-            <cell>831faefffffffff</cell>
+            <cell>862a30647ffffff</cell>
+            <cell>862a3064fffffff</cell>
+            <cell>862a30297ffffff</cell>
+            <cell>862a3075fffffff</cell>
+            <cell>862a30667ffffff</cell>
+            <cell>862a3066fffffff</cell>
+            <cell>862a30677ffffff</cell>
         </areaagent>
-        <zone>32 U</zone>
+        <trikeagent>
+            <num>7</num>
+            <num>10</num>
+            <num>5</num>
+            <num>5</num>
+            <num>16</num>
+            <num>7</num>
+            <num>6</num>
+        </trikeagent>
+        <zone>19 T</zone>
+        <radius>1</radius>
     </cells>
 </configuration>
-
+        <!--
+                        <cell>852a3063fffffff</cell>
+                    <cell>852a306ffffffff</cell>
+                    <cell>852a339bfffffff</cell>
+                    <cell>852a3393fffffff</cell>
+                    <cell>852a302bfffffff</cell>
+        -->
         <!--
            schema:
             <file target_file=<path to target file>>

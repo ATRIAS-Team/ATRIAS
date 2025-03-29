@@ -34,8 +34,10 @@ import org.w3c.dom.Element;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,7 +64,7 @@ public class Utils {
         areaAgent.myTag = areaAgent.areaAgentId;
         areaAgent.cell = Cells.areaAgentCells.get(index);
         Cells.cellAgentMap.put(areaAgent.cell, areaAgent.areaAgentId);
-        areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell, 0);
+        areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell);
 
         System.out.println("AreaAgent " + areaAgent.areaAgentId + " sucessfully started;");
         initJobs();
@@ -123,52 +125,56 @@ public class Utils {
     }
 
     public void sendJobToAgent(List<Job> jobList) {
-        if (jobList.isEmpty()) {
-            return;
+        while (true) {
+            //  current job
+            Job job = jobList.get(0);
+            if (job == null) {
+                break;
+            }
+            long jobTimeStamp = SharedUtils.getTimeStamp(job.getVATime());
+            long simTimeStamp = SharedUtils.getSimTime();
+            if (jobTimeStamp > simTimeStamp) {
+                break;
+            }
+
+            String selectedAgent;
+            if (job.getPrecalculatedVehicle() != null) {
+                // select precalculated Agent
+                selectedAgent = job.getPrecalculatedVehicle();
+            } else {
+                // select closest Agent
+                selectedAgent = areaAgent.locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
+            }
+
+            if (selectedAgent == null) {
+                areaAgent.jobsToDelegate.add(new DelegateInfo(job));
+                System.out.println(job.getID() + " is delegated");
+                jobList.remove(0);
+            } else {
+                //message creation
+                MessageContent messageContent = new MessageContent("", job.toArrayList());
+                LocalTime bookingTime = LocalTime.now();
+                System.out.println("START Negotiation - JobID: " + job.getID() + " Time: " + bookingTime);
+                Message message = new Message(areaAgent.areaAgentId, selectedAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
+                IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                areaAgent.requests.add(message);
+                service.sendMessage(message.serialize());
+
+                //remove job from list
+                jobList.remove(0);
+                System.out.println("AREA AGENT: JOB was SENT");
+            }
         }
-        //  current job
-        Job job = jobList.get(0);
 
-        long jobTimeStamp = SharedUtils.getTimeStamp(job.getVATime());
-        long simTimeStamp = SharedUtils.getSimTime();
 
-        if (jobTimeStamp > simTimeStamp) {
-            return;
-        }
-
-        String selectedAgent;
-        if (job.getPrecalculatedVehicle() != null) {
-            // select precalculated Agent
-            selectedAgent = job.getPrecalculatedVehicle();
-        } else {
-            // select closest Agent
-            selectedAgent = areaAgent.locatedAgentList.calculateClosestLocatedAgent(job.getStartPosition());
-        }
-
-        if (selectedAgent == null) {
-            areaAgent.jobsToDelegate.add(new DelegateInfo(job));
-            System.out.println(job.getID() + " is delegated");
-            jobList.remove(0);
-        } else {
-            //message creation
-            MessageContent messageContent = new MessageContent("", job.toArrayList());
-            LocalTime bookingTime = LocalTime.now();
-            System.out.println("START Negotiation - JobID: " + job.getID() + " Time: " + bookingTime);
-            Message message = new Message(areaAgent.areaAgentId, selectedAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
-            IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-            service.sendMessage(message.serialize());
-
-            areaAgent.requests.add(message);
-
-            //remove job from list
-            jobList.remove(0);
-            System.out.println("AREA AGENT: JOB was SENT");
-        }
-    }
+    
 
     private void initJobs() {
         String csvFilePath = AreaConstants.CSV_SOURCE;
         char delimiter = ';';
+        int startCounter = 0;
+        int endCounter = 0;
+        Set<String> set = new HashSet<>();
 
         System.out.println("parse json from file:");
         List<Job> allJobs = Job.csvToJobs(csvFilePath, delimiter);
@@ -176,8 +182,16 @@ public class Utils {
             String jobCell = Cells.locationToCellAddress(job.getStartPosition(), Cells.getCellResolution(areaAgent.cell));
             if (jobCell.equals(areaAgent.cell)) {
                 areaAgent.csvJobList.add(job);
+                startCounter++;
             }
+            String jobEndCell = Cells.locationToCellAddress(job.getEndPosition(), Cells.getCellResolution(areaAgent.cell));
+            if (jobEndCell.equals(areaAgent.cell)) {
+                endCounter++;
+            }
+            set.add(jobCell);
         }
+        System.out.println(set);
+        System.out.println(areaAgent.areaAgentId + ": " + startCounter + " " + endCounter);
 
         if (allJobs.get(0).getPrecalculatedVehicle() != null) {
             for (Job job : areaAgent.csvJobList) {

@@ -86,15 +86,13 @@ public class AreaAgent {
     public String myTag = null;
 
     public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
-    public Map<UUID, Long> receivedMessageIds = new HashMap<>(256);
+    public Map<UUID, Long> receivedMessageIds = new HashMap<>(1024);
 
     //  BUFFER
-    public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(256);
-    public RingBuffer<Message> jobRingBuffer = new RingBuffer<>(256);
-    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(256);
+    public RingBuffer<Message> areaMessagesBuffer = new RingBuffer<>(64);
+    public RingBuffer<Message> jobRingBuffer = new RingBuffer<>(64);
+    public RingBuffer<Message> proposalBuffer = new RingBuffer<>(64);
     public RingBuffer<Message> messagesBuffer = new RingBuffer<>(256);
-
-    public volatile boolean canDemand = true;
 
     public List<DelegateInfo> jobsToDelegate = new ArrayList<>();
 
@@ -111,22 +109,22 @@ public class AreaAgent {
         utils = new Utils(this);
         plans = new Plans(this, utils);
         utils.body();
-        //bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
-        //bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
-        //bdiFeature.dispatchTopLevelGoal(new JobBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new CheckProposals());
-        //bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
+        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+        bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
+        bdiFeature.dispatchTopLevelGoal(new CheckProposals());
+        bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
         bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
-        //bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
+        bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
-        //bdiFeature.dispatchTopLevelGoal(new TrikeCount());
+        bdiFeature.dispatchTopLevelGoal(new TrikeCount());
     }
 
-    @Goal(recur = true, recurdelay = 40)
+    @Goal(recur = true, recurdelay = 1500)
     private class AreaMessagesBuffer {
     }
 
@@ -135,7 +133,7 @@ public class AreaAgent {
         plans.checkAreaMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 1200)
     private class CheckProposals {
     }
 
@@ -144,7 +142,7 @@ public class AreaAgent {
         plans.checkProposalBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 50)
+    @Goal(recur = true, recurdelay = 1100)
     private class CheckDelegateInfo {
     }
 
@@ -153,7 +151,7 @@ public class AreaAgent {
         plans.checkDelegateInfo();
     }
 
-    @Goal(recur = true, recurdelay = 100)
+    @Goal(recur = true, recurdelay = 1000)
     private class DelegateJobs {
     }
 
@@ -173,7 +171,7 @@ public class AreaAgent {
         System.out.println(areaAgentId + ": " + locatedAgentList.size() + " Trikes");
     }
 
-    @Goal(recur = true, recurdelay = 100)
+    @Goal(recur = true, recurdelay = 30000)
     private class MaintainDistributeAssignedJobs {
     }
 
@@ -182,7 +180,7 @@ public class AreaAgent {
         utils.sendJobToAgent(assignedJobs);
     }
 
-    @Goal(recur = true, recurdelay = 100)
+    @Goal(recur = true, recurdelay = 1000)
     private class JobBuffer {
     }
 
@@ -191,7 +189,7 @@ public class AreaAgent {
         plans.checkAssignedJobs();
     }
 
-    @Goal(recur = true, recurdelay = 1000)
+    @Goal(recur = true, recurdelay = 5000)
     private class MaintainDistributeFirebaseJobs {
 
         @GoalMaintainCondition
@@ -205,7 +203,7 @@ public class AreaAgent {
         utils.sendJobToAgent(jobList);
     }
 
-    @Goal(recur = true, recurdelay = 15)
+    @Goal(recur = true, recurdelay = 2000)
     private class MaintainDistributeCSVJobs {
 
         @GoalMaintainCondition
@@ -219,7 +217,7 @@ public class AreaAgent {
         utils.sendJobToAgent(csvJobList);
     }
 
-    @Goal(recur = true, recurdelay = 15)
+    @Goal(recur = true, recurdelay = 400)
     private class TrikeMessagesBuffer {
     }
 
@@ -237,7 +235,7 @@ public class AreaAgent {
         plans.checkRequestTimeouts();
     }
 
-    @Goal(recur = true, recurdelay = 10000)
+    @Goal(recur = true, recurdelay = 20000)
     private class ReceivedMessages {
     }
 
@@ -246,7 +244,7 @@ public class AreaAgent {
         SharedPlans.cleanupReceivedMessages(receivedMessageIds);
     }
 
-    @Goal(recur = true, recurdelay = 1000)
+    @Goal(recur = true, recurdelay = 10000)
     private class TrikeCount {
     }
 

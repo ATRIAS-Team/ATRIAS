@@ -77,7 +77,7 @@ public class Message {
     }
 
     public enum ComAct {
-        INFORM, REQUEST, ACK, CALL_FOR_PROPOSAL, PROPOSE, REFUSE, ACCEPT_PROPOSAL, REJECT_PROPOSAL
+        INFORM, REQUEST, ACK, NACK, CALL_FOR_PROPOSAL, PROPOSE, REFUSE, ACCEPT_PROPOSAL, REJECT_PROPOSAL
     }
 
     // Getters
@@ -122,6 +122,14 @@ public class Message {
 
     public static Message ack(Message message){
         message.comAct = ComAct.ACK;
+        String temp = message.senderId;
+        message.senderId = message.receiverId;
+        message.receiverId = temp;
+        return message;
+    }
+
+    public static Message nack(Message message){
+        message.comAct = ComAct.NACK;
         String temp = message.senderId;
         message.senderId = message.receiverId;
         message.receiverId = temp;

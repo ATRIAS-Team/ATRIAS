@@ -49,6 +49,8 @@ public class Cells {
         }
     }
 
+    private static int radius = 0;
+
     //  area
     static int areaAgentIdCounter = 0;
     public static ArrayList<String> areaAgentCells = new ArrayList<>();
@@ -93,7 +95,7 @@ public class Cells {
         return h3Core.getResolution(cell);
     }
 
-    public static List<String> getNeighbours(String origin, int radius) {
+    public static List<String> getNeighbours(String origin) {
         List<String> neighbourIds = new ArrayList<>();
         for (String neighbourCell : h3Core.gridDisk(origin, radius)) {
             if (cellAgentMap.containsKey(neighbourCell) && !neighbourCell.equals(origin)) {
@@ -115,6 +117,8 @@ public class Cells {
     private static void setAreaAgentCells(String path) {
         Element doc = Parser.parseXML(path);
         Cells.ZONE = doc.getElementsByTagName("zone").item(0).getTextContent();
+        Cells.radius = Integer.parseInt(doc.getElementsByTagName("radius").item(0).getTextContent());
+
         Node areaAgentNode = doc.getElementsByTagName("areaagent").item(0);
         String[] resolutionsStrArr = areaAgentNode
                 .getParentNode()
@@ -133,14 +137,13 @@ public class Cells {
                 continue;
             }
             areaAgentCells.add(cellNode.getTextContent());
-            cellAgentMap.put(cellNode.getTextContent(), "");
+            cellAgentMap.put(cellNode.getTextContent(), "area: " + cellAgentMap.size());
         }
     }
 
     private static void setTrikeLocations(String path) {
         Element configRoot = Parser.parseXML(path);
         String populationPath = configRoot.getElementsByTagName("population").item(0).getTextContent();
-
         Element doc = Parser.parseXML(populationPath);
 
         NodeList personNL = doc.getElementsByTagName("person");
@@ -148,9 +151,28 @@ public class Cells {
             Element personElement = (Element) personNL.item(i);
             Element activityElement = (Element) personElement.getElementsByTagName("activity").item(0);
             String id = personElement.getAttribute("id");
-            double x = Double.parseDouble(activityElement.getAttribute("x"));
-            double y = Double.parseDouble(activityElement.getAttribute("y"));
-            trikeRegisterLocations.put(id, new Location("", x, y));
+
+            Element cellsEl = (Element) configRoot.getElementsByTagName("cells").item(0);
+
+            NodeList trikeAgentNL = cellsEl.getElementsByTagName("trikeagent");
+            if (trikeAgentNL.getLength() != 0) {
+                Element trikeAgent = (Element) trikeAgentNL.item(0);
+                NodeList nodeList = trikeAgent.getElementsByTagName("num");
+
+                int sum = 0;
+                for (int j = 0; j < nodeList.getLength(); j++) {
+                    sum += Integer.parseInt(nodeList.item(j).getTextContent());
+                    if (sum > Integer.parseInt(id)) {
+                        String areaCell = cellsEl.getElementsByTagName("cell").item(j).getTextContent();
+                        trikeRegisterLocations.put(id, Cells.getCellLocation(areaCell));
+                        break;
+                    }
+                }
+            } else {
+                double x = Double.parseDouble(activityElement.getAttribute("x"));
+                double y = Double.parseDouble(activityElement.getAttribute("y"));
+                trikeRegisterLocations.put(id, new Location("", x, y));
+            }
         }
     }
 
