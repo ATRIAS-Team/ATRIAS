@@ -20,7 +20,7 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
     private static final Random random = new Random(SEED);
 
     public GeneticAlgorithmScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
-        super(vehicles, requestsFilePath, outputFilePath, graph);
+        super(vehicles, requestsFilePath, outputFilePath, graph, "dijkstra");
     }
 
     public void run() {

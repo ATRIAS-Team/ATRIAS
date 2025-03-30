@@ -187,13 +187,6 @@ public class XMLConfig {
         return args;
     }
 
-    public String[] setArgs(Element configRoot) {
-        String[] args = new String[2];
-        args[0] = "--config";
-        args[1] = configRoot.getElementsByTagName("config").item(0).getTextContent();
-        return args;
-    }
-
     /**
      * checks if node satisfies all attributes, converts the node to element and
      * returns back

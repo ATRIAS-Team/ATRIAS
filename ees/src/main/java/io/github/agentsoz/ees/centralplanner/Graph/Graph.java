@@ -14,6 +14,7 @@ public class Graph {
     private final HashMap<String, Node> nodes; // Maps node ID to Node object
     private final HashMap<Node, List<Edge>> adjacencyList;
     private final ArrayList<String> chargingStations;
+    public String pathfindingMethod;
 
     public Graph() {
         nodes = new HashMap<String, Node>();
@@ -130,6 +131,20 @@ public class Graph {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Path euclideanDistance(String startId, String endId) {
+        Node startNode = nodes.get(startId);
+        Node endNode = nodes.get(endId);
+
+        double distanceFactor = 1.0;
+
+        double distance = Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2)) * distanceFactor;
+
+        Path path = new Path();
+        Edge directEdge = new Edge(startNode, endNode, startId+"-"+endId, Double.toString(distance), "6.0", "600", "1", "1", "car");
+        path.addEdge(directEdge);
+        return path;
     }
 
     public Path fast_dijkstra(String startId, String endId) {

@@ -37,13 +37,13 @@
 
 		<configuration name="One trike local">
 			<components>
-					<component number="56" type="TrikeAgent"/>
+					<component number="32" type="TrikeAgent"/>
 			</components>
 			<components>
 				<component number="1" type="SimIDMapper"/>
 			</components>
 			<components>
-				<component number="7" type="AreaAgent"/>
+				<component number="1" type="AreaAgent"/>
 			</components>
 			<components>
 				<component number="2" type="SimSensoryInputBroker"/>

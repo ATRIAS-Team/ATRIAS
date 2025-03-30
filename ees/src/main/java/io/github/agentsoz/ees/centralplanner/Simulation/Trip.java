@@ -34,10 +34,23 @@ public class Trip {
         nearestStartNode = graph.getNearestNodeID(startX, startY);
         nearestEndNode = graph.getNearestNodeID(endX, endY);
 
-        calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
+        switch (graph.pathfindingMethod){
+            case "euclidean":
+                calculatedPath = graph.euclideanDistance(nearestStartNode, nearestEndNode);
+                break;
+            case "dijkstra":
+                calculatedPath = graph.dijkstra(nearestStartNode, nearestEndNode);
+                break;
+            case "fast_dijkstra":
+                calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid pathfinding method: " + graph.pathfindingMethod);
+        }
     }
 
     private LocalDateTime timeParser(String time){
+        time = time.replace("T", " ");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         return LocalDateTime.parse(time, formatter);
     }

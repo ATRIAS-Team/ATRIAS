@@ -19,7 +19,7 @@ public class AntColonyScheduler extends AbstractScheduler {
     private Map<String, Map<Integer, Double>> pheromones; // Pheromone levels: tripID -> vehicleID -> value
 
     public AntColonyScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
-        super(vehicles, requestsFilePath, outputFilePath, graph);
+        super(vehicles, requestsFilePath, outputFilePath, graph, "dijkstra");
         this.numAnts = 10;         // Tunable
         this.alpha = 1.0;          // Pheromone weight
         this.beta = 2.0;           // Heuristic weight

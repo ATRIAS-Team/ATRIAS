@@ -16,7 +16,8 @@ public abstract class AbstractScheduler implements Simulation {
     protected final Graph graph;
     protected final String outputFilePath;
 
-    public AbstractScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
+    public AbstractScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph, String pathfindingMethod) {
+        graph.pathfindingMethod = pathfindingMethod;
         this.requestedTrips = new RequestReader(requestsFilePath, graph).requestedTrips;
         this.graph = graph;
         this.vehicles = vehicles;
@@ -30,16 +31,11 @@ public abstract class AbstractScheduler implements Simulation {
 
             List<String[]> data = new ArrayList<>();
             data.add(new String[]{"customerID","TripID","bookingTime","vaTime","StartNode", "EndNode", "battery"});
-//            data.add(new String[]{"customerID","TripID","bookingTime","vaTime","startX","startY","endX","endY", "battery"});
             for (Trip trip : vehicle.takenTrips){
                 data.add(new String[]{trip.customerID,
                         trip.TripID,
                         trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
                         trip.vaTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
-//                        trip.startX,
-//                        trip.startY,
-//                        trip.endX,
-//                        trip.endY,
                         trip.nearestStartNode,
                         trip.nearestEndNode,
                         String.valueOf(trip.batteryLevel)
