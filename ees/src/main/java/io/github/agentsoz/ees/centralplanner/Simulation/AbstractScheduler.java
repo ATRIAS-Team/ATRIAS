@@ -64,9 +64,9 @@ public abstract class AbstractScheduler implements Simulation {
         for (Trip trip : requestedTrips){
             data.add(new String[]{trip.customerID,
                     trip.TripID,
-                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
+                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm:ss")),
 //                    trip.vaTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
-                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
+                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm:ss")),
                     trip.startX,
                     trip.startY,
                     trip.endX,

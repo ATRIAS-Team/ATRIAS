@@ -257,6 +257,69 @@ public class Graph {
         return path;
     }
 
+    public Path aStar(String startId, String endId) {
+        Node startNode = nodes.get(startId);
+        Node endNode = nodes.get(endId);
+
+        // Data structures
+        Map<Node, Double> distances = new HashMap<>();  // Store shortest distances
+        Map<Node, Edge> crossedEdges = new HashMap<>();   // Store the shortest path tree
+        PriorityQueue<NodeDistance> pq = new PriorityQueue<>(Comparator.comparingDouble(NodeDistance::getDistance));
+        Set<Node> visited = new HashSet<>();
+
+        // Heuristik:
+        double heuristicValueEndNode = aStarHeuristic(startNode, endNode);
+
+        // Initialize distances
+        for (Node node : nodes.values()) {
+            distances.put(node, Double.MAX_VALUE);
+        }
+        distances.put(startNode, 0.0);
+        pq.add(new NodeDistance(startNode, 0.0));
+
+        while (!pq.isEmpty()) {
+            NodeDistance currentNodeDist = pq.poll();
+            Node currentNode = currentNodeDist.getNode();
+
+            // Skip if already visited
+            if (visited.contains(currentNode)) continue;
+            visited.add(currentNode);
+
+            // If reached the destination node, stop
+            if (currentNode.equals(endNode)) break;
+
+            // Relaxation step
+            for (Edge edge : adjacencyList.get(currentNode)) {
+                Node neighbor = edge.to;
+                if (visited.contains(neighbor)) continue;
+
+                double newDist = distances.get(currentNode) + edge.travelTime;
+
+                double heuristicValueNeighbor = aStarHeuristic(currentNode, endNode);
+                double priority = newDist + heuristicValueNeighbor;
+
+                if (priority < distances.get(neighbor)) {
+                    distances.put(neighbor, newDist);
+                    crossedEdges.put(neighbor, edge);
+
+                    // Prioritätsberechnung
+                    pq.add(new NodeDistance(neighbor, priority));
+                }
+            }
+        }
+
+        Path path = new Path();
+        for (Edge bestEdge = crossedEdges.get(endNode); bestEdge != null; bestEdge = crossedEdges.get(bestEdge.from)) {
+            path.addEdge(bestEdge);
+        }
+
+        return path;
+    }
+
+    private double aStarHeuristic(Node startNode, Node endNode) {
+        return Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2));
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
