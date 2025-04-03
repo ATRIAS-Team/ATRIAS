@@ -1,14 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Full Boston A1 P1" type="Application" factoryName="Application">
+  <configuration default="false" name="Boston S1" type="Application" factoryName="Application" folderName="Subsample 1">
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
-      <env name="ConfigFile" value="configs/FullBoston_A1_R2_T56_P1.xml" />
+      <env name="ConfigFile" value="configs/Subsample 1/Boston_S1.xml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
-    <shortenClasspath name="NONE" />
-    <option name="VM_PARAMETERS" value="-Dorg.slf4j.simpleLogger.defaultLogLevel=off -Dlogback.configurationFile=/dev/null" />
+    <shortenClasspath name="ARGS_FILE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

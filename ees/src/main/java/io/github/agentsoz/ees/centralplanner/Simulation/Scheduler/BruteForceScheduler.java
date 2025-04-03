@@ -17,8 +17,8 @@ public class BruteForceScheduler extends AbstractScheduler {
     private static final int SEARCH_DEPTH = 4;
 
 
-    public BruteForceScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
-        super(vehicles, requestsFilePath, outputFilePath, graph, "dijkstra");
+    public BruteForceScheduler(String configFilePath) {
+        super(configFilePath);
         generateAssignmentsHelper(new ArrayList<>());
     }
 

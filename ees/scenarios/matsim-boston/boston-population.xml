@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
-
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE population SYSTEM "http://www.matsim.org/files/dtd/population_v6.dtd">
 <population>
 
     <!-- ====================================================================== -->
@@ -45,11 +43,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329861.114" y="4690511.672" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329861.114" y="4690511.672">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329861.114" y="4690511.672" >
+            <activity type="home" x="329861.114" y="4690511.672">
             </activity>
         </plan>
 
@@ -98,11 +96,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330558.816" y="4691946.597" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330558.816" y="4691946.597">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330558.816" y="4691946.597" >
+            <activity type="home" x="330558.816" y="4691946.597">
             </activity>
         </plan>
 
@@ -151,11 +149,11 @@
              <attribute name="WillStay" class="java.lang.String" >false</attribute>
          </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328334.214" y="4686304.690" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328334.214" y="4686304.690">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328334.214" y="4686304.690" >
+            <activity type="home" x="328334.214" y="4686304.690">
             </activity>
         </plan>
 
@@ -204,11 +202,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328909.473" y="4689717.320" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328909.473" y="4689717.320">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328909.473" y="4689717.320" >
+            <activity type="home" x="328909.473" y="4689717.320">
             </activity>
         </plan>
 
@@ -257,11 +255,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330116.529" y="4685661.860" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330116.529" y="4685661.860">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330116.529" y="4685661.860" >
+            <activity type="home" x="330116.529" y="4685661.860">
             </activity>
         </plan>
     </person>
@@ -309,11 +307,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332331.418" y="4689031.823" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332331.418" y="4689031.823">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332331.418" y="4689031.823" >
+            <activity type="home" x="332331.418" y="4689031.823">
             </activity>
         </plan>
 
@@ -366,11 +364,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331369.527" y="4689488.447" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331369.527" y="4689488.447">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331369.527" y="4689488.447" >
+            <activity type="home" x="331369.527" y="4689488.447">
             </activity>
         </plan>
 
@@ -420,11 +418,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328549.314" y="4691045.880" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328549.314" y="4691045.880">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328549.314" y="4691045.880" >
+            <activity type="home" x="328549.314" y="4691045.880">
             </activity>
         </plan>
 
@@ -474,11 +472,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328403.376" y="4690286.468" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328403.376" y="4690286.468">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328403.376" y="4690286.468" >
+            <activity type="home" x="328403.376" y="4690286.468">
             </activity>
         </plan>
 
@@ -528,11 +526,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329379.471" y="4689906.517" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329379.471" y="4689906.517">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329379.471" y="4689906.517" >
+            <activity type="home" x="329379.471" y="4689906.517">
             </activity>
         </plan>
 
@@ -582,11 +580,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330743.810" y="4689891.080" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330743.810" y="4689891.080">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330743.810" y="4689891.080" >
+            <activity type="home" x="330743.810" y="4689891.080">
             </activity>
         </plan>
 
@@ -636,11 +634,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330836.656" y="4691397.006" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330836.656" y="4691397.006">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330836.656" y="4691397.006" >
+            <activity type="home" x="330836.656" y="4691397.006">
             </activity>
         </plan>
 
@@ -690,11 +688,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329934.713" y="4691699.073" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329934.713" y="4691699.073">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329934.713" y="4691699.073" >
+            <activity type="home" x="329934.713" y="4691699.073">
             </activity>
         </plan>
 
@@ -744,11 +742,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329982.630" y="4692067.121" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329982.630" y="4692067.121">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329982.630" y="4692067.121" >
+            <activity type="home" x="329982.630" y="4692067.121">
             </activity>
         </plan>
 
@@ -798,11 +796,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328395.333" y="4692731.850" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328395.333" y="4692731.850">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328395.333" y="4692731.850" >
+            <activity type="home" x="328395.333" y="4692731.850">
             </activity>
         </plan>
 
@@ -852,11 +850,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330248.355" y="4690724.156" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330248.355" y="4690724.156">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330248.355" y="4690724.156" >
+            <activity type="home" x="330248.355" y="4690724.156">
             </activity>
         </plan>
 
@@ -906,11 +904,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329541.587" y="4690674.550" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329541.587" y="4690674.550">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329541.587" y="4690674.550" >
+            <activity type="home" x="329541.587" y="4690674.550">
             </activity>
         </plan>
 
@@ -958,11 +956,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330664.230" y="4692567.359" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330664.230" y="4692567.359">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330664.230" y="4692567.359" >
+            <activity type="home" x="330664.230" y="4692567.359">
             </activity>
         </plan>
 
@@ -1010,11 +1008,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328659.301" y="4692710.827" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328659.301" y="4692710.827">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328659.301" y="4692710.827" >
+            <activity type="home" x="328659.301" y="4692710.827">
             </activity>
         </plan>
 
@@ -1062,11 +1060,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="327438.488" y="4687881.430" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="327438.488" y="4687881.430">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="327438.488" y="4687881.430" >
+            <activity type="home" x="327438.488" y="4687881.430">
             </activity>
         </plan>
 
@@ -1114,11 +1112,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329452.517" y="4686760.274" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329452.517" y="4686760.274">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329452.517" y="4686760.274" >
+            <activity type="home" x="329452.517" y="4686760.274">
             </activity>
         </plan>
 
@@ -1166,11 +1164,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328570.172" y="4687414.778" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328570.172" y="4687414.778">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328570.172" y="4687414.778" >
+            <activity type="home" x="328570.172" y="4687414.778">
             </activity>
         </plan>
 
@@ -1218,11 +1216,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="326946.879" y="4688741.432" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="326946.879" y="4688741.432">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="326946.879" y="4688741.432" >
+            <activity type="home" x="326946.879" y="4688741.432">
             </activity>
         </plan>
 
@@ -1271,11 +1269,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329909.806" y="4685000.340" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329909.806" y="4685000.340">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329909.806" y="4685000.340" >
+            <activity type="home" x="329909.806" y="4685000.340">
             </activity>
         </plan>
 
@@ -1323,11 +1321,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329205.623" y="4685761.426" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329205.623" y="4685761.426">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329205.623" y="4685761.426" >
+            <activity type="home" x="329205.623" y="4685761.426">
             </activity>
         </plan>
 
@@ -1375,11 +1373,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329141.197" y="4687178.842" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329141.197" y="4687178.842">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329141.197" y="4687178.842" >
+            <activity type="home" x="329141.197" y="4687178.842">
             </activity>
         </plan>
 
@@ -1428,11 +1426,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330648.494" y="4688781.536" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330648.494" y="4688781.536">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330648.494" y="4688781.536" >
+            <activity type="home" x="330648.494" y="4688781.536">
             </activity>
         </plan>
 
@@ -1480,11 +1478,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331416.452" y="4689568.203" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331416.452" y="4689568.203">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331416.452" y="4689568.203" >
+            <activity type="home" x="331416.452" y="4689568.203">
             </activity>
         </plan>
 
@@ -1532,11 +1530,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330997.342" y="4692266.983" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330997.342" y="4692266.983">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330997.342" y="4692266.983" >
+            <activity type="home" x="330997.342" y="4692266.983">
             </activity>
         </plan>
 
@@ -1584,11 +1582,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332784.342" y="4692463.604" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332784.342" y="4692463.604">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332784.342" y="4692463.604" >
+            <activity type="home" x="332784.342" y="4692463.604">
             </activity>
         </plan>
 
@@ -1636,11 +1634,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329065.509" y="4686688.813" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329065.509" y="4686688.813">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329065.509" y="4686688.813" >
+            <activity type="home" x="329065.509" y="4686688.813">
             </activity>
         </plan>
 
@@ -1688,11 +1686,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330274.417" y="4686920.322" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330274.417" y="4686920.322">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330274.417" y="4686920.322" >
+            <activity type="home" x="330274.417" y="4686920.322">
             </activity>
         </plan>
 
@@ -1741,11 +1739,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329865.114" y="4690515.672" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329865.114" y="4690515.672">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329865.114" y="4690515.672" >
+            <activity type="home" x="329865.114" y="4690515.672">
             </activity>
         </plan>
 
@@ -1794,11 +1792,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330562.816" y="4691951.597" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330562.816" y="4691951.597">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330562.816" y="4691951.597" >
+            <activity type="home" x="330562.816" y="4691951.597">
             </activity>
         </plan>
 
@@ -1847,11 +1845,11 @@
              <attribute name="WillStay" class="java.lang.String" >false</attribute>
          </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328339.214" y="4686309.690" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328339.214" y="4686309.690">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328339.214" y="4686309.690" >
+            <activity type="home" x="328339.214" y="4686309.690">
             </activity>
         </plan>
 
@@ -1900,11 +1898,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328914.473" y="4689722.320" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328914.473" y="4689722.320">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328914.473" y="4689722.320" >
+            <activity type="home" x="328914.473" y="4689722.320">
             </activity>
         </plan>
 
@@ -1953,11 +1951,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330121.529" y="4685666.860" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330121.529" y="4685666.860">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330121.529" y="4685666.860" >
+            <activity type="home" x="330121.529" y="4685666.860">
             </activity>
         </plan>
     </person>
@@ -2005,11 +2003,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332336.418" y="4689036.823" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332336.418" y="4689036.823">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332336.418" y="4689036.823" >
+            <activity type="home" x="332336.418" y="4689036.823">
             </activity>
         </plan>
 
@@ -2062,11 +2060,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331374.527" y="4689493.447" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331374.527" y="4689493.447">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331374.527" y="4689493.447" >
+            <activity type="home" x="331374.527" y="4689493.447">
             </activity>
         </plan>
 
@@ -2116,11 +2114,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328554.314" y="4691050.880" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328554.314" y="4691050.880">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328554.314" y="4691050.880" >
+            <activity type="home" x="328554.314" y="4691050.880">
             </activity>
         </plan>
 
@@ -2170,11 +2168,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328408.376" y="4690291.468" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328408.376" y="4690291.468">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328408.376" y="46902891.468" >
+            <activity type="home" x="328408.376" y="46902891.468">
             </activity>
         </plan>
 
@@ -2224,11 +2222,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329384.471" y="4689911.517" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329384.471" y="4689911.517">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329384.471" y="4689911.517" >
+            <activity type="home" x="329384.471" y="4689911.517">
             </activity>
         </plan>
 
@@ -2278,11 +2276,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330748.810" y="4689896.080" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330748.810" y="4689896.080">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330748.810" y="4689896.080" >
+            <activity type="home" x="330748.810" y="4689896.080">
             </activity>
         </plan>
 
@@ -2332,11 +2330,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330841.656" y="4691402.006" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330841.656" y="4691402.006">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330841.656" y="4691402.006" >
+            <activity type="home" x="330841.656" y="4691402.006">
             </activity>
         </plan>
 
@@ -2386,11 +2384,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329939.713" y="4691704.073" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329939.713" y="4691704.073">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329939.713" y="4691704.073" >
+            <activity type="home" x="329939.713" y="4691704.073">
             </activity>
         </plan>
 
@@ -2440,11 +2438,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329987.630" y="4692072.121" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329987.630" y="4692072.121">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329987.630" y="4692072.121" >
+            <activity type="home" x="329987.630" y="4692072.121">
             </activity>
         </plan>
 
@@ -2494,11 +2492,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328400.333" y="4692736.850" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328400.333" y="4692736.850">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328400.333" y="4692736.850" >
+            <activity type="home" x="328400.333" y="4692736.850">
             </activity>
         </plan>
 
@@ -2548,11 +2546,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330253.355" y="4690729.156" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330253.355" y="4690729.156">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330253.355" y="4690729.156" >
+            <activity type="home" x="330253.355" y="4690729.156">
             </activity>
         </plan>
 
@@ -2602,11 +2600,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329546.587" y="4690679.550" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329546.587" y="4690679.550">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329546.587" y="4690679.550" >
+            <activity type="home" x="329546.587" y="4690679.550">
             </activity>
         </plan>
 
@@ -2654,11 +2652,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330669.230" y="4692572.359" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330669.230" y="4692572.359">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330669.230" y="4692572.359" >
+            <activity type="home" x="330669.230" y="4692572.359">
             </activity>
         </plan>
 
@@ -2706,11 +2704,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328664.301" y="4692715.827" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328664.301" y="4692715.827">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328664.301" y="4692715.827" >
+            <activity type="home" x="328664.301" y="4692715.827">
             </activity>
         </plan>
 
@@ -2758,11 +2756,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="327443.488" y="4687886.430" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="327443.488" y="4687886.430">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="327443.488" y="4687886.430" >
+            <activity type="home" x="327443.488" y="4687886.430">
             </activity>
         </plan>
 
@@ -2810,11 +2808,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329457.517" y="4686765.274" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329457.517" y="4686765.274">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329457.517" y="4686765.274" >
+            <activity type="home" x="329457.517" y="4686765.274">
             </activity>
         </plan>
 
@@ -2862,11 +2860,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328575.172" y="4687419.778" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328575.172" y="4687419.778">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328575.172" y="4687419.778" >
+            <activity type="home" x="328575.172" y="4687419.778">
             </activity>
         </plan>
 
@@ -2914,11 +2912,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="326951.879" y="4688746.432" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="326951.879" y="4688746.432">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="326951.879" y="4688746.432" >
+            <activity type="home" x="326951.879" y="4688746.432">
             </activity>
         </plan>
 
@@ -2967,11 +2965,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329914.806" y="4685005.340" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329914.806" y="4685005.340">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329914.806" y="4685005.340" >
+            <activity type="home" x="329914.806" y="4685005.340">
             </activity>
         </plan>
 
@@ -3019,11 +3017,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329210.623" y="4685766.426" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329210.623" y="4685766.426">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329210.623" y="4685766.426" >
+            <activity type="home" x="329210.623" y="4685766.426">
             </activity>
         </plan>
 
@@ -3071,11 +3069,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329146.197" y="4687183.842" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329146.197" y="4687183.842">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329146.197" y="4687183.842" >
+            <activity type="home" x="329146.197" y="4687183.842">
             </activity>
         </plan>
 
@@ -3124,11 +3122,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330653.494" y="4688786.536" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330653.494" y="4688786.536">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330653.494" y="4688786.536" >
+            <activity type="home" x="330653.494" y="4688786.536">
             </activity>
         </plan>
 
@@ -3176,11 +3174,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331421.452" y="4689573.203" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331421.452" y="4689573.203">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331421.452" y="4689573.203" >
+            <activity type="home" x="331421.452" y="4689573.203">
             </activity>
         </plan>
 
@@ -3228,11 +3226,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331002.342" y="4692271.983" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331002.342" y="4692271.983">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331002.342" y="4692271.983" >
+            <activity type="home" x="331002.342" y="4692271.983">
             </activity>
         </plan>
 
@@ -3280,11 +3278,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332789.342" y="4692468.604" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332789.342" y="4692468.604">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332789.342" y="4692468.604" >
+            <activity type="home" x="332789.342" y="4692468.604">
             </activity>
         </plan>
 
@@ -3332,11 +3330,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329070.509" y="4686693.813" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329070.509" y="4686693.813">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329070.509" y="4686693.813" >
+            <activity type="home" x="329070.509" y="4686693.813">
             </activity>
         </plan>
 
@@ -3384,11 +3382,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330279.417" y="4686925.322" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330279.417" y="4686925.322">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330279.417" y="4686925.322" >
+            <activity type="home" x="330279.417" y="4686925.322">
             </activity>
         </plan>
 
@@ -3437,11 +3435,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329864.114" y="4690514.672" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329864.114" y="4690514.672">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329864.114" y="4690514.672" >
+            <activity type="home" x="329864.114" y="4690514.672">
             </activity>
         </plan>
 
@@ -3490,11 +3488,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330561.816" y="4691949.597" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330561.816" y="4691949.597">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330561.816" y="4691949.597" >
+            <activity type="home" x="330561.816" y="4691949.597">
             </activity>
         </plan>
 
@@ -3543,11 +3541,11 @@
              <attribute name="WillStay" class="java.lang.String" >false</attribute>
          </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328337.214" y="4686307.690" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328337.214" y="4686307.690">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328337.214" y="4686307.690" >
+            <activity type="home" x="328337.214" y="4686307.690">
             </activity>
         </plan>
 
@@ -3596,11 +3594,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328912.473" y="4689720.320" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328912.473" y="4689720.320">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328912.473" y="4689720.320" >
+            <activity type="home" x="328912.473" y="4689720.320">
             </activity>
         </plan>
 
@@ -3649,11 +3647,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330119.529" y="4685664.860" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330119.529" y="4685664.860">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330119.529" y="4685664.860" >
+            <activity type="home" x="330119.529" y="4685664.860">
             </activity>
         </plan>
     </person>
@@ -3701,11 +3699,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332334.418" y="4689034.823" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332334.418" y="4689034.823">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332334.418" y="4689034.823" >
+            <activity type="home" x="332334.418" y="4689034.823">
             </activity>
         </plan>
 
@@ -3758,11 +3756,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331372.527" y="4689491.447" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331372.527" y="4689491.447">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331372.527" y="4689491.447" >
+            <activity type="home" x="331372.527" y="4689491.447">
             </activity>
         </plan>
 
@@ -3812,11 +3810,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328552.314" y="4691048.880" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328552.314" y="4691048.880">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328552.314" y="4691048.880" >
+            <activity type="home" x="328552.314" y="4691048.880">
             </activity>
         </plan>
 
@@ -3866,11 +3864,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328406.376" y="4690289.468" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328406.376" y="4690289.468">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328406.376" y="4690289.468" >
+            <activity type="home" x="328406.376" y="4690289.468">
             </activity>
         </plan>
 
@@ -3920,11 +3918,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329382.471" y="4689909.517" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329382.471" y="4689909.517">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329382.471" y="4689909.517" >
+            <activity type="home" x="329382.471" y="4689909.517">
             </activity>
         </plan>
 
@@ -3974,11 +3972,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330746.810" y="4689894.080" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330746.810" y="4689894.080">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330746.810" y="4689894.080" >
+            <activity type="home" x="330746.810" y="4689894.080">
             </activity>
         </plan>
 
@@ -4028,11 +4026,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330839.656" y="4691400.006" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330839.656" y="4691400.006">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330839.656" y="4691400.006" >
+            <activity type="home" x="330839.656" y="4691400.006">
             </activity>
         </plan>
 
@@ -4082,11 +4080,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329937.713" y="4691702.073" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329937.713" y="4691702.073">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329937.713" y="4691702.073" >
+            <activity type="home" x="329937.713" y="4691702.073">
             </activity>
         </plan>
 
@@ -4136,11 +4134,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329985.630" y="4692070.121" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329985.630" y="4692070.121">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329985.630" y="4692070.121" >
+            <activity type="home" x="329985.630" y="4692070.121">
             </activity>
         </plan>
 
@@ -4190,11 +4188,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328398.333" y="4692734.850" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328398.333" y="4692734.850">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328398.333" y="4692734.850" >
+            <activity type="home" x="328398.333" y="4692734.850">
             </activity>
         </plan>
 
@@ -4244,11 +4242,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330251.355" y="4690727.156" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330251.355" y="4690727.156">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330251.355" y="4690727.156" >
+            <activity type="home" x="330251.355" y="4690727.156">
             </activity>
         </plan>
 
@@ -4298,11 +4296,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329544.587" y="4690677.550" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329544.587" y="4690677.550">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329544.587" y="4690677.550" >
+            <activity type="home" x="329544.587" y="4690677.550">
             </activity>
         </plan>
 
@@ -4350,11 +4348,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330667.230" y="4692570.359" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330667.230" y="4692570.359">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330667.230" y="4692570.359" >
+            <activity type="home" x="330667.230" y="4692570.359">
             </activity>
         </plan>
 
@@ -4402,11 +4400,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328662.301" y="4692713.827" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328662.301" y="4692713.827">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328662.301" y="4692713.827" >
+            <activity type="home" x="328662.301" y="4692713.827">
             </activity>
         </plan>
 
@@ -4454,11 +4452,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="327441.488" y="4687884.430" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="327441.488" y="4687884.430">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="327441.488" y="4687884.430" >
+            <activity type="home" x="327441.488" y="4687884.430">
             </activity>
         </plan>
 
@@ -4506,11 +4504,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329455.517" y="4686763.274" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329455.517" y="4686763.274">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329455.517" y="4686763.274" >
+            <activity type="home" x="329455.517" y="4686763.274">
             </activity>
         </plan>
 
@@ -4558,11 +4556,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328573.172" y="4687417.778" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328573.172" y="4687417.778">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328573.172" y="4687417.778" >
+            <activity type="home" x="328573.172" y="4687417.778">
             </activity>
         </plan>
 
@@ -4610,11 +4608,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="326949.879" y="4688744.432" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="326949.879" y="4688744.432">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="326949.879" y="4688744.432" >
+            <activity type="home" x="326949.879" y="4688744.432">
             </activity>
         </plan>
 
@@ -4663,11 +4661,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329912.806" y="4685003.340" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329912.806" y="4685003.340">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329912.806" y="4685003.340" >
+            <activity type="home" x="329912.806" y="4685003.340">
             </activity>
         </plan>
 
@@ -4715,11 +4713,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329208.623" y="4685764.426" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329208.623" y="4685764.426">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329208.623" y="4685764.426" >
+            <activity type="home" x="329208.623" y="4685764.426">
             </activity>
         </plan>
 
@@ -4767,11 +4765,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329144.197" y="4687181.842" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329144.197" y="4687181.842">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329144.197" y="4687181.842" >
+            <activity type="home" x="329144.197" y="4687181.842">
             </activity>
         </plan>
 
@@ -4820,11 +4818,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330651.494" y="4688784.536" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330651.494" y="4688784.536">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330651.494" y="4688784.536" >
+            <activity type="home" x="330651.494" y="4688784.536">
             </activity>
         </plan>
 
@@ -4872,11 +4870,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331419.452" y="4689571.203" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331419.452" y="4689571.203">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331419.452" y="4689571.203" >
+            <activity type="home" x="331419.452" y="4689571.203">
             </activity>
         </plan>
 
@@ -4924,11 +4922,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331000.342" y="4692269.983" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331000.342" y="4692269.983">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331000.342" y="4692269.983" >
+            <activity type="home" x="331000.342" y="4692269.983">
             </activity>
         </plan>
 
@@ -4976,11 +4974,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332787.342" y="4692466.604" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332787.342" y="4692466.604">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332787.342" y="4692466.604" >
+            <activity type="home" x="332787.342" y="4692466.604">
             </activity>
         </plan>
 
@@ -5028,11 +5026,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329068.509" y="4686691.813" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329068.509" y="4686691.813">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329068.509" y="4686691.813" >
+            <activity type="home" x="329068.509" y="4686691.813">
             </activity>
         </plan>
 
@@ -5080,11 +5078,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330277.417" y="4686923.322" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330277.417" y="4686923.322">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330277.417" y="4686923.322" >
+            <activity type="home" x="330277.417" y="4686923.322">
             </activity>
         </plan>
 
@@ -5133,11 +5131,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329868.114" y="4690518.672" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329868.114" y="4690518.672">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329868.114" y="4690518.672" >
+            <activity type="home" x="329868.114" y="4690518.672">
             </activity>
         </plan>
 
@@ -5186,11 +5184,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330565.816" y="4691956.597" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330565.816" y="4691956.597">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330565.816" y="4691956.597" >
+            <activity type="home" x="330565.816" y="4691956.597">
             </activity>
         </plan>
 
@@ -5239,11 +5237,11 @@
              <attribute name="WillStay" class="java.lang.String" >false</attribute>
          </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328342.214" y="4686312.690" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328342.214" y="4686312.690">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328342.214" y="4686312.690" >
+            <activity type="home" x="328342.214" y="4686312.690">
             </activity>
         </plan>
 
@@ -5292,11 +5290,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328917.473" y="4689725.320" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328917.473" y="4689725.320">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328917.473" y="4689725.320" >
+            <activity type="home" x="328917.473" y="4689725.320">
             </activity>
         </plan>
 
@@ -5345,11 +5343,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330124.529" y="4685669.860" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330124.529" y="4685669.860">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330124.529" y="4685669.860" >
+            <activity type="home" x="330124.529" y="4685669.860">
             </activity>
         </plan>
     </person>
@@ -5397,11 +5395,11 @@
                <attribute name="WillStay" class="java.lang.String" >false</attribute>
            </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332339.418" y="4689039.823" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332339.418" y="4689039.823">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332339.418" y="4689039.823" >
+            <activity type="home" x="332339.418" y="4689039.823">
             </activity>
         </plan>
 
@@ -5454,11 +5452,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331377.527" y="4689496.447" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331377.527" y="4689496.447">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331377.527" y="4689496.447" >
+            <activity type="home" x="331377.527" y="4689496.447">
             </activity>
         </plan>
 
@@ -5508,11 +5506,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328557.314" y="4691053.880" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328557.314" y="4691053.880">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328557.314" y="4691053.880" >
+            <activity type="home" x="328557.314" y="4691053.880">
             </activity>
         </plan>
 
@@ -5562,11 +5560,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328411.376" y="4690294.468" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328411.376" y="4690294.468">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328411.376" y="46902894.468" >
+            <activity type="home" x="328411.376" y="46902894.468">
             </activity>
         </plan>
 
@@ -5616,11 +5614,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329387.471" y="4689914.517" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329387.471" y="4689914.517">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329387.471" y="4689914.517" >
+            <activity type="home" x="329387.471" y="4689914.517">
             </activity>
         </plan>
 
@@ -5670,11 +5668,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330751.810" y="4689899.080" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330751.810" y="4689899.080">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330751.810" y="4689899.080" >
+            <activity type="home" x="330751.810" y="4689899.080">
             </activity>
         </plan>
 
@@ -5724,11 +5722,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330844.656" y="4691405.006" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330844.656" y="4691405.006">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330844.656" y="4691405.006" >
+            <activity type="home" x="330844.656" y="4691405.006">
             </activity>
         </plan>
 
@@ -5778,11 +5776,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329942.713" y="4691707.073" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329942.713" y="4691707.073">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329942.713" y="4691707.073" >
+            <activity type="home" x="329942.713" y="4691707.073">
             </activity>
         </plan>
 
@@ -5832,11 +5830,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329990.630" y="4692075.121" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329990.630" y="4692075.121">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329990.630" y="4692075.121" >
+            <activity type="home" x="329990.630" y="4692075.121">
             </activity>
         </plan>
 
@@ -5886,11 +5884,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328403.333" y="4692739.850" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328403.333" y="4692739.850">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328403.333" y="4692739.850" >
+            <activity type="home" x="328403.333" y="4692739.850">
             </activity>
         </plan>
 
@@ -5940,11 +5938,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330256.355" y="4690732.156" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330256.355" y="4690732.156">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330256.355" y="4690732.156" >
+            <activity type="home" x="330256.355" y="4690732.156">
             </activity>
         </plan>
 
@@ -5994,11 +5992,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329549.587" y="4690682.550" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329549.587" y="4690682.550">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329549.587" y="4690682.550" >
+            <activity type="home" x="329549.587" y="4690682.550">
             </activity>
         </plan>
 
@@ -6046,11 +6044,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330672.230" y="4692575.359" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330672.230" y="4692575.359">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330672.230" y="4692575.359" >
+            <activity type="home" x="330672.230" y="4692575.359">
             </activity>
         </plan>
 
@@ -6098,11 +6096,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328667.301" y="4692718.827" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328667.301" y="4692718.827">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328667.301" y="4692718.827" >
+            <activity type="home" x="328667.301" y="4692718.827">
             </activity>
         </plan>
 
@@ -6150,11 +6148,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="327446.488" y="4687889.430" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="327446.488" y="4687889.430">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="327446.488" y="4687889.430" >
+            <activity type="home" x="327446.488" y="4687889.430">
             </activity>
         </plan>
 
@@ -6202,11 +6200,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329460.517" y="4686768.274" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329460.517" y="4686768.274">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329460.517" y="4686768.274" >
+            <activity type="home" x="329460.517" y="4686768.274">
             </activity>
         </plan>
 
@@ -6254,11 +6252,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="328578.172" y="4687422.778" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="328578.172" y="4687422.778">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="328578.172" y="4687422.778" >
+            <activity type="home" x="328578.172" y="4687422.778">
             </activity>
         </plan>
 
@@ -6306,11 +6304,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="326954.879" y="4688749.432" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="326954.879" y="4688749.432">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="326954.879" y="4688749.432" >
+            <activity type="home" x="326954.879" y="4688749.432">
             </activity>
         </plan>
 
@@ -6359,11 +6357,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329917.806" y="4685008.340" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329917.806" y="4685008.340">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329917.806" y="4685008.340" >
+            <activity type="home" x="329917.806" y="4685008.340">
             </activity>
         </plan>
 
@@ -6411,11 +6409,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329213.623" y="4685769.426" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329213.623" y="4685769.426">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329213.623" y="4685769.426" >
+            <activity type="home" x="329213.623" y="4685769.426">
             </activity>
         </plan>
 
@@ -6463,11 +6461,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329149.197" y="4687186.842" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329149.197" y="4687186.842">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329149.197" y="4687186.842" >
+            <activity type="home" x="329149.197" y="4687186.842">
             </activity>
         </plan>
 
@@ -6516,11 +6514,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330656.494" y="4688789.536" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330656.494" y="4688789.536">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330656.494" y="4688789.536" >
+            <activity type="home" x="330656.494" y="4688789.536">
             </activity>
         </plan>
 
@@ -6568,11 +6566,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331424.452" y="4689576.203" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331424.452" y="4689576.203">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331424.452" y="4689576.203" >
+            <activity type="home" x="331424.452" y="4689576.203">
             </activity>
         </plan>
 
@@ -6620,11 +6618,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="331005.342" y="4692274.983" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="331005.342" y="4692274.983">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="331005.342" y="4692274.983" >
+            <activity type="home" x="331005.342" y="4692274.983">
             </activity>
         </plan>
 
@@ -6672,11 +6670,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="332792.342" y="4692471.604" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="332792.342" y="4692471.604">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="332792.342" y="4692471.604" >
+            <activity type="home" x="332792.342" y="4692471.604">
             </activity>
         </plan>
 
@@ -6724,11 +6722,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="329073.509" y="4686696.813" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="329073.509" y="4686696.813">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="329073.509" y="4686696.813" >
+            <activity type="home" x="329073.509" y="4686696.813">
             </activity>
         </plan>
 
@@ -6776,11 +6774,11 @@
               <attribute name="WillStay" class="java.lang.String" >false</attribute>
           </attributes>-->
         <plan selected="yes">
-            <activity type="home" x="330282.417" y="4686928.322" end_time="23:59:59" >
+            <activity end_time="23:59:59" type="home" x="330282.417" y="4686928.322">
             </activity>
             <leg mode="car">
             </leg>
-            <activity type="home" x="330282.417" y="4686928.322" >
+            <activity type="home" x="330282.417" y="4686928.322">
             </activity>
         </plan>
 

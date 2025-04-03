@@ -26,8 +26,8 @@
 
 	<module name="global">
 		<param name="randomSeed" value="482564" />
-		<param name="coordinateSystem" value="EPSG:25832" />
-<!--		<param name="coordinateSystem" value="EPSG:32619" />-->
+<!--		<param name="coordinateSystem" value="EPSG:25832" />-->
+		<param name="coordinateSystem" value="EPSG:32619" />
 		<param name="numberOfThreads" value="1" />
 	</module>
 

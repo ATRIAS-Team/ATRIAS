@@ -64,6 +64,7 @@ import jadex.bridge.service.search.ServiceQuery;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static io.github.agentsoz.ees.shared.SharedConstants.FIREBASE_ENABLED;
@@ -1032,9 +1033,18 @@ public class Utils {
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
             origin = "trike:" + trip.getDecisionTaskD().getOrigin();
         }
+//        csvLogger.addLog(trikeAgent.agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD,
+//                commitThreshold, DISTANCE_FACTOR, "trike:" + trikeAgent.agentID, tripID, driveOperationNumber,
+//                tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin,
+//                String.valueOf(trip.startPosition), String.valueOf(trip.endPosition));
+
+//      Centralplanner Logger
         csvLogger.addLog(trikeAgent.agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD,
                 commitThreshold, DISTANCE_FACTOR, "trike:" + trikeAgent.agentID, tripID, driveOperationNumber,
-                tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin,
+                tripType,
+                trip.getVATime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm")),
+                arrivalTime,
+                distance,
                 String.valueOf(trip.startPosition), String.valueOf(trip.endPosition));
     }
 

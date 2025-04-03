@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 
 public class GreedyWithReschedulingScheduler extends AbstractScheduler {
-    public GreedyWithReschedulingScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
-        super(vehicles, requestsFilePath, outputFilePath, graph, "fast_dijkstra");
+    public GreedyWithReschedulingScheduler(String configFilePath) {
+        super(configFilePath);
     }
 
     public void run(){

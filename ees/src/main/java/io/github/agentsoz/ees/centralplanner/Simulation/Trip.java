@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
 public class Trip {
     public String customerID;
     public String TripID;
+    public int driveOperationNumber;
+    public String tripType;
     public LocalDateTime bookingTime;
     public LocalDateTime vaTime;
     public String startX;
@@ -17,11 +19,15 @@ public class Trip {
     public String nearestStartNode;
     public String nearestEndNode;
     public Path calculatedPath;
-    public double batteryLevel;
+    public double batteryBefore;
+    public double batteryAfter;
+    public double distance;
 
-    public Trip( String customerID, String TripID, String bookingTime, String vaTime, String startX, String startY, String endX, String endY ) {
+    public Trip( String customerID, String TripID, int driveOperationNumber, String tripType, String bookingTime, String vaTime, String startX, String startY, String endX, String endY ) {
         this.customerID = customerID;
         this.TripID = TripID;
+        this.driveOperationNumber = driveOperationNumber;
+        this.tripType = tripType;
         this.bookingTime = timeParser(bookingTime);
         this.vaTime = timeParser(vaTime);
         this.startX = startX;
@@ -44,8 +50,11 @@ public class Trip {
             case "fast_dijkstra":
                 calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
                 break;
+            case "aStar":
+                calculatedPath = graph.aStar(nearestStartNode, nearestEndNode);
+                break;
             default:
-                throw new IllegalArgumentException("Invalid pathfinding method: " + graph.pathfindingMethod);
+                throw new IllegalArgumentException("Invalid pathfinding method: Please choose euclidean, dijkstra, fast_dijkstra or aStar");
         }
     }
 

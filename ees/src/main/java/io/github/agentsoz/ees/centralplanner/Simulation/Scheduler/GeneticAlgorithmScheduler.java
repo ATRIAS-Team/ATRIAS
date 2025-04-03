@@ -19,8 +19,8 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
     private static final long SEED = 815274;
     private static final Random random = new Random(SEED);
 
-    public GeneticAlgorithmScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph) {
-        super(vehicles, requestsFilePath, outputFilePath, graph, "dijkstra");
+    public GeneticAlgorithmScheduler(String configFilePath) {
+        super(configFilePath);
     }
 
     public void run() {

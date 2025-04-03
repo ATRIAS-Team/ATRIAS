@@ -15,11 +15,15 @@ public class Graph {
     private final HashMap<Node, List<Edge>> adjacencyList;
     private final ArrayList<String> chargingStations;
     public String pathfindingMethod;
+    private final HashMap<String, String> configMap;
 
-    public Graph() {
+    public Graph(HashMap<String, String> configMap) {
         nodes = new HashMap<String, Node>();
         adjacencyList = new HashMap<Node, List<Edge>>();
         chargingStations = new ArrayList<>();
+        this.configMap = configMap;
+        pathfindingMethod = configMap.get("PATHFINDING_METHOD");
+        generateFromXmlFile(configMap.get("inputNetworkFile"));
     }
 
     // Add a new node to the graph
@@ -81,7 +85,7 @@ public class Graph {
 
     public void generateFromXmlFile(String path){
         try {
-            System.out.println("Generating Graph from XML file");
+            System.out.println("Generating Graph from XML file: " + path);
             // Parse XML file
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -95,20 +99,26 @@ public class Graph {
             NodeList edgeList = document.getElementsByTagName("link");
 
             // add nodes
-            for (int i = 0; i < nodeList.getLength(); i++) {
+            int k = 0;
+            int nodeListLength = nodeList.getLength();
+            for (int i = 0; i < nodeListLength; i++) {
                 Element nodeElement = (Element) nodeList.item(i);
                 String nodeId = nodeElement.getAttribute("id");
                 String nodeX = nodeElement.getAttribute("x");
                 String nodeY = nodeElement.getAttribute("y");
                 this.addNode(nodeId, nodeX, nodeY);
 
-                showProgress(i, nodeList.getLength()-1);
+                if (i%100 == 0 || i == nodeListLength-1){
+                    showProgress(i, nodeListLength-1,  " Nodes added: " + nodes.size());
+                }
+                k ++;
             }
 
             // add edges
-            for (int i = 0; i < edgeList.getLength(); i++) {
+            int edgeListLength = edgeList.getLength();
+            for (int j = 0; j < edgeListLength; j++) {
 
-                Element edgeElement = (Element) edgeList.item(i);
+                Element edgeElement = (Element) edgeList.item(j);
                 String from = edgeElement.getAttribute("from");
                 String to = edgeElement.getAttribute("to");
                 String id = edgeElement.getAttribute("id");
@@ -120,6 +130,9 @@ public class Graph {
                 String modes = edgeElement.getAttribute("modes");
 
                 this.addEdge(from, to, id, length, freespeed, capacity, permlanes, oneway, modes);
+                if (j%100 == 0 || j == edgeListLength-1){
+                    showProgress(k, nodeListLength-1,  " Nodes added: " + nodes.size() + ", Edges added: " + j);
+                }
             }
 
             // add charging stations
@@ -142,7 +155,7 @@ public class Graph {
         double distance = Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2)) * distanceFactor;
 
         Path path = new Path();
-        Edge directEdge = new Edge(startNode, endNode, startId+"-"+endId, Double.toString(distance), "6.0", "600", "1", "1", "car");
+        Edge directEdge = new Edge(startNode, endNode, startId+"-"+endId, Double.toString(distance), configMap.get("DRIVING_SPEED"), "600", "1", "1", "car");
         path.addEdge(directEdge);
         return path;
     }
@@ -176,6 +189,8 @@ public class Graph {
                 Node neighbor = edge.to;
                 if (visited.contains(neighbor)) continue;
 
+                //metric for the optimization (length/traveltime), shortest length does not mean fastest route
+//                double newDist = distances.get(currentNode) + edge.length;
                 double newDist = distances.get(currentNode) + edge.travelTime;
 
                 if (newDist < distances.getOrDefault(neighbor, Double.MAX_VALUE)) {
@@ -262,48 +277,52 @@ public class Graph {
         Node endNode = nodes.get(endId);
 
         // Data structures
-        Map<Node, Double> distances = new HashMap<>();  // Store shortest distances
+        Map<Node, Double> gScore = new HashMap<>();  // the currently known cost of the cheapest path from start to n
+        Map<Node, Double> fScore = new HashMap<>();  // current best guess for a path if it goes througn n
         Map<Node, Edge> crossedEdges = new HashMap<>();   // Store the shortest path tree
-        PriorityQueue<NodeDistance> pq = new PriorityQueue<>(Comparator.comparingDouble(NodeDistance::getDistance));
-        Set<Node> visited = new HashSet<>();
+        Map<Node, NodeDistance> openSetReferences = new HashMap<>();   // Store Node->NodeDistance references
+        PriorityQueue<NodeDistance> openSet = new PriorityQueue<>(Comparator.comparingDouble(NodeDistance::getDistance));
 
-        // Heuristik:
-        double heuristicValueEndNode = aStarHeuristic(startNode, endNode);
+        NodeDistance startNodeDistance = new NodeDistance(startNode, 0.0);
+        openSetReferences.put(startNode, startNodeDistance);
+        openSet.add(startNodeDistance);
 
         // Initialize distances
         for (Node node : nodes.values()) {
-            distances.put(node, Double.MAX_VALUE);
+            gScore.put(node, Double.MAX_VALUE);
         }
-        distances.put(startNode, 0.0);
-        pq.add(new NodeDistance(startNode, 0.0));
+        gScore.put(startNode, 0.0);
 
-        while (!pq.isEmpty()) {
-            NodeDistance currentNodeDist = pq.poll();
+        for (Node node : nodes.values()) {
+            fScore.put(node, Double.MAX_VALUE);
+        }
+        fScore.put(startNode, aStarHeuristic(startNode, endNode));
+
+        while (!openSet.isEmpty()) {
+            NodeDistance currentNodeDist = openSet.poll();
             Node currentNode = currentNodeDist.getNode();
 
-            // Skip if already visited
-            if (visited.contains(currentNode)) continue;
-            visited.add(currentNode);
-
-            // If reached the destination node, stop
+            // If destination node, stop
             if (currentNode.equals(endNode)) break;
 
             // Relaxation step
             for (Edge edge : adjacencyList.get(currentNode)) {
                 Node neighbor = edge.to;
-                if (visited.contains(neighbor)) continue;
 
-                double newDist = distances.get(currentNode) + edge.travelTime;
+                //metric for the optimization (length/traveltime), shortest length does not mean fastest route
+//                double tentative_gScore = gScore.get(currentNode) + edge.length;
+                double tentative_gScore = gScore.get(currentNode) + edge.travelTime;
 
-                double heuristicValueNeighbor = aStarHeuristic(currentNode, endNode);
-                double priority = newDist + heuristicValueNeighbor;
-
-                if (priority < distances.get(neighbor)) {
-                    distances.put(neighbor, newDist);
+                if (tentative_gScore < gScore.get(neighbor)) {
                     crossedEdges.put(neighbor, edge);
-
-                    // Prioritätsberechnung
-                    pq.add(new NodeDistance(neighbor, priority));
+                    gScore.put(neighbor, tentative_gScore);
+                    fScore.put(neighbor, tentative_gScore + aStarHeuristic(neighbor, endNode));
+                    NodeDistance neighborDistance = openSetReferences.get(neighbor);
+                    if (!openSet.contains(neighborDistance)) {
+                        NodeDistance newNeighborDistance = new NodeDistance(neighbor, fScore.get(neighbor));
+                        openSet.add(newNeighborDistance);
+                        openSetReferences.put(neighbor, newNeighborDistance);
+                    }
                 }
             }
         }
@@ -317,7 +336,7 @@ public class Graph {
     }
 
     private double aStarHeuristic(Node startNode, Node endNode) {
-        return Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2));
+        return Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2)) / 14;
     }
 
     @Override

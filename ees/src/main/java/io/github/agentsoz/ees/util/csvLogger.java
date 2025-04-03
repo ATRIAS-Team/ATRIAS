@@ -80,12 +80,13 @@ public class csvLogger {
         }
     }
 
+    //changed version for Centralplanner
     public static void addHeader(String agentID, Boolean CNP_ACTIVE, Double THETA, Boolean ALLOW_CUSTOMER_MISS, Double CHARGING_THRESHOLD, Double commitThreshold, Double DISTANCE_FACTOR){
         FileWriter writer = null;
         try {
             writer = new FileWriter(getLogDirectory() + "LogAgent#" + agentID + "_CNP#" + CNP_ACTIVE + "_THETA#" + THETA + "_MISS#" + ALLOW_CUSTOMER_MISS + "_CH.THRES#" + CHARGING_THRESHOLD + "_COM.THRES#" + commitThreshold + "_DI.FACTOR#" + DISTANCE_FACTOR + ".csv", true);
-            writer.append(String.join( ";", "AgentID", "TripID", "DriveOperationNumber", "TripType",
-                    "BatteryBefore", "BatteryAfter", "ArrivedAtLocation", "Distance", "arrivalTime", "Origin", "Start_Pos", "End_Pos") + "\n");
+            writer.append(String.join( ";", "AgentID", "TripID", "DriveOperationNumber", "TripType", "VaTime",
+                     "ArrivalTime", "Distance", "Start_Pos", "End_Pos") + "\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {

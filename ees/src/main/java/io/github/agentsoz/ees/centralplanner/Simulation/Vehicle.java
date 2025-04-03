@@ -3,7 +3,6 @@ package io.github.agentsoz.ees.centralplanner.Simulation;
 import io.github.agentsoz.ees.centralplanner.Graph.*;
 import io.github.agentsoz.ees.trikeagent.BatteryModel;
 
-import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,9 +21,10 @@ public class Vehicle {
     public BatteryModel battery = new BatteryModel();
     public BatteryModel futureBattery = new BatteryModel();
     public float chargingThreshold;
+    public int chargingTrips = 0;
 
     public Vehicle(int id, String home, float chargingThreshold) {
-        this.name = "Vehicle-" + id;
+        this.name = "trike:" + id;
         this.id = id;
         this.currentPosition = home;
         this.futurePosition = home;
@@ -55,8 +55,11 @@ public class Vehicle {
 
     public void queueChargingTrip(Graph graph){
         String nearestChargingStation = graph.getNearestChargingStation(futurePosition);
+        chargingTrips++;
         Trip vehicleChargingTrip = new Trip(name,
-                "Charging Trip",
+                "CH"+chargingTrips,
+                1,
+                "ChargingTrip",
                 busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
                 busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
                 graph.getNodeCoordinates(futurePosition)[0],
@@ -84,7 +87,7 @@ public class Vehicle {
                 if (currentTrip.TripID.equals("Charging Trip")){
                     battery.loadBattery();
                 }
-                currentTrip.batteryLevel = battery.getMyChargestate();
+                currentTrip.batteryBefore = battery.getMyChargestate();
                 takenTrips.add(currentTrip);
                 iterator.remove(); // Safe removal during iteration
             } else {
@@ -134,7 +137,9 @@ public class Vehicle {
 
         //first generate trip to get to the customer
         Trip vehicleApproachTrip = new Trip(name,
-                customerTrip.TripID+"-approach",
+                customerTrip.TripID,
+                1,
+                "ApproachTrip",
                 customerTrip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
                 busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
                 graph.getNodeCoordinates(futurePosition)[0],

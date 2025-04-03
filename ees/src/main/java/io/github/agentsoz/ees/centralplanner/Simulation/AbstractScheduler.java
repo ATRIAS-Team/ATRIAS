@@ -9,19 +9,23 @@ import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static io.github.agentsoz.ees.centralplanner.util.Util.*;
+
 public abstract class AbstractScheduler implements Simulation {
     public ArrayList<Vehicle> vehicles;
     protected final ArrayList<Trip> requestedTrips;
     protected final HashMap<String, Integer> bestVehicleMap = new HashMap<>();
     protected final Graph graph;
     protected final String outputFilePath;
+    protected HashMap<String, String> configMap;
 
-    public AbstractScheduler(ArrayList<Vehicle> vehicles, String requestsFilePath, String outputFilePath, Graph graph, String pathfindingMethod) {
-        graph.pathfindingMethod = pathfindingMethod;
-        this.requestedTrips = new RequestReader(requestsFilePath, graph).requestedTrips;
-        this.graph = graph;
-        this.vehicles = vehicles;
-        this.outputFilePath = outputFilePath;
+    public AbstractScheduler(String configFilePath) {
+        configMap = xmlConfigParser(configFilePath);
+        this.graph = new Graph(configMap);
+        this.requestedTrips = new RequestReader(configMap.get("CSV_SOURCE"), graph).requestedTrips;
+        this.vehicles = generateFromXmlFile(configFilePath, graph);
+        this.outputFilePath = configMap.get("OUTPUT_PATH") + "/" + this.getClass().getSimpleName();
+        initializeOutputFolder(this.outputFilePath);
     }
 
     public abstract void run();
@@ -30,15 +34,19 @@ public abstract class AbstractScheduler implements Simulation {
         for (Vehicle vehicle : vehicles){
 
             List<String[]> data = new ArrayList<>();
-            data.add(new String[]{"customerID","TripID","bookingTime","vaTime","StartNode", "EndNode", "battery"});
+            data.add(new String[]{"CustomerID","TripID", "DriveOperationNumber", "TripType", "bookingTime", "vaTime", "ArrivalTime", "Distance","StartNode", "EndNode", "battery"});
             for (Trip trip : vehicle.takenTrips){
                 data.add(new String[]{trip.customerID,
                         trip.TripID,
+                        String.valueOf(trip.driveOperationNumber),
+                        trip.tripType,
                         trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
                         trip.vaTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
+                        String.valueOf(Math.ceil(trip.calculatedPath.travelTime)),
+                        String.valueOf(Math.ceil(trip.calculatedPath.distance)),
                         trip.nearestStartNode,
                         trip.nearestEndNode,
-                        String.valueOf(trip.batteryLevel)
+                        String.valueOf(trip.batteryBefore)
                 });
             }
 
@@ -64,9 +72,9 @@ public abstract class AbstractScheduler implements Simulation {
         for (Trip trip : requestedTrips){
             data.add(new String[]{trip.customerID,
                     trip.TripID,
-                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm:ss")),
+                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm")),
 //                    trip.vaTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
-                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm:ss")),
+                    trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm")),
                     trip.startX,
                     trip.startY,
                     trip.endX,
