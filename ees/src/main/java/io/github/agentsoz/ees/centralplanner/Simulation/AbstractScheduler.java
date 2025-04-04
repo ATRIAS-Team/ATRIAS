@@ -13,22 +13,56 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.*;
 
 public abstract class AbstractScheduler implements Simulation {
     public ArrayList<Vehicle> vehicles;
-    protected final ArrayList<Trip> requestedTrips;
+    public ArrayList<Trip> requestedTrips;
     protected final HashMap<String, Integer> bestVehicleMap = new HashMap<>();
-    protected final Graph graph;
-    protected final String outputFilePath;
+    public Graph graph;
+    protected String outputFilePath;
     protected HashMap<String, String> configMap;
+    public Boolean progressionLogging = false;
 
-    public AbstractScheduler(String configFilePath) {
-        configMap = xmlConfigParser(configFilePath);
+    public AbstractScheduler(HashMap<String, String> configMap) {
+        this.configMap = configMap;
+    }
+
+    public void init(){
         this.graph = new Graph(configMap);
         this.requestedTrips = new RequestReader(configMap.get("CSV_SOURCE"), graph).requestedTrips;
-        this.vehicles = generateFromXmlFile(configFilePath, graph);
+        this.vehicles = vehicleInit(configMap, graph);
         this.outputFilePath = configMap.get("OUTPUT_PATH") + "/" + this.getClass().getSimpleName();
         initializeOutputFolder(this.outputFilePath);
+        progressionLogging = true;
     }
 
     public abstract void run();
+
+    public void updateWithLastArrivalTime(){
+        //update rest of queued trips from vehicles, even after last booking came in
+        for (Vehicle vehicle : vehicles){
+            if (!vehicle.queuedTrips.isEmpty()){
+                vehicle.refreshVehicle(vehicle.busyUntil);
+            }
+            for (Trip customerTrip : vehicle.takenTrips){
+                bestVehicleMap.put(customerTrip.TripID, vehicle.id);
+            }
+        }
+    }
+
+    public ArrayList<Vehicle> copyAllVehicles(){
+        ArrayList<Vehicle> copiedVehicles = new ArrayList<>();
+        for (Vehicle vehicle : vehicles){
+            copiedVehicles.add(new Vehicle(vehicle));
+        }
+        return copiedVehicles;
+    }
+
+    public void removeTripsFromVehicles(HashMap<Integer, ArrayList<Trip>> vehicleTripMap){
+        for (int vehicleId: vehicleTripMap.keySet()){
+            Vehicle vehicle = vehicles.get(vehicleId);
+            for (Trip trip: vehicleTripMap.get(vehicleId)){
+                vehicle.removeQueuedTrip(trip);
+            }
+        }
+    }
 
     public void saveVehicleTrips(){
         for (Vehicle vehicle : vehicles){

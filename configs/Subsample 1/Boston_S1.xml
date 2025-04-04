@@ -42,6 +42,8 @@
     </class>
     <class class_name="CentralPlanner">
         <field field_name="OUTPUT_PATH">output</field>
+<!--        <field field_name="PATHFINDING_METHOD">euclidean</field>-->
+<!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
         <field field_name="PATHFINDING_METHOD">fast_dijkstra</field>
     </class>
 

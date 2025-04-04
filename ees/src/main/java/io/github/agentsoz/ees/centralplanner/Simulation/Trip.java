@@ -23,7 +23,7 @@ public class Trip {
     public double batteryAfter;
     public double distance;
 
-    public Trip( String customerID, String TripID, int driveOperationNumber, String tripType, String bookingTime, String vaTime, String startX, String startY, String endX, String endY ) {
+    public Trip( String customerID, String TripID, int driveOperationNumber, String tripType, String bookingTime, String vaTime, String startX, String startY, String endX, String endY, String nearestStartNode, String nearestEndNode ) {
         this.customerID = customerID;
         this.TripID = TripID;
         this.driveOperationNumber = driveOperationNumber;
@@ -34,12 +34,11 @@ public class Trip {
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
+        this.nearestStartNode = nearestStartNode;
+        this.nearestEndNode = nearestEndNode;
     }
 
     public void calculateTrip(Graph graph) {
-        nearestStartNode = graph.getNearestNodeID(startX, startY);
-        nearestEndNode = graph.getNearestNodeID(endX, endY);
-
         switch (graph.pathfindingMethod){
             case "euclidean":
                 calculatedPath = graph.euclideanDistance(nearestStartNode, nearestEndNode);

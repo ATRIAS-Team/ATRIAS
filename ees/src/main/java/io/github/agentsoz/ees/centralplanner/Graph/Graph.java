@@ -74,7 +74,7 @@ public class Graph {
         String nearestStation = null;
         double travelTime = Double.MAX_VALUE;
         for (String chargingStation : chargingStations) {
-            Path path = dijkstra(currentNode, chargingStation);
+            Path path = fast_dijkstra(currentNode, chargingStation);
             if (path.travelTime < travelTime) {
                 nearestStation = chargingStation;
                 travelTime = path.travelTime;
@@ -150,7 +150,7 @@ public class Graph {
         Node startNode = nodes.get(startId);
         Node endNode = nodes.get(endId);
 
-        double distanceFactor = 1.0;
+        double distanceFactor = Double.parseDouble(configMap.get("DISTANCE_FACTOR"));
 
         double distance = Math.sqrt(Math.pow(startNode.x - endNode.x,2) + Math.pow(startNode.y - endNode.y,2)) * distanceFactor;
 

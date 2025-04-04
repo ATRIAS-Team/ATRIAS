@@ -18,8 +18,8 @@ public class AntColonyScheduler extends AbstractScheduler {
     private final int maxIterations;     // Maximum iterations
     private Map<String, Map<Integer, Double>> pheromones; // Pheromone levels: tripID -> vehicleID -> value
 
-    public AntColonyScheduler(String configFilePath) {
-        super(configFilePath);
+    public AntColonyScheduler(HashMap<String, String> configMap) {
+        super(configMap);
         this.numAnts = 10;         // Tunable
         this.alpha = 1.0;          // Pheromone weight
         this.beta = 2.0;           // Heuristic weight

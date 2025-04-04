@@ -1,23 +1,25 @@
 package io.github.agentsoz.ees.centralplanner.Simulation.Scheduler;
 
-import io.github.agentsoz.ees.centralplanner.Graph.*;
 import io.github.agentsoz.ees.centralplanner.Simulation.AbstractScheduler;
 import io.github.agentsoz.ees.centralplanner.Simulation.Trip;
 import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 
 import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 
-public class GreedyScheduler extends AbstractScheduler {
-    public GreedyScheduler(HashMap<String, String> configMap) {
+public class GreedyGARescheduling extends AbstractScheduler {
+    public GreedyGARescheduling(HashMap<String, String> configMap) {
         super(configMap);
     }
 
     public void run(){
         if (progressionLogging){
-            System.out.println("\nScheduling requests using Greedy");
+            System.out.println("\nScheduling requests using Greedy with GA Rescheduling");
         }
         // start by iterating over requests
         for (int i = 0; i < requestedTrips.size(); i++) {
@@ -54,11 +56,35 @@ public class GreedyScheduler extends AbstractScheduler {
                 return;
             }
 
-            //queue the trips for the best vehicle
             bestVehicle.queueTrip(bestApproach);
+            customerTrip.vaTime = bestApproach.vaTime.plusSeconds((long) Math.ceil(bestApproach.calculatedPath.travelTime));
+
+            //queue the trip for the best vehicle
             bestVehicle.queueTrip(customerTrip);
-            //evaluate if charging is necessary
 //            bestVehicle.handleCharging(graph);
+
+            rescheduleVehicles();
+        }
+    }
+
+    private void rescheduleVehicles() {
+        // Iterate over each vehicle
+        ArrayList<Trip> rescheduleCandidates = new ArrayList<>();
+        HashMap<Integer, ArrayList<Trip>> vehicleTripMap = new HashMap<>();
+        for (Vehicle vehicle : vehicles) {
+            ArrayList<Trip> openTrips = vehicle.getOpenQueuedTrips();
+            vehicleTripMap.put(vehicle.id, openTrips);
+            rescheduleCandidates.addAll(openTrips);
+        }
+        if (rescheduleCandidates.size() > 5){
+            rescheduleCandidates.sort(Comparator.comparing(trip -> trip.bookingTime));
+            GreedyScheduler sim = new GreedyScheduler(configMap);
+            sim.vehicles = copyAllVehicles();
+            sim.removeTripsFromVehicles(vehicleTripMap);
+            sim.requestedTrips = rescheduleCandidates;
+            sim.graph = graph;
+            sim.run();
+            vehicles = sim.vehicles;
         }
     }
 }

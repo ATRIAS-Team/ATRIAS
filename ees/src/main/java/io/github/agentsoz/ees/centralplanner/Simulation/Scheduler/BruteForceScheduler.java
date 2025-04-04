@@ -7,6 +7,7 @@ import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -17,8 +18,8 @@ public class BruteForceScheduler extends AbstractScheduler {
     private static final int SEARCH_DEPTH = 4;
 
 
-    public BruteForceScheduler(String configFilePath) {
-        super(configFilePath);
+    public BruteForceScheduler(HashMap<String, String> configMap) {
+        super(configMap);
         generateAssignmentsHelper(new ArrayList<>());
     }
 

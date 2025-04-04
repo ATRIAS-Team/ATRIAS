@@ -139,8 +139,7 @@ public class Util {
         return configMap;
     }
 
-    public static ArrayList<Vehicle> generateFromXmlFile(String path, Graph graph){
-        HashMap<String, String> configMap = new HashMap<>();
+    public static ArrayList<Vehicle> vehicleInit(HashMap<String, String> configMap, Graph graph){
         HashMap<Integer, List<String>> populationMap = new HashMap<>();
         ArrayList<Vehicle> vehicles = new ArrayList<>();
 
@@ -148,22 +147,7 @@ public class Util {
             // Parse XML file
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(new File(path));
-
-            // Normalize the document
-            document.getDocumentElement().normalize();
-
-            // Read node
-            NodeList nodeList = document.getElementsByTagName("file");
-            configMap.put("POPULATION_FILE", ((Element) nodeList.item(0)).getAttribute("target_file"));
-            configMap.put("VEHICLES", ((Element) ((Element) nodeList.item(1)).getElementsByTagName("component").item(0)).getAttribute("number"));
-            NodeList nodeList2 = document.getElementsByTagName("field");
-            for (int i=0;i<nodeList2.getLength();i++){
-                Element element = (Element) nodeList2.item(i);
-                configMap.put(element.getAttribute("field_name"), element.getTextContent());
-            }
-
-            Document populationDoc = builder.parse(new File(configMap.get("POPULATION_FILE")));
+            Document populationDoc = builder.parse(new File(configMap.get("population")));
             populationDoc.getDocumentElement().normalize();
 
             NodeList popNodeList = populationDoc.getElementsByTagName("person");
@@ -177,7 +161,7 @@ public class Util {
                 populationMap.put(i, coords);
             }
 
-            for (int i=0;i<Integer.parseInt(configMap.get("VEHICLES"));i++){
+            for (int i=0;i<Integer.parseInt(configMap.get("TrikeAgent"));i++){
                 String homeNode = graph.getNearestNodeID(populationMap.get(i).get(0), populationMap.get(i).get(1));
                 Vehicle vehicle = new Vehicle(i, homeNode, Float.parseFloat(configMap.get("CHARGING_THRESHOLD")));
                 vehicles.add(vehicle);

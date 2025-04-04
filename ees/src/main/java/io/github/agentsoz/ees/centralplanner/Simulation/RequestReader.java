@@ -28,7 +28,7 @@ public class RequestReader {
             String endX = dataRow.get("endX");
             String endY = dataRow.get("endY");
 
-            Trip trip = new Trip(customerID, tripID, 2, "CustomerTrip", bookingTime, vaTime, startX, startY, endX, endY);
+            Trip trip = new Trip(customerID, tripID, 2, "CustomerTrip", bookingTime, vaTime, startX, startY, endX, endY, graph.getNearestNodeID(startX, startY), graph.getNearestNodeID(endX, endY));
             trip.calculateTrip(graph);
 
             requestedTrips.add(trip);

@@ -36,11 +36,22 @@ public class Vehicle {
         // for copying and mutating the vehicle
         this.name = other.name;
         this.id = other.id;
+        this.futurePosition = other.futurePosition;
         this.currentPosition = other.currentPosition;
-        this.futurePosition = other.currentPosition;
         this.home = other.home;
         this.busyUntil = other.busyUntil;
+        this.queuedTrips = new ArrayList<>(other.queuedTrips);
+        this.takenTrips = new ArrayList<>(other.takenTrips);
+        this.battery = new BatteryModel();
+        battery.setMyBatteryHealth(other.battery.getMyBatteryHealth());
+        battery.setMyNumberOfCharges(other.battery.getMyNumberOfCharges());
+        battery.setMyChargestate(other.battery.getMyChargestate());
+        this.futureBattery = new BatteryModel();
+        futureBattery.setMyBatteryHealth(other.futureBattery.getMyBatteryHealth());
+        futureBattery.setMyNumberOfCharges(other.futureBattery.getMyNumberOfCharges());
+        futureBattery.setMyChargestate(other.futureBattery.getMyChargestate());
         this.chargingThreshold = other.chargingThreshold;
+        this.chargingTrips = other.chargingTrips;
     }
 
     //allocates trip to the vehicle by adding it to the queue
@@ -65,7 +76,9 @@ public class Vehicle {
                 graph.getNodeCoordinates(futurePosition)[0],
                 graph.getNodeCoordinates(futurePosition)[1],
                 graph.getNodeCoordinates(nearestChargingStation)[0],
-                graph.getNodeCoordinates(nearestChargingStation)[1]
+                graph.getNodeCoordinates(nearestChargingStation)[1],
+                futurePosition,
+                nearestChargingStation
         );
         vehicleChargingTrip.calculateTrip(graph);
         queueTrip(vehicleChargingTrip);
@@ -145,7 +158,9 @@ public class Vehicle {
                 graph.getNodeCoordinates(futurePosition)[0],
                 graph.getNodeCoordinates(futurePosition)[1],
                 customerTrip.startX,
-                customerTrip.startY
+                customerTrip.startY,
+                futurePosition,
+                customerTrip.nearestStartNode
         );
         //calculate the path of the trip
         vehicleApproachTrip.calculateTrip(graph);

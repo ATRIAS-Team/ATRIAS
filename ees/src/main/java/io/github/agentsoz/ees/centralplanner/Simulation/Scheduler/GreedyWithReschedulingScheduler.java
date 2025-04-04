@@ -7,12 +7,13 @@ import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 
 public class GreedyWithReschedulingScheduler extends AbstractScheduler {
-    public GreedyWithReschedulingScheduler(String configFilePath) {
-        super(configFilePath);
+    public GreedyWithReschedulingScheduler(HashMap<String, String> configMap) {
+        super(configMap);
     }
 
     public void run(){
