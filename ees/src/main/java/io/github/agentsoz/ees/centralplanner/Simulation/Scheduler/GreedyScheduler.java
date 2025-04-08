@@ -21,7 +21,7 @@ public class GreedyScheduler extends AbstractScheduler {
         }
         // start by iterating over requests
         for (int i = 0; i < requestedTrips.size(); i++) {
-            Trip customerTrip = requestedTrips.get(i);
+            Trip customerTrip = new Trip(requestedTrips.get(i));
 
             if (progressionLogging){
                 showProgress(i, requestedTrips.size()-1);
@@ -40,8 +40,8 @@ public class GreedyScheduler extends AbstractScheduler {
                 Trip evaluatedApproach = vehicle.evaluateApproach(customerTrip, graph);
 
                 double customerWaitTime = Duration.between(customerTrip.bookingTime,
-                                evaluatedApproach.vaTime.plusSeconds((long) Math.ceil(evaluatedApproach.calculatedPath.travelTime)))
-                        .toSeconds();
+                    evaluatedApproach.vaTime.plusSeconds((long) Math.ceil(evaluatedApproach.calculatedPath.travelTime)))
+                    .toSeconds();
 
                 if (customerWaitTime<bestTravelTime){
                     bestTravelTime = customerWaitTime;

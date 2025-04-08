@@ -21,7 +21,8 @@ public class Trip {
     public Path calculatedPath;
     public double batteryBefore;
     public double batteryAfter;
-    public double distance;
+    public boolean rescheduled = false;
+
 
     public Trip( String customerID, String TripID, int driveOperationNumber, String tripType, String bookingTime, String vaTime, String startX, String startY, String endX, String endY, String nearestStartNode, String nearestEndNode ) {
         this.customerID = customerID;
@@ -36,6 +37,26 @@ public class Trip {
         this.endY = endY;
         this.nearestStartNode = nearestStartNode;
         this.nearestEndNode = nearestEndNode;
+    }
+
+    public Trip(Trip other){
+        //for copying the trip
+        this.customerID = other.customerID;
+        this.TripID = other.TripID;
+        this.driveOperationNumber = other.driveOperationNumber;
+        this.tripType = other.tripType;
+        this.bookingTime = other.bookingTime;
+        this.vaTime = other.vaTime;
+        this.startX = other.startX;
+        this.startY = other.startY;
+        this.endX = other.endX;
+        this.endY = other.endY;
+        this.nearestStartNode = other.nearestStartNode;
+        this.nearestEndNode = other.nearestEndNode;
+        this.calculatedPath = other.calculatedPath;
+        this.batteryBefore = other.batteryBefore;
+        this.batteryAfter = other.batteryAfter;
+        this.rescheduled = other.rescheduled;
     }
 
     public void calculateTrip(Graph graph) {

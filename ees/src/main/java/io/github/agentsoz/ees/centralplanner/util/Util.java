@@ -16,8 +16,8 @@ public class Util {
 
     public static void showProgress(int currentIteration, int totalIterations) {
         int barLength = 50; // Length of the progress bar
-        int progress = (currentIteration * 100) / totalIterations;
-        int filled = (currentIteration * barLength) / totalIterations;
+        int progress = (currentIteration * 100) / Math.max(totalIterations, 1);
+        int filled = (currentIteration * barLength) / Math.max(totalIterations, 1);
 
         // Build the progress bar
         String bar = "=".repeat(filled) + " ".repeat(barLength - filled);
@@ -28,8 +28,8 @@ public class Util {
 
     public static void showProgress(int currentIteration, int totalIterations, String text) {
         int barLength = 50; // Length of the progress bar
-        int progress = (currentIteration * 100) / totalIterations;
-        int filled = (currentIteration * barLength) / totalIterations;
+        int progress = (currentIteration * 100) / Math.max(totalIterations, 1);
+        int filled = (currentIteration * barLength) / Math.max(totalIterations, 1);
 
         // Build the progress bar
         String bar = "=".repeat(filled) + " ".repeat(barLength - filled);
@@ -45,9 +45,9 @@ public class Util {
         if (!directory.exists()) {
             boolean created = directory.mkdirs(); // Creates the directory and any necessary parent directories
             if (created) {
-                System.out.println("Directory created successfully: " + outputFilePath);
+                System.out.println("\n\nDirectory created successfully: " + outputFilePath);
             } else {
-                System.err.println("Failed to create directory: " + outputFilePath);
+                System.err.println("\n\nFailed to create directory: " + outputFilePath);
             }
         } else {
             File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".csv"));
@@ -55,7 +55,7 @@ public class Util {
                 for (File file : files) {
                     boolean deleted = file.delete();
                     if (!deleted) {
-                        System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                        System.err.println("\n\nFailed to delete file: " + file.getAbsolutePath());
                     }
                 }
             }
@@ -163,7 +163,7 @@ public class Util {
 
             for (int i=0;i<Integer.parseInt(configMap.get("TrikeAgent"));i++){
                 String homeNode = graph.getNearestNodeID(populationMap.get(i).get(0), populationMap.get(i).get(1));
-                Vehicle vehicle = new Vehicle(i, homeNode, Float.parseFloat(configMap.get("CHARGING_THRESHOLD")));
+                Vehicle vehicle = new Vehicle(i, homeNode, configMap);
                 vehicles.add(vehicle);
             }
 

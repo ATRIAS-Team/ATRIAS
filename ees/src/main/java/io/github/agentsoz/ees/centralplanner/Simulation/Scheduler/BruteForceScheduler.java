@@ -8,6 +8,7 @@ import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -15,63 +16,58 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 
 public class BruteForceScheduler extends AbstractScheduler {
     ArrayList<ArrayList<Integer>> vehicleAssignments = new ArrayList<>();
-    private static final int SEARCH_DEPTH = 4;
-
+    public int SEARCH_DEPTH = 1;
 
     public BruteForceScheduler(HashMap<String, String> configMap) {
         super(configMap);
-        generateAssignmentsHelper(new ArrayList<>());
     }
 
     public void run() {
-        System.out.println("\nScheduling requests using Brute Force Scheduler");
-
-        ArrayList<Integer> bestAssignment = new ArrayList<>();
-        double bestWaitingTime = Double.MAX_VALUE;
-
-        for (int i = 0; i < vehicleAssignments.size(); i++) {
-            for (int j = 0; j < SEARCH_DEPTH; j++) {
-                Vehicle assignedVehicle = vehicles.get(vehicleAssignments.get(i).get(j));
-                Trip customerTrip = requestedTrips.get(j);
-                Trip approachTrip = assignedVehicle.evaluateApproach(customerTrip, graph);
-                assignedVehicle.refreshVehicle(customerTrip.bookingTime);
-                assignedVehicle.queueTrip(approachTrip);
-                customerTrip.vaTime = approachTrip.vaTime.plusSeconds((long) Math.ceil(approachTrip.calculatedPath.travelTime));
-                assignedVehicle.queueTrip(customerTrip);
-            }
-            double summedWaitingTime = calculateWaitingTime();
-            if (summedWaitingTime < bestWaitingTime) {
-                bestWaitingTime = summedWaitingTime;
-                bestAssignment = vehicleAssignments.get(i);
-            }
-            for (Vehicle vehicle : vehicles) {
-                vehicle.resetVehicle();
-            }
-            showProgress(i, vehicleAssignments.size()-1);
+        if (progressionLogging){
+            System.out.println("\nScheduling requests using Brute Force Scheduler");
         }
 
-        for (int j = 0; j < SEARCH_DEPTH; j++) {
-            Vehicle assignedVehicle = vehicles.get(bestAssignment.get(j));
-            Trip customerTrip = requestedTrips.get(j);
-            Trip approachTrip = assignedVehicle.evaluateApproach(customerTrip, graph);
-            assignedVehicle.refreshVehicle(customerTrip.bookingTime);
-            assignedVehicle.queueTrip(approachTrip);
-            customerTrip.vaTime = approachTrip.vaTime.plusSeconds((long) Math.ceil(approachTrip.calculatedPath.travelTime));
-            assignedVehicle.queueTrip(customerTrip);
-        }
+        ArrayList<ArrayList<Trip>> movingWindows = movingWindowGenerator();
 
-        //update rest of queued trips from vehicles, even after last booking came in
-        for (Vehicle vehicle : vehicles){
-            if (!vehicle.queuedTrips.isEmpty()){
-                Trip lastTrip = vehicle.queuedTrips.get(vehicle.queuedTrips.size()-1);
-                vehicle.refreshVehicle(lastTrip.vaTime.plusSeconds((long) Math.ceil(lastTrip.calculatedPath.travelTime)));
+        for (int mw = 0; mw < movingWindows.size(); mw++) {
+            ArrayList<Trip> currentTripWindow = movingWindows.get(mw);
+            // generate all permutations depending on the search depth
+            vehicleAssignments = new ArrayList<>();
+            generateAssignmentsHelper(new ArrayList<>());
+
+            // saves best permutation
+            ArrayList<Vehicle> bestAssignment = new ArrayList<>();
+            double bestWaitingTime = Double.MAX_VALUE;
+
+            //iterate over all permutations
+            for (int i = 0; i < vehicleAssignments.size(); i++) {
+                ArrayList<Vehicle> copiedVehicles = copyAllVehicles();
+                //iterate over the selected trips of the permutation
+                for (int j = 0; j < currentTripWindow.size(); j++) {
+                    //retrieve the copied vehicle of the corresponding permutation and depth
+                    Vehicle assignedVehicle = copiedVehicles.get(vehicleAssignments.get(i).get(j));
+                    Trip customerTrip = new Trip(currentTripWindow.get(j));
+                    assignedVehicle.refreshVehicle(customerTrip.bookingTime);
+
+                    Trip approachTrip = assignedVehicle.evaluateApproach(customerTrip, graph);
+                    assignedVehicle.queueTrip(approachTrip);
+                    assignedVehicle.queueTrip(customerTrip);
+                }
+                //if assignment took place, calculate the waiting time
+                double summedWaitingTime = calculateWaitingTime(copiedVehicles);
+                //refresh best result
+                if (summedWaitingTime < bestWaitingTime) {
+                    bestWaitingTime = summedWaitingTime;
+                    bestAssignment = copiedVehicles;
+                }
+
+                if (progressionLogging) {
+                    showProgress(mw, movingWindows.size() - 1, " Permutation: " + (i+1) + "/" + vehicleAssignments.size());
+                }
             }
-            for (Trip customerTrip : vehicle.takenTrips){
-                bestVehicleMap.put(customerTrip.TripID, vehicle.id);
-            }
+            vehicles = bestAssignment;
         }
     }
-
 
     private void generateAssignmentsHelper(List<Integer> currentAssignment) {
         if (currentAssignment.size() == SEARCH_DEPTH) {
@@ -86,15 +82,24 @@ public class BruteForceScheduler extends AbstractScheduler {
 
     }
 
-    private double calculateWaitingTime() {
-        double summedWaitingTime = 0.0;
-        for (Vehicle vehicle : vehicles) {
-            for (Trip trip : vehicle.takenTrips) {
-                if (!trip.customerID.equals(vehicle.name)) {
-                    int customerWaitTime = (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
-                    summedWaitingTime += customerWaitTime;
-                }
+    private ArrayList<ArrayList<Trip>> movingWindowGenerator(){
+        ArrayList<ArrayList<Trip>> movingWindowList = new ArrayList<>();
+        int windowElement = 0;
+        for (Trip trip : requestedTrips) {
+            if (windowElement%SEARCH_DEPTH == 0){
+                movingWindowList.add(new ArrayList<>());
             }
+            movingWindowList.get(movingWindowList.size()-1).add(trip);
+            windowElement++;
+        }
+        return movingWindowList;
+    }
+
+    private double calculateWaitingTime(ArrayList<Vehicle> copiedVehicles) {
+        double summedWaitingTime = 0.0;
+        for (Vehicle vehicle : copiedVehicles) {
+//            summedWaitingTime += vehicle.customerWaitingTime;
+            summedWaitingTime += (vehicle.getMissedTrips()*20) + vehicle.customerWaitingTime;
         }
         return summedWaitingTime;
     }

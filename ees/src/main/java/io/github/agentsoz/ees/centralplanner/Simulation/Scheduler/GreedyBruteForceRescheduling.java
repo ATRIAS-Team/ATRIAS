@@ -6,20 +6,20 @@ import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
 import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 
-public class GreedyGARescheduling extends AbstractScheduler {
-    public GreedyGARescheduling(HashMap<String, String> configMap) {
+public class GreedyBruteForceRescheduling extends AbstractScheduler {
+    public int reschedules = 0;
+    public GreedyBruteForceRescheduling(HashMap<String, String> configMap) {
         super(configMap);
     }
 
     public void run(){
         if (progressionLogging){
-            System.out.println("\nScheduling requests using Greedy with GA Rescheduling");
+            System.out.println("\nScheduling requests using Greedy with Rescheduling");
         }
         // start by iterating over requests
         for (int i = 0; i < requestedTrips.size(); i++) {
@@ -59,7 +59,7 @@ public class GreedyGARescheduling extends AbstractScheduler {
             //queue the trips for the best vehicle
             bestVehicle.queueTrip(bestApproach);
             bestVehicle.queueTrip(customerTrip);
-//            bestVehicle.handleCharging(graph);
+            //bestVehicle.handleCharging(graph);
 
             rescheduleVehicles();
         }
@@ -74,9 +74,14 @@ public class GreedyGARescheduling extends AbstractScheduler {
             vehicleTripMap.put(vehicle.id, openTrips);
             rescheduleCandidates.addAll(openTrips);
         }
-        if (rescheduleCandidates.size() > 5){
+        if (rescheduleCandidates.size() > 2){
+            reschedules ++;
+            for (Trip trip : rescheduleCandidates){
+                trip.rescheduled = true;
+            }
             rescheduleCandidates.sort(Comparator.comparing(trip -> trip.bookingTime));
-            GreedyScheduler sim = new GreedyScheduler(configMap);
+            BruteForceScheduler sim = new BruteForceScheduler(configMap);
+            sim.SEARCH_DEPTH = 1;
             sim.vehicles = copyAllVehicles();
             sim.removeTripsFromVehicles(vehicleTripMap);
             sim.requestedTrips = rescheduleCandidates;

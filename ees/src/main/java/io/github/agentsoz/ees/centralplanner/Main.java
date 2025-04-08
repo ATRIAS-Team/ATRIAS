@@ -11,13 +11,14 @@ public class Main {
         String configFilePath = "configs/Subsample 1/Boston_S1.xml";
         HashMap<String, String> configMap = xmlConfigParser(configFilePath);
 
-//        AntColonyScheduler sim = new AntColonyScheduler(configFilePath);
-//        GeneticAlgorithmScheduler sim = new GeneticAlgorithmScheduler(configFilePath);
-//        BruteForceScheduler sim = new BruteForceScheduler(configFilePath);
+//        AntColonyScheduler sim = new AntColonyScheduler(configMap);
+//        GeneticAlgorithmScheduler sim = new GeneticAlgorithmScheduler(configMap);
+//        BruteForceScheduler sim = new BruteForceScheduler(configMap);
         GreedyScheduler sim = new GreedyScheduler(configMap);
-//        GreedyWithReschedulingScheduler sim = new GreedyWithReschedulingScheduler(configFilePath);
-
+//        GreedyGreedyRescheduling sim = new GreedyGreedyRescheduling(configMap);
+//        GreedyBruteForceRescheduling sim = new GreedyBruteForceRescheduling(configMap);
 //        GreedyGARescheduling sim = new GreedyGARescheduling(configMap);
+
 
         //initializes the simulation by reading in the graph, vehicles, requests and population from the config
         sim.init();
@@ -29,9 +30,9 @@ public class Main {
         sim.updateWithLastArrivalTime();
 
         //saves the results and prints a summary to terminal
+        sim.vehicleSummary();
         sim.saveVehicleTrips();
         sim.saveBestVehicleMapping();
-        sim.vehicleSummary();
     }
 }
 

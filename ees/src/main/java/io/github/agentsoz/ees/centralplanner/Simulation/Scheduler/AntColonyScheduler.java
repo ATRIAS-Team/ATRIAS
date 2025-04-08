@@ -20,13 +20,12 @@ public class AntColonyScheduler extends AbstractScheduler {
 
     public AntColonyScheduler(HashMap<String, String> configMap) {
         super(configMap);
-        this.numAnts = 10;         // Tunable
-        this.alpha = 1.0;          // Pheromone weight
-        this.beta = 2.0;           // Heuristic weight
-        this.evaporationRate = 0.1; // Pheromone decay
-        this.maxIterations = 10;   // Iterations limit
+        this.numAnts = 200;         // Tunable
+        this.alpha = 1.5;          // Pheromone power
+        this.beta = 2.0;           // Heuristic power
+        this.evaporationRate = 0.05; // Pheromone decay
+        this.maxIterations = 20;   // Iterations limit
         this.pheromones = new HashMap<>();
-        initializePheromones();
     }
 
     private void initializePheromones() {
@@ -40,7 +39,10 @@ public class AntColonyScheduler extends AbstractScheduler {
     }
 
     public void run() {
-        System.out.println("\nScheduling requests using Ant Colony Optimization");
+        initializePheromones();
+        if (progressionLogging){
+            System.out.println("\nScheduling requests using Ant Colony Optimization");
+        }
 
         Map<String, Vehicle> bestSolution = null; // TripID -> Vehicle
         double bestTotalWaitTime = Double.MAX_VALUE;
@@ -51,6 +53,9 @@ public class AntColonyScheduler extends AbstractScheduler {
 
             // Each ant builds a solution
             for (int ant = 0; ant < numAnts; ant++) {
+                if (progressionLogging){
+                    showProgress(iteration, maxIterations - 1, " Calculating Ant: " + (ant+1) + "/" + numAnts);
+                }
                 Map<String, Vehicle> solution = constructSolution();
                 double totalWaitTime = evaluateSolution(solution);
                 antSolutions.add(solution);
@@ -64,7 +69,6 @@ public class AntColonyScheduler extends AbstractScheduler {
 
             // Update pheromones based on ant solutions
             updatePheromones(antSolutions, antWaitTimes);
-            showProgress(iteration, maxIterations - 1);
         }
 
         // Apply the best solution found
@@ -73,30 +77,36 @@ public class AntColonyScheduler extends AbstractScheduler {
 
     private Map<String, Vehicle> constructSolution() {
         Map<String, Vehicle> solution = new HashMap<>();
-        List<Vehicle> tempVehicles = deepCopyVehicles(vehicles); // Avoid modifying original state
+        ArrayList<Vehicle> copiedVehicles = copyAllVehicles();
 
         for (Trip trip : requestedTrips) {
-            Vehicle selectedVehicle = selectVehicle(trip, tempVehicles);
-            Trip approach = selectedVehicle.evaluateApproach(trip, graph);
+            Trip copiedTrip = new Trip(trip);
+            Vehicle selectedVehicle = selectVehicle(copiedTrip, copiedVehicles);
+
+            Trip approach = selectedVehicle.evaluateApproach(copiedTrip, graph);
+            selectedVehicle.refreshVehicle(copiedTrip.bookingTime);
             selectedVehicle.queueTrip(approach);
-            selectedVehicle.queueTrip(trip);
+            selectedVehicle.queueTrip(copiedTrip);
             solution.put(trip.TripID, selectedVehicle);
         }
         return solution;
     }
 
-    private Vehicle selectVehicle(Trip trip, List<Vehicle> vehicles) {
+    private Vehicle selectVehicle(Trip customerTrip, List<Vehicle> vehicles) {
         double[] probabilities = new double[vehicles.size()];
         double total = 0.0;
 
         for (int i = 0; i < vehicles.size(); i++) {
             Vehicle vehicle = vehicles.get(i);
-            vehicle.refreshVehicle(trip.bookingTime);
-            Trip approach = vehicle.evaluateApproach(trip, graph);
-            double waitTime = Duration.between(trip.bookingTime,
+
+            vehicle.refreshVehicle(customerTrip.bookingTime);
+
+            Trip approach = vehicle.evaluateApproach(customerTrip, graph);
+
+            double waitTime = Duration.between(customerTrip.bookingTime,
                     approach.vaTime.plusSeconds((long) Math.ceil(approach.calculatedPath.travelTime))).toSeconds();
             double heuristic = 1.0 / (waitTime + 1.0); // Avoid division by zero
-            double pheromone = pheromones.get(trip.TripID).get(vehicle.id);
+            double pheromone = pheromones.get(customerTrip.TripID).get(vehicle.id);
             probabilities[i] = Math.pow(pheromone, alpha) * Math.pow(heuristic, beta);
             total += probabilities[i];
         }
@@ -114,19 +124,11 @@ public class AntColonyScheduler extends AbstractScheduler {
     }
 
     private double evaluateSolution(Map<String, Vehicle> solution) {
-        List<Vehicle> tempVehicles = deepCopyVehicles(vehicles);
         double totalWaitTime = 0.0;
 
         for (Trip trip : requestedTrips) {
             Vehicle vehicle = solution.get(trip.TripID);
-            Vehicle tempVehicle = tempVehicles.get(vehicle.id);
-            tempVehicle.refreshVehicle(trip.bookingTime);
-            Trip approach = tempVehicle.evaluateApproach(trip, graph);
-            tempVehicle.queueTrip(approach);
-            tempVehicle.queueTrip(trip);
-            double waitTime = Duration.between(trip.bookingTime,
-                    approach.vaTime.plusSeconds((long) Math.ceil(approach.calculatedPath.travelTime))).toSeconds();
-            totalWaitTime += waitTime;
+            totalWaitTime = vehicle.customerWaitingTime;
         }
         return totalWaitTime;
     }
@@ -141,12 +143,15 @@ public class AntColonyScheduler extends AbstractScheduler {
 
         // Deposit pheromones based on solution quality
         for (int i = 0; i < solutions.size(); i++) {
-            double deposit = 1.0 / (waitTimes.get(i) + 1.0); // Higher deposit for lower wait times
+//            double deposit = 1.0 / (waitTimes.get(i) + 1.0); // Higher deposit for lower wait times
+            double deposit =  (double) 1 / vehicles.size();
+//            double deposit =  0.1;
             Map<String, Vehicle> solution = solutions.get(i);
             for (Map.Entry<String, Vehicle> entry : solution.entrySet()) {
                 String tripId = entry.getKey();
                 Integer vehicleId = entry.getValue().id;
-                double newPheromone = pheromones.get(tripId).get(vehicleId) + deposit;
+                //calc new pheromone level, limited to 1
+                double newPheromone = Math.min(1, pheromones.get(tripId).get(vehicleId) + deposit);
                 pheromones.get(tripId).put(vehicleId, newPheromone);
             }
         }
@@ -159,26 +164,6 @@ public class AntColonyScheduler extends AbstractScheduler {
             vehicle.refreshVehicle(trip.bookingTime);
             vehicle.queueTrip(approach);
             vehicle.queueTrip(trip);
-            bestVehicleMap.put(trip.TripID, vehicle.id);
         }
-
-        // Final refresh for all vehicles
-        for (Vehicle vehicle : vehicles) {
-            if (!vehicle.queuedTrips.isEmpty()) {
-                vehicle.refreshVehicle(vehicle.busyUntil);
-            }
-            for (Trip customerTrip : vehicle.takenTrips) {
-                bestVehicleMap.put(customerTrip.TripID, vehicle.id);
-            }
-        }
-    }
-
-    private List<Vehicle> deepCopyVehicles(List<Vehicle> original) {
-        List<Vehicle> copy = new ArrayList<>();
-        for (Vehicle v : original) {
-            copy.add(new Vehicle(v));
-//            copy.add(v.cloneVehicle());
-        }
-        return copy;
     }
 }

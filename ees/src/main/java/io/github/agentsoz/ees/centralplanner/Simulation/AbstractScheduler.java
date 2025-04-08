@@ -42,7 +42,7 @@ public abstract class AbstractScheduler implements Simulation {
                 vehicle.refreshVehicle(vehicle.busyUntil);
             }
             for (Trip customerTrip : vehicle.takenTrips){
-                bestVehicleMap.put(customerTrip.TripID, vehicle.id);
+                bestVehicleMap.put(customerTrip.TripID+"-"+customerTrip.driveOperationNumber, vehicle.id);
             }
         }
     }
@@ -107,13 +107,12 @@ public abstract class AbstractScheduler implements Simulation {
             data.add(new String[]{trip.customerID,
                     trip.TripID,
                     trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm")),
-//                    trip.vaTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
                     trip.bookingTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm")),
                     trip.startX,
                     trip.startY,
                     trip.endX,
                     trip.endY,
-                    String.valueOf(bestVehicleMap.get(trip.TripID)),
+                    String.valueOf(bestVehicleMap.get(trip.TripID+"-"+trip.driveOperationNumber)),
             });
 
         }
@@ -134,19 +133,43 @@ public abstract class AbstractScheduler implements Simulation {
 
     public void vehicleSummary(){
         System.out.println("\nData Analysis started");
+
+        //overwrite graph pathfinding for exact evaluation
+        graph.pathfindingMethod = "fast_dijkstra";
+        //reset Vehicles
+        ArrayList<Vehicle> simulatedVehicles = copyAllVehicles();
+        vehicles = vehicleInit(configMap, graph);
+        //reassign trips with exact pathfinding
+        for (int i = 0; i < simulatedVehicles.size(); i++){
+            Vehicle vehicle = vehicles.get(i);
+            for (Trip simulatedTrip : simulatedVehicles.get(i).takenTrips){
+                simulatedTrip.vaTime = simulatedTrip.bookingTime;
+                //only refresh once, before approach trip is added
+                if (simulatedTrip.driveOperationNumber == 1){
+                    vehicle.refreshVehicle(simulatedTrip.bookingTime);
+                }
+                simulatedTrip.calculateTrip(graph);
+                vehicle.queueTrip(simulatedTrip);
+            }
+            vehicle.refreshVehicle(vehicle.busyUntil);
+        }
+
         double summedWaitingTime = 0;
+        int summedMissedTrips = 0;
         for (Vehicle vehicle : vehicles){
-            ArrayList<Integer> waitingTimes = new ArrayList<>() {
-            };
+            ArrayList<Integer> waitingTimes = new ArrayList<>();
+            int missedTrips = vehicle.getMissedTrips();
             //iterate over takenTrips of the vehicle
             for (Trip trip : vehicle.takenTrips){
                 //and retrieve the waiting time/approach time for all the approach trips
-                if (!Objects.equals(trip.customerID, vehicle.name)){
+                if (trip.driveOperationNumber == 2){
                     int approachTime = (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
                     waitingTimes.add(approachTime);
                     summedWaitingTime += approachTime;
                 }
             }
+
+            summedMissedTrips += missedTrips;
 
             if (waitingTimes.isEmpty()){
                 continue;
@@ -162,14 +185,16 @@ public abstract class AbstractScheduler implements Simulation {
 
             // Print basic statistics
             System.out.println("-------------------"+ vehicle.name + "-------------------");
+            System.out.println("Taken Trips: " + vehicle.takenTrips.size() + ", Queued Trips: " + vehicle.queuedTrips.size() + ", Missed Trips: " + missedTrips);
             System.out.println("Minimum Waiting Time: " + min + " sec");
             System.out.println("Maximum Waiting Time: " + max + " sec");
             System.out.println("Average Waiting Time: " + average + " sec");
         }
 
         String parsedTotalTime = Duration.ofSeconds((long)summedWaitingTime).toString().replace("PT", "");
-        System.out.println("-------------------"+ "Total Waiting Time" + "-------------------");
+        System.out.println("-------------------"+ "Vehicle Summary" + "-------------------");
         System.out.println("Total Waiting Time: " + parsedTotalTime + " sec");
+        System.out.println("Total Missed Trips: " + summedMissedTrips);
     }
 
 }

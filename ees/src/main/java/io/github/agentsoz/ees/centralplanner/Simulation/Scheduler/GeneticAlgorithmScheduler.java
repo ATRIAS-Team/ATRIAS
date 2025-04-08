@@ -12,8 +12,8 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 public class GeneticAlgorithmScheduler extends AbstractScheduler {
 
     private static final int POPULATION_SIZE = 100;
-    private static final int KEEP_BEST_INDIVIDUALS = 20;
-    private static final int MAX_GENERATIONS = 600;
+    private static final int KEEP_BEST_INDIVIDUALS = 40;
+    private static final int MAX_GENERATIONS = 200;
     private static final double MUTATION_RATE = 0.005;
     private static final long SEED = 815274;
     private static final Random random = new Random(SEED);
@@ -24,16 +24,20 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
     }
 
     public void run() {
-        System.out.println("\nScheduling requests using Genetic Algorithm");
-        // randomly generate a population, meaning a number of individuals with
+        if (progressionLogging){
+            System.out.println("\nScheduling requests using Genetic Algorithm");
+        }
+        // randomly generate a population, meaning a number of individuals with random trip assignments
         ArrayList<Individual> population = initializePopulation();
 
         for (int generation = 0; generation < MAX_GENERATIONS; generation++) {
             Collections.sort(population);
             bestIndividuals.add(population.get(0));
-//            double fitness = population.stream().mapToDouble(Individual::getFitness).sum()/POPULATION_SIZE;
+
             double fitness = population.get(0).getFitness();
-            showProgress(generation, MAX_GENERATIONS-1, "  Fitness " + fitness);
+            if (progressionLogging){
+                showProgress(generation, MAX_GENERATIONS-1, "  Fitness " + fitness);
+            }
 
             ArrayList<Individual> newPopulation = new ArrayList<>();
 
@@ -62,12 +66,6 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
         Individual bestIndividual = bestIndividuals.poll();
         graph.pathfindingMethod = "fast_dijkstra";
         bestIndividual.assignTrips(vehicles);
-
-        for (Vehicle vehicle : vehicles){
-            for (Trip customerTrip : vehicle.takenTrips){
-                bestVehicleMap.put(customerTrip.TripID, vehicle.id);
-            }
-        }
     }
 
     private ArrayList<Individual> initializePopulation() {
@@ -131,8 +129,8 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
 
         public void assignTrips(ArrayList<Vehicle> vehicles) {
             copiedVehicles = vehicles;
-            for (int i = 0; i < requestedTrips.size(); i++) {
-                Trip customerTrip = requestedTrips.get(i);
+            for (int i = 0; i < requestedTrips.size(); i++) {;
+                Trip customerTrip = new Trip(requestedTrips.get(i));
                 Vehicle assignedVehicle = vehicles.get(genes.get(i));
                 assignedVehicle.refreshVehicle(customerTrip.bookingTime);
                 Trip approachTrip = assignedVehicle.evaluateApproach(customerTrip, graph);
@@ -140,10 +138,9 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
                 assignedVehicle.queueTrip(customerTrip);
             }
             //update rest of queued trips from vehicles, even after last booking came in
-            for (Vehicle vehicle : vehicles) {
+            for (Vehicle vehicle : copiedVehicles) {
                 if (!vehicle.queuedTrips.isEmpty()) {
-                    Trip lastTrip = vehicle.queuedTrips.get(vehicle.queuedTrips.size() - 1);
-                    vehicle.refreshVehicle(lastTrip.vaTime.plusSeconds((long) Math.ceil(lastTrip.calculatedPath.travelTime)));
+                    vehicle.refreshVehicle(vehicle.busyUntil);
                 }
             }
             fitness = getFitness();
@@ -156,14 +153,10 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
         public double getFitness() {
             double fitness = 0.0;
             for (Vehicle vehicle : copiedVehicles){
-                //iterate over takenTrips of the vehicle
-                for (Trip trip : vehicle.takenTrips){
-                    //and retrieve the waiting time/approach time for all the approach trips
-                    if (trip.driveOperationNumber == 1){
-                        int customerWaitTime = (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
-                        fitness += customerWaitTime;
-                    }
-                }
+                //fitness value can be customer waiting time or missed Trips
+
+//                fitness += vehicle.customerWaitingTime;
+                fitness += vehicle.getMissedTrips();
             }
             return fitness;
         }

@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 public class Vehicle {
@@ -20,16 +21,17 @@ public class Vehicle {
     public ArrayList<Trip> takenTrips = new ArrayList<>();
     public BatteryModel battery = new BatteryModel();
     public BatteryModel futureBattery = new BatteryModel();
-    public float chargingThreshold;
     public int chargingTrips = 0;
+    public double customerWaitingTime;
+    public HashMap<String, String> configMap;
 
-    public Vehicle(int id, String home, float chargingThreshold) {
+    public Vehicle(int id, String home, HashMap<String, String> configMap) {
         this.name = "trike:" + id;
         this.id = id;
         this.currentPosition = home;
         this.futurePosition = home;
         this.home = home;
-        this.chargingThreshold = chargingThreshold;
+        this.configMap = configMap;
     }
 
     public Vehicle(Vehicle other) {
@@ -40,8 +42,8 @@ public class Vehicle {
         this.currentPosition = other.currentPosition;
         this.home = other.home;
         this.busyUntil = other.busyUntil;
-        this.queuedTrips = new ArrayList<>(other.queuedTrips);
         this.takenTrips = new ArrayList<>(other.takenTrips);
+        this.queuedTrips = new ArrayList<>(other.queuedTrips);
         this.battery = new BatteryModel();
         battery.setMyBatteryHealth(other.battery.getMyBatteryHealth());
         battery.setMyNumberOfCharges(other.battery.getMyNumberOfCharges());
@@ -50,8 +52,9 @@ public class Vehicle {
         futureBattery.setMyBatteryHealth(other.futureBattery.getMyBatteryHealth());
         futureBattery.setMyNumberOfCharges(other.futureBattery.getMyNumberOfCharges());
         futureBattery.setMyChargestate(other.futureBattery.getMyChargestate());
-        this.chargingThreshold = other.chargingThreshold;
+        this.configMap = other.configMap;
         this.chargingTrips = other.chargingTrips;
+        this.customerWaitingTime = other.customerWaitingTime;
     }
 
     //allocates trip to the vehicle by adding it to the queue
@@ -62,6 +65,7 @@ public class Vehicle {
         //add trip to queue
         queuedTrips.add(trip);
         reevaluateQueuedTrips();
+        calculateCustomerWaitingTime();
     }
 
     public void queueChargingTrip(Graph graph){
@@ -97,7 +101,7 @@ public class Vehicle {
             if (currentTime.isAfter(tripEndsAt) || currentTime.isEqual(tripEndsAt)) {
                 battery.discharge(currentTrip.calculatedPath.distance, 0);
 
-                if (currentTrip.TripID.equals("Charging Trip")){
+                if (currentTrip.tripType.equals("ChargingTrip")){
                     battery.loadBattery();
                 }
                 currentTrip.batteryBefore = battery.getMyChargestate();
@@ -180,8 +184,8 @@ public class Vehicle {
         // Ensure the list is not empty to avoid IndexOutOfBoundsException
         ArrayList<Trip> openTrips = new ArrayList<>();
         for (Trip trip: queuedTrips){
-            if (!trip.customerID.equals(name)){
-                openTrips.add(trip);
+            if (!trip.customerID.equals(name) && !trip.rescheduled){
+                openTrips.add(new Trip(trip));
             }
         }
         if (!openTrips.isEmpty()){
@@ -191,6 +195,23 @@ public class Vehicle {
 
         // Return a new ArrayList containing all elements except the first
         return openTrips;
+    }
+
+    public int getMissedTrips(){
+        int missedTrips = 0;
+        for (Trip trip: queuedTrips){
+            int approachTime = (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
+            if (approachTime > Double.parseDouble(configMap.get("THETA")) && trip.driveOperationNumber == 2){
+                missedTrips++;
+            }
+        }
+        for (Trip trip: takenTrips){
+            int approachTime = (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
+            if (approachTime > Double.parseDouble(configMap.get("THETA")) && trip.driveOperationNumber == 2){
+                missedTrips++;
+            }
+        }
+        return missedTrips;
     }
 
     public void removeQueuedTrip(Trip trip){
@@ -203,17 +224,21 @@ public class Vehicle {
         if (queuedTrips.isEmpty()){
             return;
         }
+
         LocalDateTime vaTime = queuedTrips.get(0).vaTime;
         double travelTime = queuedTrips.get(0).calculatedPath.travelTime;
         double accumulatedDistance = queuedTrips.get(0).calculatedPath.distance;
 
         for (int i = 1; i < queuedTrips.size(); i++){
+            //call by reference, new trip instance has to be invoked
             queuedTrips.get(i).vaTime = vaTime.plusSeconds((long) Math.ceil(travelTime));
             vaTime = queuedTrips.get(i).vaTime;
             travelTime = queuedTrips.get(i).calculatedPath.travelTime;
             accumulatedDistance += queuedTrips.get(i).calculatedPath.distance;
 
+            //if i == last trip in queue
             if (i == queuedTrips.size()-1){
+                //set busy until and position to the arrival time and end node of the last trip
                 busyUntil = vaTime.plusSeconds((long) Math.ceil(travelTime));
                 futurePosition = queuedTrips.get(i).nearestEndNode;
 
@@ -226,30 +251,25 @@ public class Vehicle {
 
     public void handleCharging(Graph graph){
         //evaluate if charging is necessary
-        if (futureBattery.getMyChargestate() <= chargingThreshold){
+        if (futureBattery.getMyChargestate() <= Float.parseFloat(configMap.get("CHARGING_THRESHOLD"))){
             //calculates the closest charging station and queues a trip
             queueChargingTrip(graph);
         }
     }
 
-    public Vehicle cloneVehicle(){
-        Vehicle clonedVehicle = new Vehicle(this);
-        clonedVehicle.queuedTrips = queuedTrips;
-        clonedVehicle.takenTrips = takenTrips;
-        clonedVehicle.battery.my_chargestate = battery.my_chargestate;
-        clonedVehicle.futureBattery.my_chargestate = futureBattery.my_chargestate;
-        clonedVehicle.futurePosition = futurePosition;
-        return clonedVehicle;
-    }
-
-    public void resetVehicle(){
-        //this resets the vehicle so that it has the attributes from object initialization
-        futurePosition = home;
-        currentPosition = home;
-        busyUntil = null;
-        queuedTrips = new ArrayList<>();
-        takenTrips = new ArrayList<>();
-        battery = new BatteryModel();
-        futureBattery = new BatteryModel();
+    public void calculateCustomerWaitingTime(){
+        //calculates the waiting time for taken and queued trips meaning the summed duration between booking and arrival times
+        customerWaitingTime = 0;
+        for (Trip trip: takenTrips){
+            //number 2 is the customer trip itself, which holds the information of when it was booked and when the vehicle got there
+            if (trip.driveOperationNumber == 2){
+                customerWaitingTime += (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
+            }
+        }
+        for (Trip trip: queuedTrips){
+            if (trip.driveOperationNumber == 2){
+                customerWaitingTime += (int) Duration.between(trip.bookingTime, trip.vaTime).toSeconds();
+            }
+        }
     }
 }
