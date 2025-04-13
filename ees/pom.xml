@@ -182,6 +182,12 @@
       <artifactId>h3</artifactId>
       <version>4.1.1</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.ortools/ortools-java -->
+    <dependency>
+      <groupId>com.google.ortools</groupId>
+      <artifactId>ortools-java</artifactId>
+      <version>9.11.4210</version>
+    </dependency>
   </dependencies>
 
 

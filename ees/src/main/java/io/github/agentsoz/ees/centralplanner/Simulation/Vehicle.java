@@ -22,6 +22,7 @@ public class Vehicle {
     public BatteryModel battery = new BatteryModel();
     public BatteryModel futureBattery = new BatteryModel();
     public int chargingTrips = 0;
+    public int rebalancingTrips = 0;
     public double customerWaitingTime;
     public HashMap<String, String> configMap;
 
@@ -54,6 +55,7 @@ public class Vehicle {
         futureBattery.setMyChargestate(other.futureBattery.getMyChargestate());
         this.configMap = other.configMap;
         this.chargingTrips = other.chargingTrips;
+        this.rebalancingTrips = other.rebalancingTrips;
         this.customerWaitingTime = other.customerWaitingTime;
     }
 
@@ -87,6 +89,25 @@ public class Vehicle {
         vehicleChargingTrip.calculateTrip(graph);
         queueTrip(vehicleChargingTrip);
         futureBattery.loadBattery();
+    }
+
+    public void queueRebalancingTrip(Graph graph, String rebalancingNode){
+        rebalancingTrips++;
+        Trip vehicleRebalancingTrip = new Trip(name,
+                "RB"+rebalancingTrips,
+                3,
+                "RebalancingTrip",
+                busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                busyUntil.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+                graph.getNodeCoordinates(futurePosition)[0],
+                graph.getNodeCoordinates(futurePosition)[1],
+                graph.getNodeCoordinates(rebalancingNode)[0],
+                graph.getNodeCoordinates(rebalancingNode)[1],
+                futurePosition,
+                rebalancingNode
+        );
+        vehicleRebalancingTrip.calculateTrip(graph);
+        queueTrip(vehicleRebalancingTrip);
     }
 
     public void refreshVehicle(LocalDateTime currentTime){
