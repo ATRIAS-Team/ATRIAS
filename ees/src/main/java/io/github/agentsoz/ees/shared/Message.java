@@ -34,6 +34,8 @@ public class Message {
 
     private long timeStamp;
 
+    private int attempts = 1;
+
     private final MessageContent content;
 
     public Message(String senderId, String receiverId, ComAct comAct, long timeStamp, MessageContent content) {
@@ -120,5 +122,14 @@ public class Message {
         message.senderId = message.receiverId;
         message.receiverId = temp;
         return message;
+    }
+
+    public Message reattempt(){
+        this.attempts++;
+        return this;
+    }
+
+    public int getAttempts(){
+        return attempts;
     }
 }

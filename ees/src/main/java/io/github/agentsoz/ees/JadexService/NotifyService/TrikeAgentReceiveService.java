@@ -54,10 +54,7 @@ public class TrikeAgentReceiveService implements INotifyService {
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 
 		for (ActionContent actionContent : ActionContentList){
-			boolean isSuccess = trikeAgent.actionContentRingBuffer.write(actionContent);
-			if(!isSuccess){
-				throw new RuntimeException("BUFFER OVERRIDE!!!");
-			}
+			trikeAgent.actionContentRingBuffer.write(actionContent);
 		}
 
 		for (PerceptContent perceptContent : PerceptContentList){
@@ -66,7 +63,7 @@ public class TrikeAgentReceiveService implements INotifyService {
 
 		if (activestatus)
 		{
-			trikeAgent.isMatsimFree = true;
+			trikeAgent.plans.sensoryUpdate();
 		}
 	}
 }

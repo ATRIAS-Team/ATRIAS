@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import java.time.Instant;
 import java.util.*;
-import java.util.logging.Level;
 
 /**
  * Emergency Evacuation Simulator (EES) main program.
@@ -59,7 +59,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private int optTimestep = 10; // in seconds
+    private double optTimestep = 2;
 
 
     public static void main(String[] args) {
@@ -145,10 +145,15 @@ public class Run implements DataClient {
         jadexmodel.useSequenceLock(sequenceLock);
         matsimEvacModel.useSequenceLock(sequenceLock);
 
+        long prevTime = Instant.now().toEpochMilli();
         while (true) {
             // Wait till both models are done before incrementing time
             synchronized (sequenceLock) {
-                dataServer.stepTime();
+                long currentTime = Instant.now().toEpochMilli();
+                if(currentTime >= prevTime + 200){
+                    dataServer.stepTime();
+                    prevTime = currentTime;
+                }
             }
             // Wait till both models are done before checking for termination condition
             synchronized (sequenceLock) {

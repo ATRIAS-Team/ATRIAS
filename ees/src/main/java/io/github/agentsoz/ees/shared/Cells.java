@@ -153,13 +153,14 @@ public class Cells {
             NodeList trikeAgentNL =  cellsEl.getElementsByTagName("trikeagent");
             if(trikeAgentNL.getLength() != 0){
                 Element trikeAgent = (Element)trikeAgentNL.item(0);
-                NodeList nodeList = trikeAgent.getElementsByTagName("num");
-
+                NodeList nodeList = trikeAgent.getElementsByTagName("spawn");
                 int sum = 0;
                 for (int j = 0; j < nodeList.getLength(); j++) {
-                    sum += Integer.parseInt(nodeList.item(j).getTextContent());
+                    sum += Integer.parseInt(((Element) nodeList.item(j)).getElementsByTagName("num").item(0)
+                            .getTextContent());
                     if(sum > Integer.parseInt(id)){
-                        String areaCell = cellsEl.getElementsByTagName("cell").item(j).getTextContent();
+                        String areaCell = ((Element) nodeList.item(j))
+                                .getElementsByTagName("cell").item(0).getTextContent();
                         trikeRegisterLocations.put(id, Cells.getCellLocation(areaCell));
                         break;
                     }

@@ -27,12 +27,10 @@ import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.util.Location;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Plans {
     private AreaAgent areaAgent;
@@ -51,8 +49,8 @@ public class Plans {
             Message responseMsg = Message.ack(message);
             responseMsg.getContent().values = new ArrayList<>();
 
-            IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, responseMsg);
-            service.sendMessage(responseMsg.serialize());
+            //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, responseMsg);
+            SharedUtils.sendMessage(responseMsg.getReceiverId(), responseMsg.serialize());
         }
     }
 
@@ -64,7 +62,7 @@ public class Plans {
         switch (bufferMessage.getComAct()){
                 case CALL_FOR_PROPOSAL:{
                     Message.ComAct responseAct;
-                    if(areaAgent.locatedAgentList.size() <= AreaConstants.MIN_TRIKES){
+                    if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES){
                         responseAct = Message.ComAct.REFUSE;
                     }else{
                         responseAct = Message.ComAct.PROPOSE;
@@ -72,10 +70,11 @@ public class Plans {
                     MessageContent messageContent = new MessageContent(responseAct.name());
                     messageContent.values.add(bufferMessage.getContent().getValues().get(1));
                     messageContent.values.add(areaAgent.cell);
+                    messageContent.values.add("" + areaAgent.load);
 
-                    Message message = new Message( areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
-                    IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                    service.sendMessage(message.serialize());
+                    Message message = new Message(areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
+                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                     break;
                 }
                 case REJECT_PROPOSAL: {
@@ -90,13 +89,20 @@ public class Plans {
             Message bufferMessage = areaAgent.proposalBuffer.read();
             String areaId = bufferMessage.getSenderId();
             String areaCell = bufferMessage.getContent().values.get(1);
-            for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate){
-                if(delegateInfo.job.getID().equals(bufferMessage.getContent().values.get(0))){
-                    if(bufferMessage.getComAct() == Message.ComAct.PROPOSE){
-                        long hops = Cells.getHops(areaAgent.cell, areaCell);
-                        delegateInfo.agentHops.put(areaId, hops);
-                    }else{
-                        delegateInfo.agentHops.put(areaId, Long.MAX_VALUE);
+            double load = Double.parseDouble(bufferMessage.getContent().values.get(2));
+
+            synchronized (areaAgent.jobsToDelegate){
+                for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate){
+                    if(delegateInfo.job.getID().equals(bufferMessage.getContent().values.get(0))){
+                        if(bufferMessage.getComAct() == Message.ComAct.PROPOSE){
+                            long hops = Cells.getHops(areaAgent.cell, areaCell);
+                            delegateInfo.agentHops.put(areaId, hops);
+                            BigDecimal bigDecimal = BigDecimal.valueOf(load).setScale(2, RoundingMode.HALF_UP);
+                            delegateInfo.agentLoad.put(areaId, bigDecimal.doubleValue());
+                        }else{
+                            delegateInfo.agentHops.put(areaId, Long.MAX_VALUE);
+                            delegateInfo.agentLoad.put(areaId, Double.MAX_VALUE);
+                        }
                     }
                 }
             }
@@ -104,53 +110,88 @@ public class Plans {
     }
 
     public void delegateJobs(){
-        for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate) {
-            if(delegateInfo.timeStamp != -1) return;
-            for (String neighbourId: areaAgent.neighbourIds){
-                MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
-                Message message = new Message(areaAgent.areaAgentId, neighbourId,
-                        Message.ComAct.CALL_FOR_PROPOSAL, SharedUtils.getSimTime(), messageContent);
-                IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                delegateInfo.timeStamp = SharedUtils.getSimTime();
-                service.sendMessage(message.serialize());
+        synchronized (areaAgent.jobsToDelegate){
+            Iterator<DelegateInfo> iterator = areaAgent.jobsToDelegate.iterator();
+            while(iterator.hasNext()) {
+                DelegateInfo delegateInfo = iterator.next();
+
+                if (delegateInfo.timeStamp != -1) return;
+
+                if(areaAgent.neighbourIds.isEmpty()){
+                    iterator.remove();
+                    return;
+                }
+
+                for (String neighbourId : areaAgent.neighbourIds) {
+                    MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
+                    Message message = new Message(areaAgent.areaAgentId, neighbourId,
+                            Message.ComAct.CALL_FOR_PROPOSAL, SharedUtils.getSimTime(), messageContent);
+                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                    delegateInfo.timeStamp = SharedUtils.getSimTime();
+                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                }
             }
         }
     }
 
     public void checkDelegateInfo(){
         long currentTime = SharedUtils.getSimTime();
-        Iterator<DelegateInfo> iterator = areaAgent.jobsToDelegate.iterator();
+        synchronized (areaAgent.jobsToDelegate){
+            Iterator<DelegateInfo> iterator = areaAgent.jobsToDelegate.iterator();
 
-        while(iterator.hasNext()) {
-            DelegateInfo delegateInfo = iterator.next();
-          if(delegateInfo.timeStamp == -1) return;
-          if(currentTime < delegateInfo.timeStamp + AreaConstants.NEIGHBOURS_WAIT_TIME
-                  && delegateInfo.agentHops.size() != areaAgent.neighbourIds.size()) return;
+            while(iterator.hasNext()) {
+                DelegateInfo delegateInfo = iterator.next();
+                if(delegateInfo.timeStamp == -1) return;
+                if(currentTime < delegateInfo.timeStamp + AreaConstants.NEIGHBOURS_WAIT_TIME
+                        && delegateInfo.agentHops.size() != areaAgent.neighbourIds.size()) return;
 
-          Iterator<Map.Entry<String, Long>> hopsIterator = delegateInfo.agentHops.entrySet().iterator();
-          long bestHops = Long.MAX_VALUE;
-          String bestAreaAgent = null;
 
-          while (hopsIterator.hasNext()){
-              Map.Entry<String, Long> entry = hopsIterator.next();
-              if(entry.getValue() < bestHops){
-                  bestHops = entry.getValue();
-                  bestAreaAgent = entry.getKey();
-              }
-          }
+                String bestAreaAgent = null;
+                long lowestHops = Long.MAX_VALUE;
+                double lowestLoad = AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
 
-          if(bestAreaAgent == null){
-              return;
-          }
+                //  check if it is a rebalance trip
+                if(delegateInfo.job.getID().startsWith("area")) {
+                    Map<String, Long> choices = areaAgent.utils.findLowestChoices(delegateInfo.agentLoad,
+                            delegateInfo.agentHops, lowestLoad);
 
-            MessageContent messageContent = new MessageContent("ASSIGN");
-            messageContent.values = delegateInfo.job.toArrayList();
-            Message message = new Message( areaAgent.areaAgentId, bestAreaAgent, Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
-            IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-            areaAgent.requests.add(message);
-            service.sendMessage(message.serialize());
 
-            iterator.remove();
+                    //  find best agent by lowest hops
+                    for (Map.Entry<String, Long> entry : choices.entrySet()) {
+                        if (entry.getValue() < lowestHops) {
+                            lowestHops = entry.getValue();
+                            bestAreaAgent = entry.getKey();
+                        }
+                    }
+                }
+                else{
+                    Map<String, Double> choices = areaAgent.utils.findLowestChoices(delegateInfo.agentHops,
+                            delegateInfo.agentLoad, lowestHops);
+
+                    //  find best agent by lowest load
+                    for (Map.Entry<String, Double> entry : choices.entrySet()) {
+                        if (entry.getValue() < lowestLoad) {
+                            lowestLoad = entry.getValue();
+                            bestAreaAgent = entry.getKey();
+                        }
+                    }
+                }
+
+                //  if no best found, cancel CNP
+                if(bestAreaAgent == null){
+                    iterator.remove();
+                    return;
+                }
+
+                MessageContent messageContent = new MessageContent("ASSIGN");
+                messageContent.values = delegateInfo.job.toArrayList();
+                Message message = new Message( areaAgent.areaAgentId, bestAreaAgent, Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
+                //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                areaAgent.requests.add(message);
+                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+
+                iterator.remove();
+            }
         }
     }
 
@@ -177,25 +218,43 @@ public class Plans {
 
                     //todo: when everywhere just the ID and not user: is used remove this
                     String requestID = bufferMessage.getSenderId();
-                    if(areaAgent.locatedAgentList.size() > AreaConstants.MIN_TRIKES){
+                    synchronized (areaAgent.locatedAgentList.LocatedAgentList){
+                        boolean isPart = false;
                         for (LocatedAgent locatedAgent: areaAgent.locatedAgentList.LocatedAgentList) {
                             if ((!locatedAgent.getAgentID().equals(requestID))) {
                                 locatedAgentIds.add(locatedAgent.getAgentID());
+                            }else{
+                                isPart = true;
                             }
+                        }
+
+                        if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES && !isPart){
+                            locatedAgentIds = new ArrayList<>();
+                            locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
+                            locatedAgentIds.add("#");
                         }
                     }
 
                     MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
-                    //todo: crate a unique message id
                     Message message = new Message(bufferMessage.getReceiverId(), bufferMessage.getSenderId(),
                             Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
-                    IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
 
-                    service.sendMessage(message.serialize());
+                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                     break;
                 }
                 case ACK: {
-                    areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
+                    synchronized (areaAgent.requests){
+                        areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
+                    }
+                    break;
+                }
+                case NACK:{
+                    synchronized (areaAgent.requests){
+                        areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
+                    }
+                    Job job = new Job(bufferMessage.getContent().getValues());
+                    areaAgent.utils.sendJobToAgent(List.of(job));
                     break;
                 }
             }
@@ -203,30 +262,65 @@ public class Plans {
     }
 
     public void checkRequestTimeouts(){
-        Iterator<Message> iterator = areaAgent.requests.iterator();
-        long currentTimeStamp = SharedUtils.getSimTime();
+        synchronized (areaAgent.requests){
+            Iterator<Message> iterator = areaAgent.requests.iterator();
+            long currentTimeStamp = SharedUtils.getSimTime();
 
-        while(iterator.hasNext()){
-            Message message = iterator.next();
-            if(currentTimeStamp >= message.getTimeStamp() + AreaConstants.REQUEST_WAIT_TIME){
-                iterator.remove();
-                IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                message.setTimeStamp(currentTimeStamp);
-                areaAgent.requests.add(message);
-                service.sendMessage(message.serialize());
+            while(iterator.hasNext()){
+                Message message = iterator.next();
+                if(currentTimeStamp >= message.getTimeStamp() + AreaConstants.REQUEST_WAIT_TIME){
+                    if(message.getAttempts() < 1){
+                        iterator.remove();
+                        //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                        message.setTimeStamp(currentTimeStamp);
+                        areaAgent.requests.add(message.reattempt());
+                        SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                    }else{
+                        iterator.remove();
+                    }
+                }
             }
         }
     }
 
     public void checkTrikeCount(){
-        if(areaAgent.locatedAgentList.size() < AreaConstants.MIN_TRIKES && JadexModel.simulationtime > 0 && areaAgent.jobsToDelegate.size() < AreaConstants.MIN_TRIKES){
-            Location cellLocation = Cells.getCellLocation(areaAgent.cell);
-            LocalDateTime dt = SharedUtils.getCurrentDateTime();
+        if(areaAgent.MIN_TRIKES == -1 && JadexModel.simulationtime > 0){
+            areaAgent.MIN_TRIKES = (int) Math.ceil(areaAgent.locatedAgentList.size() * 0.25);
+        }
 
-            Job job = new Job(UUID.randomUUID().toString(), areaAgent.areaAgentId + "   " + UUID.randomUUID().toString(),
-                    dt, dt, cellLocation, cellLocation);
-            DelegateInfo delegateInfo = new DelegateInfo(job);
-            areaAgent.jobsToDelegate.add(delegateInfo);
+        boolean isMin = areaAgent.jobsToDelegate.size() + areaAgent.locatedAgentList.size() < areaAgent.MIN_TRIKES;
+
+        boolean isOverload = areaAgent.load >= 1.5;
+
+        synchronized (areaAgent.jobsToDelegate){
+            long currentTime = SharedUtils.getSimTime();
+            if(JadexModel.simulationtime > 0 && (isMin || (isOverload && currentTime >= areaAgent.rebalanceInitTS)) && currentTime >= areaAgent.lastDelegateRequestTS + 180000){
+                if(isOverload){
+                    System.out.println("OVERLOAD");
+                }
+
+                Location cellLocation = Cells.getCellLocation(areaAgent.cell);
+                LocalDateTime dt = SharedUtils.getCurrentDateTime();
+
+                Job job = new Job(UUID.randomUUID().toString(), areaAgent.areaAgentId + "   " + UUID.randomUUID(),
+                        dt, dt, cellLocation, cellLocation);
+                DelegateInfo delegateInfo = new DelegateInfo(job);
+                System.out.println(areaAgent.areaAgentId + " ask for trikes!");
+                areaAgent.jobsToDelegate.add(delegateInfo);
+                areaAgent.lastDelegateRequestTS = currentTime;
+            }
+        }
+    }
+
+    public void updateTripsLoad(){
+        long currentTime = SharedUtils.getSimTime();
+        if(currentTime >= areaAgent.lastLoadUpdateTS + 180000){
+            areaAgent.lastLoadUpdateTS = currentTime;
+            if(areaAgent.load < AreaAgent.NO_TRIKES_NO_TRIPS_LOAD){
+                areaAgent.load *= 0.8;
+                BigDecimal bigDecimal = BigDecimal.valueOf(areaAgent.load).setScale(5, RoundingMode.HALF_UP);
+                areaAgent.load = bigDecimal.doubleValue();
+            }
         }
     }
 }

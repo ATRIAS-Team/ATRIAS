@@ -25,10 +25,12 @@ package io.github.agentsoz.ees.JadexService.AreaTrikeService;
 import io.github.agentsoz.ees.shared.Message;
 import io.github.agentsoz.ees.trikeagent.TrikeAgent;
 import io.github.agentsoz.ees.shared.SharedUtils;
+import jadex.bridge.IExternalAccess;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.annotation.Service;
 import jadex.bridge.service.annotation.ServiceComponent;
+import jadex.commons.future.IFuture;
 
 import java.util.HashMap;
 
@@ -45,13 +47,16 @@ public class TrikeAgentService implements IAreaTrikeService {
 	@ServiceComponent
 	protected IInternalAccess agent;
 
+	@ServiceComponent
+	public IExternalAccess externalAccess;
+
 	public HashMap AgentMap;
 
-	public void sendMessage(String messageStr){
+	public IFuture<Void> sendMessage(String messageStr){
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
 
-		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
+		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return IFuture.DONE;
 		trikeAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
 		switch (messageObj.getComAct()){
@@ -59,24 +64,29 @@ public class TrikeAgentService implements IAreaTrikeService {
 			case PROPOSE:
 			case ACCEPT_PROPOSAL:
 			case REJECT_PROPOSAL:
-            case REFUSE:
-                trikeAgent.cnpBuffer.write(messageObj);
+			case REFUSE:
+				trikeAgent.cnpBuffer.write(messageObj);
+				//trikeAgent.plans.checkCNPBuffer();
 				break;
 			case INFORM:{
 				trikeAgent.messagesBuffer.write(messageObj);
+				//trikeAgent.plans.checkMessagesBuffer();
 				break;
 			}
 			case REQUEST:
 				trikeAgent.jobsBuffer.write(messageObj);
+				//trikeAgent.plans.checkJobBuffer();
 				break;
 			case ACK:
 				switch (messageObj.getContent().getAction()){
 					case "confirmAccept": {
 						trikeAgent.cnpBuffer.write(messageObj);
+						//trikeAgent.plans.checkCNPBuffer();
 						break;
 					}
 				}
 				break;
-        }
+		}
+		return IFuture.DONE;
 	}
 }

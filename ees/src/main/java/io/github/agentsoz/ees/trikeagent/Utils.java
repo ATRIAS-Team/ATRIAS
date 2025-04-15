@@ -65,7 +65,9 @@ public class Utils {
             startPosition = trikeAgent.agentLocation;
         }
         else {
-            startPosition = getLastTripInPipeline().getEndPosition();
+            synchronized (trikeAgent.tripList){
+                startPosition = getLastTripInPipeline().getEndPosition();
+            }
         }
         double lowestDistance = Double.MAX_VALUE;
         for (Location location : CHARGING_STATION_LIST) {
@@ -97,58 +99,62 @@ public class Utils {
 
     //estimates the batteryLevel after all Trips. Calculations a based on aerial line x1.5
     public Double estimateBatteryAfterTIP(){
-        Double batteryChargeAfterTIP = trikeAgent.trikeBattery.getMyChargestate();
-        Double totalDistance_TIP = 0.0;
-        if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
-            //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
-            totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
-            if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
-                totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
-            }
-            if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
-                totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
-            }
-        }
-        // battery relavant distance driven at trikeAgent.tripList
-        if (trikeAgent.tripList.size() > 0) {
-            if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
-                if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
-                } else { // trips with only a start position
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+        double batteryChargeAfterTIP = trikeAgent.trikeBattery.getMyChargestate();
+        double totalDistance_TIP = 0.0;
+        synchronized (trikeAgent.tripList){
+            if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
+                //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
+                totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
+                if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
+                    totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
                 }
-            } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
-                totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
-            }
-            // distance driven at trikeAgent.tripList.get(0)
-            if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
-                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
-            }
-            if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
-                totalDistance_TIP = 0.0;
-            } else {
-                // do nothing as all other Trips with only a startPosition will not contain any other movements;
-            }
-
-            //todo: fahrt zum nächjsten start fehlt +-1 bei i???
-            // interates through all other Trips inside trikeAgent.tripList
-            if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
-                for (int i = 1; i < trikeAgent.tripList.size(); i++) {
-                    if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
-                    } else { // Trips with only a startPosition
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
-                    }
-                    if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
-                    }
+                if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
+                    totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
                 }
             }
-        }
-        Double estEnergyConsumption_TIP = trikeAgent.trikeBattery.SimulateDischarge((totalDistance_TIP * DISTANCE_FACTOR));
-        batteryChargeAfterTIP = batteryChargeAfterTIP - estEnergyConsumption_TIP;
+            // battery relavant distance driven at trikeAgent.tripList
+            if (trikeAgent.tripList.size() > 0) {
+                if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
+                    if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                    } else { // trips with only a start position
+                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                    }
+                } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
+                    totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
+                }
+                // distance driven at trikeAgent.tripList.get(0)
+                if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
+                    totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
+                }
+                if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
+                    totalDistance_TIP = 0.0;
+                } else {
+                    // do nothing as all other Trips with only a startPosition will not contain any other movements;
+                }
 
-        trikeAgent.estimateBatteryAfterTIP.set(0, batteryChargeAfterTIP);
+                //todo: fahrt zum nächjsten start fehlt +-1 bei i???
+                // interates through all other Trips inside trikeAgent.tripList
+                if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
+                    for (int i = 1; i < trikeAgent.tripList.size(); i++) {
+                        if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                        } else { // Trips with only a startPosition
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                        }
+                        if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                        }
+                    }
+                }
+            }
+            Double estEnergyConsumption_TIP = trikeAgent.trikeBattery.SimulateDischarge((totalDistance_TIP * DISTANCE_FACTOR));
+            batteryChargeAfterTIP = batteryChargeAfterTIP - estEnergyConsumption_TIP;
+
+            trikeAgent.estimateBatteryAfterTIP.set(0, batteryChargeAfterTIP);
+        }
+
+
         return batteryChargeAfterTIP;
     }
 
@@ -170,11 +176,18 @@ public class Utils {
 
                     if (ownScore < commitThreshold && CNP_ACTIVE) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                        Location jobLocation = currentDecisionTask.getJob().getStartPosition();
+                        currentDecisionTask.cell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(trikeAgent.cell));
+                        currentDecisionTask.isLocal = trikeAgent.cell.equals(currentDecisionTask.cell);
                     } else {
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                         System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
                     }
+
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    System.out.println("NEW " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta);
 
                     hasChanged = true;
                     break;
@@ -184,7 +197,16 @@ public class Utils {
                             currentDecisionTask.getVATimeFromJob(), currentDecisionTask.getStartPositionFromJob(),
                             currentDecisionTask.getEndPositionFromJob(), "NotStarted");
 
-                    trikeAgent.tripList.add(newTrip);
+                    synchronized (trikeAgent.tripList){
+                        trikeAgent.tripList.removeIf(trip -> trip.getTripID().startsWith("area"));
+                        trikeAgent.tripList.add(newTrip);
+                    }
+
+
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(newTrip.getVATime())) / 1000;
+
+                    System.out.println(trikeAgent.getAgentID() + " COMMIT " + newTrip.getTripID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta + " sec delay!");
 
                     /*
 
@@ -312,78 +334,61 @@ public class Utils {
                 //  manager
                 case DELEGATE: {
                     currentDecisionTask.setStatus(DecisionTask.Status.WAITING_NEIGHBOURS);
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     ArrayList<String> values = new ArrayList<>();
-                    values.add(currentDecisionTask.getJobID()); //todo move into a method
-                    Location jobLocation = currentDecisionTask.getJob().getStartPosition();
-                    String jobCell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(trikeAgent.cell));
-                    boolean isInArea = trikeAgent.cell.equals(jobCell);
+                    values.add(currentDecisionTask.getJobID());
 
-                    /*
-                    if(isInArea){
+                    if(currentDecisionTask.isLocal){
                         String areaAgentTag = Cells.cellAgentMap.get(trikeAgent.cell);
                         currentDecisionTask.initRequestCount(1);
-                        sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
+
+                        MessageContent messageContent = new MessageContent("trikesInArea", values);
+                        Message requestMessage = new Message(trikeAgent.agentID, areaAgentTag, Message.ComAct.REQUEST,
+                                SharedUtils.getSimTime(),  messageContent);
+                        currentDecisionTask.extra = requestMessage.getId().toString();
+                        trikeAgent.requests.add(requestMessage);
+
+                        //IAreaTrikeService service = messageToService(trikeAgent.agent, requestMessage);
+                        SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
                     }else{
                         //  need to broadcast cnp
-                        List<String> areaNeighbourIds = Cells.getNeighbours(jobCell);
+                        List<String> areaNeighbourIds = Cells.getNeighbours(currentDecisionTask.cell);
                         currentDecisionTask.initRequestCount(areaNeighbourIds.size());
+
                         for (String id: areaNeighbourIds) {
-                            sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
+                            MessageContent messageContent = new MessageContent("trikesInArea", values);
+                            Message requestMessage = new Message(trikeAgent.agentID, id, Message.ComAct.REQUEST,
+                                    SharedUtils.getSimTime(),  messageContent);
+                            currentDecisionTask.extra = requestMessage.getId().toString();
+
+                            //IAreaTrikeService service = messageToService(trikeAgent.agent, requestMessage);
+                            SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
                         }
                     }
 
-                     */
-                    String areaAgentTag = Cells.cellAgentMap.get(trikeAgent.cell);
-                    currentDecisionTask.initRequestCount(1);
-                    sendMessage(trikeAgent, areaAgentTag, Message.ComAct.REQUEST, "trikesInArea", values);
-
-                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();   // to wait for area reply
-                    hasChanged = false;
+                    hasChanged = true;
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    System.out.println("DELEGATE " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta);
                     break;
                 }
                 case WAITING_NEIGHBOURS:{
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
-                        ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
-
-                        /*
-                        if (agentIds.size() < MIN_CNP_TRIKES) {
-                            String jobCell =
-                                    Cells.locationToCellAddress(currentDecisionTask.getStartPositionFromJob(),
-                                            Cells.getCellResolution(trikeAgent.cell));
-                            boolean isInArea = trikeAgent.cell.equals(jobCell);
-
-
-                            if (isInArea && currentDecisionTask.numRequests == 1) {
-                                    //  global cnp
-                                    ArrayList<String> values = new ArrayList<>();
-
-                                    //  need to broadcast cnp
-                                    List<String> areaNeighbourIds = Cells.getNeighbours(jobCell);
-
-                                    currentDecisionTask.initRequestCount(areaNeighbourIds.size());
-
-                                    for (String id : areaNeighbourIds) {
-                                        sendMessage(trikeAgent, id, Message.ComAct.REQUEST, "trikesInArea", values);
-                                    }
-
-                                    if(areaNeighbourIds.isEmpty()){
-                                        currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
-                                        hasChanged = true;
-                                        break;
-                                    }
-
-                                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
-                                    hasChanged = false;
-                                    break;
-                            }
+                        synchronized (trikeAgent.requests){
+                            trikeAgent.requests.removeIf(request ->
+                                    request.getId().equals(UUID.fromString(currentDecisionTask.extra)));
                         }
 
-                         */
                         currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
                         hasChanged = true;
+
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("WAITING_NEIGHBORS finished " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
+
                         break;
                     }
 
@@ -391,23 +396,40 @@ public class Utils {
                     break;
                 }
                 case CFP_READY: {
+                    if(currentDecisionTask.getAgentIds().size() < MIN_CNP_TRIKES && currentDecisionTask.isLocal){
+                        currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                        currentDecisionTask.isLocal = false;
+                        hasChanged = true;
+                        break;
+                    }
+
                     if(currentDecisionTask.getAgentIds().isEmpty()){
+                        System.out.println("DIDNT RESPOND " + currentDecisionTask.getJobID());
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("CFP READY NEIGHBORS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         hasChanged = true;
                         break;
                     }
 
                     currentDecisionTask.setStatus(DecisionTask.Status.WAITING_PROPOSALS);
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     Job JobForCFP = currentDecisionTask.getJob();
-                    ArrayList<String> agentIds = currentDecisionTask.getAgentIds();
-                    currentDecisionTask.initRequestCount(agentIds.size());
-                    for (String agentId : agentIds) {
-                        testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
+                    List<String> agentIds = currentDecisionTask.getAgentIds();
+
+                    synchronized (agentIds){
+                        currentDecisionTask.initRequestCount(agentIds.size());
+                        for (String agentId : agentIds) {
+                            testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
+                        }
                     }
 
-                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
-                    hasChanged = false;
+                    hasChanged = true;
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    System.out.println("CFP_READY " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta);
                     break;
                 }
                 case WAITING_PROPOSALS: {
@@ -415,6 +437,9 @@ public class Utils {
                     if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("WAITING PROPOSALS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
 
                         hasChanged = true;
                         break;
@@ -428,57 +453,66 @@ public class Utils {
                      *  send agree/cancel > "waitingForConfirmations"
                      */
                     currentDecisionTask.tagBestScore(trikeAgent.agentID);
+                    synchronized (currentDecisionTask.getUTScoreList()) {
+                        for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
+                            String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
+                            String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
 
-                    for (int i = 0; i < currentDecisionTask.getUTScoreList().size(); i++) {
-                        String bidderID = currentDecisionTask.getUTScoreList().get(i).getBidderID();
-                        String tag = currentDecisionTask.getUTScoreList().get(i).getTag();
-                        hasChanged = false;
 
-                        switch (tag) {
-                            case "AcceptProposal": {
-                                currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
-                                ArrayList<String> values = new ArrayList<>();
-                                values.add(currentDecisionTask.getJobID());
+                            switch (tag) {
+                                case "AcceptProposal": {
+                                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
+                                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
-                                MessageContent messageContent = new MessageContent(tag, values);
-                                Message acceptMessage = new Message(trikeAgent.agentID, bidderID,
-                                        Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
+                                    ArrayList<String> values = new ArrayList<>();
+                                    values.add(currentDecisionTask.getJobID());
 
-                                trikeAgent.requests.add(acceptMessage);
-                                currentDecisionTask.extra = acceptMessage.getId().toString();
-                                IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
-                                service.sendMessage(acceptMessage.serialize());
-                                break;
-                            }
-                            case "RejectProposal": {
-                                ArrayList<String> values = new ArrayList<>();
-                                values.add(currentDecisionTask.getJobID());
-                                testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
-                                break;
-                            }
-                            case "AcceptSelf": {
-                                //todo: selbst zusagen
-                                currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                                String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms")
-                                        .format(new java.util.Date());
-                                System.out.println("FINISHED Negotiation - JobID: " +
-                                        currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
-                                hasChanged = true;
-                                break;
+                                    MessageContent messageContent = new MessageContent(tag, values);
+                                    Message acceptMessage = new Message(trikeAgent.agentID, bidderID,
+                                            Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
+
+                                    trikeAgent.requests.add(acceptMessage);
+                                    currentDecisionTask.extra = acceptMessage.getId().toString();
+                                    //IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
+                                    SharedUtils.sendMessage(acceptMessage.getReceiverId(), acceptMessage.serialize());
+                                    break;
+                                }
+                                case "RejectProposal": {
+                                    ArrayList<String> values = new ArrayList<>();
+                                    values.add(currentDecisionTask.getJobID());
+                                    testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
+                                    break;
+                                }
+                                case "AcceptSelf": {
+                                    currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                                    String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms")
+                                            .format(new java.util.Date());
+                                    System.out.println("FINISHED Negotiation - JobID: " +
+                                            currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
+                                    break;
+                                }
                             }
                         }
                     }
 
-                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    System.out.println("DECISION_READY " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta);
+                    hasChanged = true;
                     break;
                 }
                 case WAITING_CONFIRM: {
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
-                        trikeAgent.requests.removeIf(request -> request.getId()
-                            .equals(UUID.fromString(currentDecisionTask.extra)));
-                        //currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
+                        synchronized (trikeAgent.requests){
+                            trikeAgent.requests.removeIf(request -> request.getId()
+                                    .equals(UUID.fromString(currentDecisionTask.extra)));
+                        }
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("WAITING CONFIRM TIMEOUT " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
+                        System.out.println("DID HIMSELF");
                         hasChanged = true;
                         break;
                     }
@@ -490,6 +524,7 @@ public class Utils {
                 //  worker
                 case PROPOSED: {
                     currentDecisionTask.setStatus(DecisionTask.Status.WAITING_MANAGER);
+                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     /**
                      *  send bid > "waitingForManager"
@@ -507,8 +542,11 @@ public class Utils {
                     //zb. values = jobid # score
                     testTrikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
 
-                    currentDecisionTask.timeStamp = SharedUtils.getSimTime();
-                    hasChanged = false;
+
+                    hasChanged = true;
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    System.out.println("PROPOSED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta);
                     break;
                 }
                 case WAITING_MANAGER: {
@@ -517,6 +555,9 @@ public class Utils {
                     if (currentTime >= currentDecisionTask.timeStamp + MANAGER_WAIT_TIME) {
                         currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
                         hasChanged = true;
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("WAITING MANAGER TIMEOUT " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
                         break;
                     }
 
@@ -525,8 +566,12 @@ public class Utils {
                 }
                 case CONFIRM_READY: {
                     long currentTime = SharedUtils.getSimTime();
-                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME){
+                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 10){
                         currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                        System.out.println("CANCELLED");
+                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                        System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                                delta);
                         hasChanged = true;
                         break;
                     }
@@ -542,8 +587,8 @@ public class Utils {
                     Message message = new Message(trikeAgent.agentID, currentDecisionTask.getOrigin(), Message.ComAct.ACK,
                             SharedUtils.getSimTime(), messageContent);
                     message.setId(UUID.fromString(currentDecisionTask.extra));
-                    IAreaTrikeService service = messageToService(trikeAgent.agent, message);
-                    service.sendMessage(message.serialize());
+                    //IAreaTrikeService service = messageToService(trikeAgent.agent, message);
+                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
 
                     hasChanged = true;
                     break;
@@ -565,57 +610,149 @@ public class Utils {
     public  Double calculateUtility(DecisionTask newTask){
         Double utillityScore = 0.0;
 
+        synchronized (trikeAgent.tripList){
+            if (trikeAgent.chargingTripAvailable.equals("0")) {
+                Double a = 0.5;
+                Double b = 0.25;
+                Double c = 0.25;
 
-        if (trikeAgent.chargingTripAvailable.equals("0")) {
+                Double uPunctuality = null;
+                Double uBattery = null;
+                Double uDistance = null;
 
+                //###########################################################
+                // punctuallity
+                // arrival delay to arrive at the start position when started from the trikeAgent.agentLocation
+                //todo: number of comitted trips TIP über alle berechnen erwartete ankunft bei aktuellem bestimmen, dann delay bewerten ohne ladefahrten
+                Double vaTimeFirstTrip = null;
+                //when there is no Trip before calculate the delay when started at the Agent Location
+                if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0) {
+                    //trikeAgent.agentLocation
+                    Double distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
+                    //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
+                    Double timeToNewTask = ((distanceToStart/1000) / DRIVING_SPEED)*60*60; //in this case equals the delay as vatiem is bookingtime
+                    // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
+                    if (timeToNewTask<THETA){
+                        uPunctuality = 100.0;
+                    }
+                    else if (THETA<= timeToNewTask && timeToNewTask<=2*THETA){
+                        uPunctuality = 100.0 - ((100.0 * timeToNewTask - THETA)/THETA);
+                    }
+                    else{
+                        uPunctuality = 0.0;
+                    }
 
-            newTask.getStartPositionFromJob();
-            newTask.getEndPositionFromJob();
-            newTask.getVATimeFromJob();
-
-            Double a = 1.0 / 3.0;
-            Double b = 1.0 / 3.0;
-            Double c = 1.0 / 3.0;
-
-            Double uPunctuality = null;
-            Double uBattery = null;
-            Double uDistance = null;
-
-            //###########################################################
-            // punctuallity
-            // arrival delay to arrive at the start position when started from the trikeAgent.agentLocation
-            //todo: number of comitted trips TIP über alle berechnen erwartete ankunft bei aktuellem bestimmen, dann delay bewerten ohne ladefahrten
-            Double vaTimeFirstTrip = null;
-            //when there is no Trip before calculate the delay when started at the Agent Location
-            if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0) {
-                //trikeAgent.agentLocation
-                Double distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
-                //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double timeToNewTask = ((distanceToStart/1000) / DRIVING_SPEED)*60*60; //in this case equals the delay as vatiem is bookingtime
-                // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
-                if (timeToNewTask<THETA){
-                    uPunctuality = 100.0;
+                    //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, timeToNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
                 }
-                else if (THETA<= timeToNewTask && timeToNewTask<=2*THETA){
-                    uPunctuality = 100.0 - ((100.0 * timeToNewTask - THETA)/THETA);
-                }
-                else{
-                    uPunctuality = 0.0;
-                }
+                else {
+                    Double totalDistance_TIP = 0.0;
+                    //todo: get va time of first job here or in an else case
+                    if (trikeAgent.currentTrip.size() == 1) { //distances driven from the agent location to the start of the current trip and to its end
+                        totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
+                        if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
+                            vaTimeFirstTrip = timeInSeconds(trikeAgent.currentTrip.get(0).getVATime());
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
+                        }
+                    }
+                    //  distance driven at trikeAgent.tripList
+                    if (trikeAgent.tripList.size() > 0) {
+                        if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
+                            if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                            } else { // trips with only a start position
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                            }
+                        } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
+                            vaTimeFirstTrip = timeInSeconds(trikeAgent.tripList.get(0).getVATime()); //fist VATime when there was no trikeAgent.currentTrip
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
+                        }
+                        // distance driven at trikeAgent.tripList.get(0)
+                        if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
+                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
+                        }
+                    } else {
+                        // do nothing as all other Trips with only a startPosition will not contain any other movements;
+                    }
 
-                //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, timeToNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
-            }
-            else {
+                    // interates through all other Trips inside trikeAgent.tripList
+                    if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
+                        for (int i = 1; i < trikeAgent.tripList.size(); i++) {
+                            if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                            } else { // Trips with only a startPosition
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                            }
+                            if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                            }
+                        }
+                    }
+                    //todo: drives to the start of the job that has to be evaluated
+                    if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
+                        totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                    }
+                    else {
+                        totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                    }
+
+
+                    Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
+                    Double timeToNewTask = ((totalDistance_TIP/1000) / DRIVING_SPEED)*60*60;
+                    Double arrivalAtNewtask = vaTimeFirstTrip + timeToNewTask;
+
+                    Double delayArrvialNewTask = Math.max((arrivalAtNewtask - vATimeNewTask), timeToNewTask);
+                    System.out.println("vATimeNewTask: " + vATimeNewTask );
+                    System.out.println("timeToNewTask: " + timeToNewTask );
+                    System.out.println("arrivalAtNewtask: " + arrivalAtNewtask );
+                    System.out.println("delayArrvialNewTask: " + delayArrvialNewTask );
+
+                    if (delayArrvialNewTask<THETA){
+                        uPunctuality = 100.0;
+                    }
+                    else if (THETA<= delayArrvialNewTask && delayArrvialNewTask <=2*THETA){
+                        uPunctuality = 100.0 - ((100.0 * delayArrvialNewTask - THETA)/THETA);
+                    }
+                    else{
+                        uPunctuality = 0.0;
+                    }
+
+                    //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, delayArrvialNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
+
+
+
+                }
+                //when there a trips iterate through all, starting at the va time of the first trip estimate your delay when arriving at the start location of
+                // the Job that has to be evaluated
+
+
+                //###########################################################
+                // Battery
+                //todo: battery from Ömer needed
+                // differ between trips with and without customer???
+                Double currentBatteryLevel = trikeAgent.trikeBattery.getMyChargestate(); //todo: use real battery
+                Double estBatteryLevelAfter_TIP = trikeAgent.trikeBattery.getMyChargestate();
+                Double estDistance = 0.0;
+                Double estEnergyConsumption = 0.0;
+                Double estEnergyConsumption_TIP = 0.0;
                 Double totalDistance_TIP = 0.0;
-                //todo: get va time of first job here or in an else case
-                if (trikeAgent.currentTrip.size() == 1) { //distances driven from the agent location to the start of the current trip and to its end
+                Double negativeInfinity = Double.NEGATIVE_INFINITY;
+                Double bFactor = null;
+                //todo ennergieverbrauch für zu evuluierenden job bestimmen
+
+                //calculation of the estimatedEnergyConsumtion (of formertrips)
+
+
+                if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
+                    //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
                     totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
                     if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
-                        vaTimeFirstTrip = timeInSeconds(trikeAgent.currentTrip.get(0).getVATime());
                         totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
                     }
+                    if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
+                        totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
+                    }
                 }
-                //  distance driven at trikeAgent.tripList
+                // battery relavant distance driven at trikeAgent.tripList
                 if (trikeAgent.tripList.size() > 0) {
                     if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
                         if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
@@ -624,216 +761,108 @@ public class Utils {
                             totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
                         }
                     } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
-                        vaTimeFirstTrip = timeInSeconds(trikeAgent.tripList.get(0).getVATime()); //fist VATime when there was no trikeAgent.currentTrip
                         totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
                     }
                     // distance driven at trikeAgent.tripList.get(0)
                     if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
                         totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
                     }
-                } else {
-                    // do nothing as all other Trips with only a startPosition will not contain any other movements;
-                }
+                    if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
+                        totalDistance_TIP = 0.0;
+                    } else {
+                        // do nothing as all other Trips with only a startPosition will not contain any other movements;
+                    }
 
-                // interates through all other Trips inside trikeAgent.tripList
-                if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
-                    for (int i = 1; i < trikeAgent.tripList.size(); i++) {
-                        if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
-                        } else { // Trips with only a startPosition
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
-                        }
-                        if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+
+                    //todo: fahrt zum nächjsten start fehlt +-1 bei i???
+                    // interates through all other Trips inside trikeAgent.tripList
+                    if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
+                        for (int i = 1; i < trikeAgent.tripList.size(); i++) {
+                            if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                            } else { // Trips with only a startPosition
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                            }
+                            if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
+                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                            }
                         }
                     }
                 }
-                //todo: drives to the start of the job that has to be evaluated
-                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
-                    totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-                }
-                else {
-                    totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
-                }
+                //todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RICHTIGE WERTE ZUGREIFEN
+                estEnergyConsumption_TIP = trikeAgent.trikeBattery.SimulateDischarge(totalDistance_TIP * DISTANCE_FACTOR);//*2 because it would be critical to underestimate the distance
+                estBatteryLevelAfter_TIP = currentBatteryLevel - estEnergyConsumption_TIP;
+
+                //calculate teh estimated energy consumption of the new job
 
 
-                Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
-                Double timeToNewTask = ((totalDistance_TIP/1000) / DRIVING_SPEED)*60*60;
-                Double arrivalAtNewtask = vaTimeFirstTrip + timeToNewTask;
-
-                Double delayArrvialNewTask = Math.max((arrivalAtNewtask - vATimeNewTask), timeToNewTask);
-                System.out.println("vATimeNewTask: " + vATimeNewTask );
-                System.out.println("timeToNewTask: " + timeToNewTask );
-                System.out.println("arrivalAtNewtask: " + arrivalAtNewtask );
-                System.out.println("delayArrvialNewTask: " + delayArrvialNewTask );
-
-                if (delayArrvialNewTask<THETA){
-                    uPunctuality = 100.0;
+                //Distance from the agent location
+                if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0){
+                    estDistance += Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
                 }
-                else if (THETA<= delayArrvialNewTask && delayArrvialNewTask <=2*THETA){
-                    uPunctuality = 100.0 - ((100.0 * delayArrvialNewTask - THETA)/THETA);
-                }
+                //Distance from the Last Trip in Pipe
                 else{
-                    uPunctuality = 0.0;
-                }
-
-                //uPunctuality = Math.min(100.0, (100.0 - (((Math.min(THETA, delayArrvialNewTask) - 0.0) / (THETA - 0.0)) * 100.0)));
-
-
-
-            }
-            //when there a trips iterate through all, starting at the va time of the first trip estimate your delay when arriving at the start location of
-            // the Job that has to be evaluated
-
-
-            //###########################################################
-            // Battery
-            //todo: battery from Ömer needed
-            // differ between trips with and without customer???
-            Double currentBatteryLevel = trikeAgent.trikeBattery.getMyChargestate(); //todo: use real battery
-            Double estBatteryLevelAfter_TIP = trikeAgent.trikeBattery.getMyChargestate();
-            Double estDistance = 0.0;
-            Double estEnergyConsumption = 0.0;
-            Double estEnergyConsumption_TIP = 0.0;
-            Double totalDistance_TIP = 0.0;
-            Double negativeInfinity = Double.NEGATIVE_INFINITY;
-            Double bFactor = null;
-            //todo ennergieverbrauch für zu evuluierenden job bestimmen
-
-            //calculation of the estimatedEnergyConsumtion (of formertrips)
-
-
-            if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
-                //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
-                totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
-                if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
-                }
-                if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
-                    totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
-                }
-            }
-            // battery relavant distance driven at trikeAgent.tripList
-            if (trikeAgent.tripList.size() > 0) {
-                if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
-                    if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
-                    } else { // trips with only a start position
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                    if (getLastTripInPipeline().getTripType().equals("CustomerTrip")){
+                        estDistance += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
                     }
-                } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
-                }
-                // distance driven at trikeAgent.tripList.get(0)
-                if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
-                }
-                if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
-                    totalDistance_TIP = 0.0;
-                } else {
-                    // do nothing as all other Trips with only a startPosition will not contain any other movements;
-                }
-
-
-                //todo: fahrt zum nächjsten start fehlt +-1 bei i???
-                // interates through all other Trips inside trikeAgent.tripList
-                if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
-                    for (int i = 1; i < trikeAgent.tripList.size(); i++) {
-                        if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
-                        } else { // Trips with only a startPosition
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
-                        }
-                        if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
-                        }
+                    else{
+                        estDistance += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                     }
                 }
-            }
-            //todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! RICHTIGE WERTE ZUGREIFEN
-            estEnergyConsumption_TIP = trikeAgent.trikeBattery.SimulateDischarge(totalDistance_TIP * DISTANCE_FACTOR);//*2 because it would be critical to underestimate the distance
-            estBatteryLevelAfter_TIP = currentBatteryLevel - estEnergyConsumption_TIP;
+                estDistance += Location.distanceBetween(newTask.getStartPositionFromJob(), newTask.getEndPositionFromJob());
 
-            //calculate teh estimated energy consumption of the new job
+                estEnergyConsumption = trikeAgent.trikeBattery.SimulateDischarge(estDistance * DISTANCE_FACTOR);
 
-
-            //Distance from the agent location
-            if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0){
-                estDistance += Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
-            }
-            //Distance from the Last Trip in Pipe
-            else{
-                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")){
-                    estDistance += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
-                }
-                else{
-                    estDistance += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
-                }
-            }
-            estDistance += Location.distanceBetween(newTask.getStartPositionFromJob(), newTask.getEndPositionFromJob());
-
-            estEnergyConsumption = trikeAgent.trikeBattery.SimulateDischarge(estDistance * DISTANCE_FACTOR);
-
-            Double estBatterylevelTotal = estBatteryLevelAfter_TIP - estEnergyConsumption;
+                Double estBatterylevelTotal = estBatteryLevelAfter_TIP - estEnergyConsumption;
 
 
-            //###########################################################
-            // calculation of uBattery
-            if (estBatterylevelTotal < 0.0) { //todo: estEnergyConsumption FEHLT!
-                uBattery = negativeInfinity;
-            } else {
-                if (estBatterylevelTotal > 0.8) {
-                    bFactor = 1.0;
-                } else if (estBatterylevelTotal >= 0.3) {
-                    bFactor = 0.75;
-                } else if (estBatterylevelTotal < 0.3) {
-                    bFactor = 0.1;
-                }
-                // ???? batteryLevelAfterTrips or 100?
-                uBattery = (bFactor * estBatterylevelTotal) * 100;
-
-            }
-            //###########################################################
-            //Distance
-            Double dmax = 3000.0;
-            Double distanceToStart;
-
-            if (trikeAgent.tripList.size() == 0 && trikeAgent.currentTrip.size() == 0) {
-                distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
-            } else {
-                if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
-                    distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                //###########################################################
+                // calculation of uBattery
+                if (estBatterylevelTotal < 0.0) { //todo: estEnergyConsumption FEHLT!
+                    uBattery = negativeInfinity;
                 } else {
-                    distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                    if (estBatterylevelTotal > 0.8) {
+                        bFactor = 1.0;
+                    } else if (estBatterylevelTotal >= 0.3) {
+                        bFactor = 0.75;
+                    } else if (estBatterylevelTotal < 0.3) {
+                        bFactor = 0.1;
+                    }
+                    // ???? batteryLevelAfterTrips or 100?
+                    uBattery = (bFactor * estBatterylevelTotal) * 100;
+
                 }
+                //###########################################################
+                //Distance
+                Double dmax = 20000.0;
+                Double distanceToStart;
+
+                if (trikeAgent.tripList.size() == 0 && trikeAgent.currentTrip.size() == 0) {
+                    distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
+                } else {
+                    if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
+                        distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                    } else {
+                        distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                    }
+                }
+                uDistance = Math.max(0, (100-distanceToStart / dmax));
+                //uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
+
+
+                //###########################################################
+
+
+                // calculate the total score
+
+                utillityScore = Math.max(0.0, (a * uPunctuality + b * uBattery + c * uDistance));
             }
-            uDistance = Math.max(0, (100-distanceToStart / dmax));
-            //uDistance = Math.max(0, Math.min(100, (100.0 - ((distanceToStart / dmax) * 100.0))));
-
-
-            //###########################################################
-
-
-            // calculate the total score
-
-            utillityScore = Math.max(0.0, (a * uPunctuality + b * uBattery + c * uDistance));
+            //System.out.println("trikeAgent.agentID: " + trikeAgent.agentID + "utillity: " + utillityScore);
         }
-        //System.out.println("trikeAgent.agentID: " + trikeAgent.agentID + "utillity: " + utillityScore);
+
         return utillityScore;
     }
-    
-    public static void sendMessage(TrikeAgent trikeAgent, String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
-        //todo adapt for multiple area agents
-        //todo use unique ids
-        //message creation
 
-        MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message( ""+trikeAgent.agentID, receiverID, comAct, SharedUtils.getSimTime(),  messageContent);
-        IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
-
-        //calls trikeMessage methods of TrikeAgentService class
-        service.sendMessage(testMessage.serialize());
-    }
 
     //  example of trike to trike communic ation
     public void testTrikeToTrikeService(String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
@@ -841,10 +870,10 @@ public class Utils {
         //ArrayList<String> values = new ArrayList<>();
         MessageContent messageContent = new MessageContent(action, values);
         Message testMessage = new Message(trikeAgent.agentID,""+receiverID, comAct, SharedUtils.getSimTime(),  messageContent);
-        IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
+        //IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
 
         //calls trikeMessage methods of TrikeAgentService class
-        service.sendMessage(testMessage.serialize());
+        SharedUtils.sendMessage(testMessage.getReceiverId(), testMessage.serialize());
     }
     public Double timeInSeconds(LocalDateTime time) {
         // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
@@ -859,20 +888,22 @@ public class Utils {
         Message deregisterMessage = new Message( trikeAgent.agentID, originArea, Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
 
         //query assigning
-        IAreaTrikeService service = messageToService(trikeAgent.agent, deregisterMessage);
+        //IAreaTrikeService service = messageToService(trikeAgent.agent, deregisterMessage);
 
         //calls updateAreaAgent of AreaAgentService class
-        service.sendMessage(deregisterMessage.serialize());
+        //IAreaTrikeService finalService = service;
+        SharedUtils.sendMessage(deregisterMessage.getReceiverId(), deregisterMessage.serialize());
 
         //register to new
         messageContent = new MessageContent("register", null);
         Message registerMessage = new Message( trikeAgent.agentID, newArea, Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
 
         //query assigning
-        service = messageToService(trikeAgent.agent, registerMessage);
+        //service = messageToService(trikeAgent.agent, registerMessage);
 
         //calls updateAreaAgent of AreaAgentService class
-        service.sendMessage(registerMessage.serialize());
+        //IAreaTrikeService finalService1 = service;
+        SharedUtils.sendMessage(registerMessage.getReceiverId(), registerMessage.serialize());
     }
     public void sendAreaAgentUpdate(String action){
         //location
@@ -977,21 +1008,23 @@ public class Utils {
     }
 
     public void terminateTripList(){
-        if (trikeAgent.currentTrip.size() > 1){
-            prepareLog(trikeAgent.currentTrip.get(0), "0.0", "0.0", "false", "0.0");
-            trikeAgent.currentTrip.get(0).setProgress("Failed");
-            trikeAgent.currentTrip.remove(0);
-
-
-
-        }
-        if (trikeAgent.tripList.size() > 0){
-            while (trikeAgent.tripList.size() > 0) {
-                prepareLog(trikeAgent.tripList.get(0), "0.0", "0.0", "false", "0.0");
-                trikeAgent.tripList.get(0).setProgress("Failed");
-                trikeAgent.tripList.remove(0);
+        synchronized (trikeAgent.tripList){
+            synchronized (trikeAgent.currentTrip){
+                if (trikeAgent.currentTrip.size() > 1){
+                    prepareLog(trikeAgent.currentTrip.get(0), "0.0", "0.0", "false", "0.0");
+                    trikeAgent.currentTrip.get(0).setProgress("Failed");
+                    trikeAgent.currentTrip.remove(0);
+                }
+            }
+            if (trikeAgent.tripList.size() > 0){
+                while (trikeAgent.tripList.size() > 0) {
+                    prepareLog(trikeAgent.tripList.get(0), "0.0", "0.0", "false", "0.0");
+                    trikeAgent.tripList.get(0).setProgress("Failed");
+                    trikeAgent.tripList.remove(0);
+                }
             }
         }
+
         trikeAgent.trikeBattery.loadBattery();
         trikeAgent.chargingTripAvailable = "0";
 
@@ -1131,18 +1164,6 @@ public class Utils {
     //  updates locatedagentlist of the area agent
 
 
-    //  example of trike to trike communication
-    public void sendMessageToTrike(String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
-        //message creation
-        //ArrayList<String> values = new ArrayList<>();
-        MessageContent messageContent = new MessageContent(action, values);
-        Message testMessage = new Message( ""+trikeAgent.agentID, receiverID, comAct, SharedUtils.getSimTime(),  messageContent);
-        IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
-
-        //calls trikeMessage methods of TrikeAgentService class
-        service.sendMessage(testMessage.serialize());
-    }
-
     public String getRandomSimInputBroker() // choose random SimInputBroker to register in the begining
     {
         List<String> SimInputBrokerList = SimIDMapper.NumberSimInputAssignedID;
@@ -1153,8 +1174,12 @@ public class Utils {
 
 
     public void newCurrentTrip(){
-        if(trikeAgent.currentTrip.isEmpty() && !trikeAgent.tripList.isEmpty()){
-            trikeAgent.currentTrip.add(trikeAgent.tripList.remove(0));
+        synchronized (trikeAgent.currentTrip){
+            synchronized (trikeAgent.tripList){
+                if(trikeAgent.currentTrip.isEmpty() && !trikeAgent.tripList.isEmpty()){
+                    trikeAgent.currentTrip.add(trikeAgent.tripList.remove(0));
+                }
+            }
         }
     }
 

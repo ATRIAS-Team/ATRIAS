@@ -25,9 +25,7 @@ import com.google.firebase.database.*;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
-import io.github.agentsoz.ees.shared.Message;
-import io.github.agentsoz.ees.shared.SharedConstants;
-import io.github.agentsoz.ees.shared.SharedPlans;
+import io.github.agentsoz.ees.shared.*;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.TrikeAgentService;
 import io.github.agentsoz.ees.JadexService.MappingService.WritingIDService;
@@ -37,7 +35,6 @@ import io.github.agentsoz.ees.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.JadexService.NotifyService.TrikeAgentReceiveService;
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.JadexService.NotifyService2.TrikeAgentSendService;
-import io.github.agentsoz.ees.shared.SimActuator;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.util.RingBuffer;
 import io.github.agentsoz.ees.Run.XMLConfig;
@@ -48,13 +45,16 @@ import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
+import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
+import jadex.commons.future.IFuture;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
 import java.util.*;
+import java.util.concurrent.*;
 
 @Agent(type= BDIAgentFactory.TYPE)
 @ProvidedServices({
@@ -82,33 +82,39 @@ public class TrikeAgent{
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
 
+
     // to indicate if the agent is available to take the new ride
-    @Belief
-    public volatile boolean isMatsimFree;
+
     @Belief
     public boolean canExecute = true;
 
-    @Belief
     public Location agentLocation;
 
-
-    public Map<String, DecisionTask> decisionTasks = new HashMap<>();
+    @Belief
+    public Map<String, DecisionTask> decisionTasks = new ConcurrentHashMap<>();
 
     @Belief
     public List<DecisionTask> FinishedDecisionTaskList = new ArrayList<>();
     @Belief
-    public List<Trip> tripList = new ArrayList<>(); //contains all the trips
+    public List<Trip> tripList = Collections.synchronizedList(new ArrayList<>()); //contains all the trips
     @Belief    //contains the current Trip
-    public List<Trip> currentTrip = new ArrayList<>();
+    public List<Trip> currentTrip = Collections.synchronizedList(new ArrayList<>());
 
-    public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(256);
-    public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(256);
-    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(256);
-    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(256);
-    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(256);
+    @Belief
+    public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(32);
+    @Belief
+    public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(1);
+    @Belief
+    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(64);
+    @Belief
+    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(16);
+    @Belief
+    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(2048);
 
-    public Map<UUID, Long> receivedMessageIds = new HashMap<>(2048);
-    public List<Message> requests = new ArrayList<>();  //requests are sorted by timestamp
+    public Map<UUID, Long> receivedMessageIds = new ConcurrentHashMap<>(2048);
+
+    @Belief
+    public List<Message> requests = Collections.synchronizedList(new ArrayList<>());  //requests are sorted by timestamp
 
     @Belief
     public String agentID = null; // store agent ID from the map
@@ -142,7 +148,7 @@ public class TrikeAgent{
     public Utils utils;
     public Plans plans;
 
-    public String cell = null;
+    public volatile String cell = null;
 
 
     /**
@@ -165,22 +171,29 @@ public class TrikeAgent{
         SimActuator = new SimActuator();
         SimActuator.setQueryPerceptInterface(JadexModel.storageAgent.getQueryPerceptInterface());
         AddAgentNametoAgentList(); // to get an AgentID later
-        isMatsimFree = true;
 
         bdiFeature.dispatchTopLevelGoal(new ReactToAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
         bdiFeature.dispatchTopLevelGoal(new Log());
-        bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
-        bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
-        bdiFeature.dispatchTopLevelGoal(new CNPBuffer());
-        bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+
+        //bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
+
+        //bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
+        //bdiFeature.dispatchTopLevelGoal(new CNPBuffer());
+        //bdiFeature.dispatchTopLevelGoal(new JobBuffer());
+
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
         bdiFeature.dispatchTopLevelGoal(new Requests());
     }
 
-    @Goal(recur=true, recurdelay=700)
-    private class JobBuffer {}
+    @Goal(recur=true, recurdelay=800, randomselection = true)
+    private class JobBuffer {
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return jobsBuffer.isEmpty();
+        }
+    }
 
     @Plan(trigger=@Trigger(goals=JobBuffer.class))
     private void checkJobBuffer() {
@@ -191,15 +204,14 @@ public class TrikeAgent{
     /**
      * This is just a debug Goal that will print many usefull information every 10s
      */
-    @Goal(recur=true, recurdelay=10000)
+    @Goal(recur=true, recurdelay=3000, randomselection = true)
     private class Log {}
 
     @Plan(trigger=@Trigger(goals=Log.class))
     private void log() {
-        System.out.println("agentID " + agentID +  " simtime " + JadexModel.simulationtime);
     }
 
-    @Goal(recur = true, recurdelay = 1500)
+    @Goal(recur = true, recurdelay = 1000, randomselection = true)
     private class MaintainBatteryLoaded {
         @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
         public MaintainBatteryLoaded() {
@@ -214,8 +226,13 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay=1000)
-    private class MaintainManageJobs {}
+    @Goal(recur=true, recurdelay= 10, randomselection = true)
+    private class MaintainManageJobs {
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return decisionTasks.isEmpty();
+        }
+    }
 
     @Plan(trigger=@Trigger(goals=MaintainManageJobs.class))
     private void evaluateDecisionTask() {
@@ -227,11 +244,11 @@ public class TrikeAgent{
      *  desired behavior:
      *  start: when new trip is generated
      */
-    @Goal(recur = true, recurdelay = 2000)
+    @Goal(recur = true, recurdelay = 1000, randomselection = true)
     private class MaintainTripService {
         @GoalMaintainCondition
         boolean sentToMATSIM() {
-            return !(isMatsimFree && canExecute);
+            return !canExecute;
         }
     }
 
@@ -246,7 +263,7 @@ public class TrikeAgent{
     // Trike Agent should prepare everything for the synchronization process
     //#######################################################################
 
-    @Goal(recur = true, recurdelay = 3000)
+    @Goal(recur = true, recurdelay = 3000, randomselection = true)
     private class ReactToAgentIDAdded {}
 
     @Plan(trigger = @Trigger(goals = ReactToAgentIDAdded.class))
@@ -260,39 +277,59 @@ public class TrikeAgent{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 
-    @Goal(recur = true,recurdelay = 500)
-    private class PerformSIMReceive {}
+    @Goal(recur = true,recurdelay = 1000, randomselection = true)
+    private class PerformSIMReceive {
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return actionContentRingBuffer.isEmpty();
+        }
+    }
 
     @Plan(trigger = @Trigger(goals = PerformSIMReceive.class))
     private void sensoryUpdate() {
         plans.sensoryUpdate();
     }
 
-    @Goal(recur = true, recurdelay = 1000)
-    private class CheckMessagesBuffer{}
+    @Goal(recur = true, recurdelay =  200, randomselection = true)
+    private class CheckMessagesBuffer{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return messagesBuffer.isEmpty();
+        }
+    }
 
     @Plan(trigger = @Trigger(goals = CheckMessagesBuffer.class))
     private void checkMessagesBuffer(){
         plans.checkMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 700)
-    private class CNPBuffer{}
+    @Goal(recur = true, recurdelay = 200, randomselection = true)
+    private class CNPBuffer{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return cnpBuffer.isEmpty();
+        }
+    }
 
     @Plan(trigger = @Trigger(goals = CNPBuffer.class))
     private void checkCNPBuffer(){
         plans.checkCNPBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 5000)
-    private class Requests{}
+    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    private class Requests{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return requests.isEmpty();
+        }
+    }
 
     @Plan(trigger=@Trigger(goals= Requests.class))
     private void checkRequestTimeouts(){
         plans.checkRequestTimeouts();
     }
 
-    @Goal(recur = true, recurdelay = 10000)
+    @Goal(recur = true, recurdelay = 10000, randomselection = true)
     private class ReceivedMessages{}
 
     @Plan(trigger=@Trigger(goals= ReceivedMessages.class))
@@ -326,5 +363,55 @@ public class TrikeAgent{
     //Battery -oemer
     public void setMyLocation(Location location) {
 
+    }
+
+    public void sendMessage(String messageStr){
+        Message messageObj = Message.deserialize(messageStr);
+
+        if(this.receivedMessageIds.containsKey(messageObj.getId())) return;
+        this.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
+
+        switch (messageObj.getComAct()){
+            case CALL_FOR_PROPOSAL:
+            case PROPOSE:
+            case ACCEPT_PROPOSAL:
+            case REJECT_PROPOSAL:
+            case REFUSE:
+                this.cnpBuffer.write(messageObj);
+                plans.checkCNPBuffer();
+                break;
+            case INFORM:{
+                this.messagesBuffer.write(messageObj);
+                plans.checkMessagesBuffer();
+                break;
+            }
+            case REQUEST:
+                this.jobsBuffer.write(messageObj);
+                plans.checkJobBuffer();
+                break;
+            case ACK:
+                switch (messageObj.getContent().getAction()){
+                    case "confirmAccept": {
+                        this.cnpBuffer.write(messageObj);
+                        plans.checkCNPBuffer();
+                        break;
+                    }
+                }
+                break;
+        }
+    }
+
+    public void NotifyotherAgent(ExecutorService executorService, List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
+        executorService.submit(()->{
+            // Reply if the message contains the keyword.
+            final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
+
+            for (ActionContent actionContent : ActionContentList){
+                if(activestatus){
+                    trikeAgent.actionContentRingBuffer.write(actionContent);
+                    trikeAgent.plans.sensoryUpdate();
+                }
+            }
+        });
     }
 }

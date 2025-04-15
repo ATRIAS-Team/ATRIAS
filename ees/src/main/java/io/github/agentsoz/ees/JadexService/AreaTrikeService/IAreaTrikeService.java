@@ -26,6 +26,7 @@ import io.github.agentsoz.ees.shared.Message;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
+import jadex.commons.future.IFuture;
 
 public interface IAreaTrikeService
 {
@@ -39,5 +40,5 @@ public interface IAreaTrikeService
         return service;
     }
 
-    void sendMessage(String messageStr);
+    IFuture<Void> sendMessage(String messageStr);
 }
