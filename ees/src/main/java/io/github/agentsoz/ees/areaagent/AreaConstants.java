@@ -29,7 +29,7 @@ import static io.github.agentsoz.ees.Run.XMLConfig.assignIfNotNull;
 public class AreaConstants {
     public static int REQUEST_WAIT_TIME = 20000;
 
-    public static int MIN_TRIKES = 4;
+    public static int MIN_TRIKES = -1;
 
     public static int NEIGHBOURS_WAIT_TIME = 10000;
 

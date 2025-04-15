@@ -26,6 +26,7 @@ package io.github.agentsoz.ees.simagent;
 import io.github.agentsoz.bdiabm.data.ActionContent;
 import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
+import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.JadexService.MappingService.IMappingInputBrokerService;
 import io.github.agentsoz.ees.JadexService.MappingService.WritingBrokerIDService;
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
@@ -33,6 +34,8 @@ import io.github.agentsoz.ees.JadexService.NotifyService2.SimInputBrokerReceiveS
 import io.github.agentsoz.ees.JadexService.NotifyService.INotifyService;
 import io.github.agentsoz.ees.JadexService.NotifyService.SimInputBrokerService;
 import io.github.agentsoz.ees.Run.JadexModel;
+import io.github.agentsoz.ees.shared.SharedUtils;
+import io.github.agentsoz.ees.trikeagent.TrikeAgent;
 import jadex.bdiv3.BDIAgentFactory;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
@@ -49,6 +52,8 @@ import jadex.micro.annotation.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 @Agent(type=BDIAgentFactory.TYPE)
@@ -95,6 +100,8 @@ public class SimSensoryInputBroker {
 	public List<String> Registeredagents = new ArrayList<>();
 
 	public List<String> ActiveAgentList = new ArrayList<>();
+
+	ExecutorService executorService = Executors.newFixedThreadPool(4);
 
 	@Belief
 	public boolean WriteinTrikeAgent = false; // contain only agent id and action content of relevant agents
@@ -174,13 +181,16 @@ public class SimSensoryInputBroker {
 						// sending data to specific TrikeAgent by calling its serviceTag
 						if ((!ActionContentList.isEmpty()) || (!PerceptContentList.isEmpty())) {
 							System.out.println(SensoryInputID + " start delivering data from MATSIM to "+agentId);
-							ServiceQuery<INotifyService> query = new ServiceQuery<>(INotifyService.class);
-							query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
-							query.setServiceTags("" + agentId); // calling the tag of a trike agent
-							Collection<INotifyService> service = agent.getLocalServices(query);
-							for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
-								INotifyService cs = iteration.next();
-								cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus); // assign data to vehicle agents via service
+							TrikeAgent trikeAgent = SharedUtils.trikeAgentMap.get(agentId);
+							trikeAgent.NotifyotherAgent(executorService, ActionContentList, PerceptContentList, Activestatus);
+
+							//ServiceQuery<INotifyService> query = new ServiceQuery<>(INotifyService.class);
+							//query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL
+							//query.setServiceTags("" + agentId); // calling the tag of a trike agent
+							//Collection<INotifyService> service = agent.getLocalServices(query);
+							//for (Iterator<INotifyService> iteration = service.iterator(); iteration.hasNext(); ) {
+							//	INotifyService cs = iteration.next();
+							//	cs.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus); // assign data to vehicle agents via service
 								/*
 								MyLogger logger = new MyLogger(SensoryInputID + "-inputbroker.txt", MyLogger.Status.INFO);
 								logger.info("Trike id: " + agentId);
@@ -209,7 +219,7 @@ public class SimSensoryInputBroker {
 								logger.close();
 
 								 */
-							}
+							//}
 
 						}
 					}

@@ -31,7 +31,7 @@
 	</module>
 
 	<module name="network">
-		<param name="inputNetworkFile" value="boston_matsim-JOSM-UTM.xml" />
+		<param name="inputNetworkFile" value="boston_matsim-JOSM-UTM-medium.xml" />
 		<!--<param name="inputNetworkFile" value="campus-layer.xml" />-->
 		<param name= "timeVariantNetwork" value= "false" />
 		<!--<param name= "inputChangeEventsFile" value= "scenario_matsim_network_change_events.xml.gz" />-->
@@ -56,7 +56,7 @@
 	<module name="qsim">
 		<!-- "start/endTime" of MobSim  (00:00:00 == take earliest activity time/ run as long as active vehicles exist) -->
 		<param name="startTime" value="00:00:00" />
-		<param name="endTime" value="25:59:59" />
+		<param name="endTime" value="23:59:59" />
 
 		<param name = "snapshotperiod"	value = "00:00:20"/> <!-- 00:00:00 means NO snapshot writing, 00:00:30 means every 30 secs -->
 		<!--<param name="timeStepSize" value="1.0"/>-->
@@ -119,7 +119,7 @@
 	</module>
 
 	<module name="parallelEventHandling" >
-		<param name="numberOfThreads" value="1" />
+		<param name="numberOfThreads" value="4" />
 	</module>
 
 </config>

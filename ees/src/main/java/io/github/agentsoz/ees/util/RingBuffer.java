@@ -22,28 +22,36 @@ package io.github.agentsoz.ees.util;
  * #L%
  */
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class RingBuffer<E> {
     private final int DEFAULT_CAPACITY = 16;
     private int capacity;
-    public volatile int readSequence;   //tail
-    public volatile int writeSequence;  //head
+    public AtomicInteger readSequence;   //tail
+    public AtomicInteger writeSequence;  //head
+
+    public PropertyChangeSupport pcs;
 
     public E[] data;
 
     public RingBuffer(int capacity) {
         this.capacity = (capacity < 1) ? DEFAULT_CAPACITY : capacity;
         this.data = (E[]) new Object[this.capacity];
-        this.readSequence = 0;
-        this.writeSequence = 0;
+        this.readSequence = new AtomicInteger(0);
+        this.writeSequence = new AtomicInteger(0);
+        this.pcs = new PropertyChangeSupport(this);
     }
 
-    public boolean isFull(){return writeSequence - readSequence == capacity;}
+    public boolean isFull(){return writeSequence.get() - readSequence.get() == capacity;}
 
-    public boolean isEmpty(){return writeSequence == readSequence;}
+    public boolean isEmpty(){return writeSequence.get() == readSequence.get();}
 
     public boolean write(E element) {
         if (!isFull()) {
-            data[writeSequence++ % capacity] = element;
+            data[writeSequence.incrementAndGet() % capacity] = element;
+            pcs.firePropertyChange("data", null, data);
             return true;
         }
         return false;
@@ -51,8 +59,19 @@ public class RingBuffer<E> {
 
     public E read() {
         if (!isEmpty()) {
-            return data[readSequence++ % capacity];
+            int index = readSequence.incrementAndGet() % capacity;
+            E result = data[index];
+            data[index] = null;
+            return result;
         }
         return null;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener){
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener){
+        pcs.removePropertyChangeListener(listener);
     }
 }

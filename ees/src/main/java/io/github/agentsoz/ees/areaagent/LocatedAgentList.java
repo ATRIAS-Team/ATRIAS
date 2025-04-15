@@ -23,37 +23,56 @@ package io.github.agentsoz.ees.areaagent;
  */
 
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import io.github.agentsoz.util.Location;
 
 public class LocatedAgentList {
 
-    public List<LocatedAgent> LocatedAgentList = new ArrayList<>();
+    public final List<LocatedAgent> LocatedAgentList = Collections.synchronizedList(new ArrayList<>());
+
+    private AreaAgent areaAgent;
 
     public int size(){
         return LocatedAgentList.size();
     }
 
-    public void updateLocatedAgentList(LocatedAgent newAgent, long timestamp, String action){
+    public void updateLocatedAgentList(LocatedAgent agent, long timestamp, String action){
         switch (action){
             case "register": {
-                LocatedAgentList.add(newAgent);
+                areaAgent.lastDelegateRequestTS = 0;
+                LocatedAgentList.add(agent);
+
+                if(areaAgent.load >= AreaAgent.NO_TRIKES_NO_TRIPS_LOAD){
+                    areaAgent.load = areaAgent.load - AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
+                }
+                else{
+                    areaAgent.load *= ((size() - 1.0) / size());
+                }
                 break;
             }
             case "update": {
-                for (LocatedAgent locatedAgent : LocatedAgentList) {
-                    if (newAgent.getAgentID().equals(locatedAgent.getAgentID())) {
-                        locatedAgent.updateLocatedAgent(newAgent.getLastPosition(), timestamp);
+                synchronized (LocatedAgentList){
+                    for (LocatedAgent locatedAgent : LocatedAgentList) {
+                        if (agent.getAgentID().equals(locatedAgent.getAgentID())) {
+                            locatedAgent.updateLocatedAgent(agent.getLastPosition(), timestamp);
+                        }
                     }
                 }
                break;
             }
             case "deregister": {
-                for (int i= 0; i<LocatedAgentList.size(); i++){
-                    if(newAgent.getAgentID().equals(LocatedAgentList.get(i).getAgentID())){
-                        LocatedAgentList.remove(i);
-                        break;
+                synchronized (LocatedAgentList){
+                    areaAgent.lastDelegateRequestTS = 0;
+                    LocatedAgentList.removeIf(locatedAgent -> locatedAgent.getAgentID().equals(agent.getAgentID()));
+
+                    if(size() == 0){
+                        areaAgent.load += AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
+                    }else{
+                        areaAgent.load *= ((size() + 1.0) / size());
                     }
                 }
                 break;
@@ -67,15 +86,20 @@ public class LocatedAgentList {
         double lowestDistance = Double.MAX_VALUE;
         double compareDistance;
 
-        for (int i = 0; i < size(); i++){
-            LocatedAgent toInvestigate = LocatedAgentList.get(i);
-            compareDistance = Location.distanceBetween(startPosition, toInvestigate.getLastPosition());
-            if (compareDistance<lowestDistance){
-                lowestDistance = compareDistance;
-                closestAgentID = toInvestigate.getAgentID();
+        synchronized (LocatedAgentList){
+            for (LocatedAgent toInvestigate: LocatedAgentList){
+                compareDistance = Location.distanceBetween(startPosition, toInvestigate.getLastPosition());
+                if (compareDistance<lowestDistance){
+                    lowestDistance = compareDistance;
+                    closestAgentID = toInvestigate.getAgentID();
 
+                }
             }
         }
         return closestAgentID;
+    }
+
+    public void setAreaAgent(AreaAgent areaAgent){
+        this.areaAgent = areaAgent;
     }
 }

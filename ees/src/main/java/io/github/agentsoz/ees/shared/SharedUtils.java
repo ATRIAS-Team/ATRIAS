@@ -23,12 +23,20 @@ package io.github.agentsoz.ees.shared;
  */
 
 import io.github.agentsoz.ees.Run.JadexModel;
+import io.github.agentsoz.ees.Run.TrikeMain;
+import io.github.agentsoz.ees.areaagent.AreaAgent;
+import io.github.agentsoz.ees.trikeagent.TrikeAgent;
+import org.apache.logging.log4j.core.util.ExecutorServices;
 
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SharedUtils {
     public static long getSimTime(){
@@ -45,5 +53,20 @@ public class SharedUtils {
        return SharedConstants.SIMULATION_START_TIME_DT
                .withHour(duration.toHoursPart())
                .withMinute(duration.toMinutesPart());
+    }
+
+    public static Map<String, TrikeAgent> trikeAgentMap = new ConcurrentHashMap<>();
+    public static Map<String, AreaAgent> areaAgentMap = new ConcurrentHashMap<>();
+
+    public static ExecutorService executorService = Executors.newWorkStealingPool();
+
+    public static void sendMessage(String receiver, String messageStr){
+        executorService.submit(()->{
+            if(receiver.startsWith("area")){
+                SharedUtils.areaAgentMap.get(receiver).sendMessage(messageStr);
+            }else{
+                SharedUtils.trikeAgentMap.get(receiver).sendMessage(messageStr);
+            }
+        });
     }
 }
