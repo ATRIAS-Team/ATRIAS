@@ -23,13 +23,16 @@ package io.github.agentsoz.ees.areaagent;
  */
 
 import io.github.agentsoz.ees.shared.Job;
-import java.util.HashMap;
+
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DelegateInfo{
     public Job job;
     public long timeStamp = -1;
-    public Map<String, Long> agentHops = new HashMap<>();
+    public Map<String, Long> agentHops = new ConcurrentHashMap<>();
+
+    public Map<String, Double> agentLoad = new ConcurrentHashMap<>();
 
     public DelegateInfo(Job job){
         this.job = job;

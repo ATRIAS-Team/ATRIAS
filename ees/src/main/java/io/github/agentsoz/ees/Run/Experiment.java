@@ -34,7 +34,7 @@ public class Experiment {
 
     private static String projectRoot = Paths.get("").toAbsolutePath().toString();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         System.out.println("Project Root: " + projectRoot);
         // List of environment variables to apply for each run
         File[] configFiles = new File("experiment").listFiles();
@@ -62,6 +62,7 @@ public class Experiment {
             env.put("ConfigFile", "experiment/" + configFile.getName());
             int runResult = runCommand(cmd, env);
             System.out.println("Run finished!" + "Code: " + runResult);
+            Thread.sleep(1000);
         }
     }
 
@@ -78,13 +79,10 @@ public class Experiment {
             // Start the process and wait for it to finish
             Process process = processBuilder.start();
 
-            // Capture standard output and error output in separate threads
-            new Thread(() -> readStream(process.getInputStream(), "STDOUT")).start();
-            new Thread(() -> readStream(process.getErrorStream(), "STDERR")).start();
-
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("Shutting down... Stopping JAR process.");
                 stopJar(process);
+                killExistingJarProcesses("ees/out-fat.jar");
             }));
 
             return process.waitFor();
@@ -117,4 +115,24 @@ public class Experiment {
             e.printStackTrace();
         }
     }
+
+    private static void killExistingJarProcesses(String jarName) {
+        ProcessHandle.allProcesses()
+                .filter(ProcessHandle::isAlive)
+                .filter(ph -> ph.info().commandLine().isPresent())
+                .filter(ph -> ph.info().commandLine().get().contains(jarName))
+                .forEach(ph -> {
+                    System.out.println("Killing lingering JVM process: " + ph.pid());
+                    ph.destroy();
+                    try {
+                        if (!ph.onExit().get().isAlive()) {
+                            System.out.println("Successfully stopped process: " + ph.pid());
+                        }
+                    } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+                        ph.destroyForcibly();
+                        System.out.println("Forcefully killed process: " + ph.pid());
+                    }
+                });
+    }
+
 }

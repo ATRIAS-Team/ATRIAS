@@ -26,6 +26,8 @@ import io.github.agentsoz.util.Location;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DecisionTask {
 
@@ -34,15 +36,18 @@ public class DecisionTask {
     public long timeStamp;
 
     public long numRequests = 0;
-    public long numResponses = 0;
+    public volatile long numResponses = 0;
 
     private String origin;
 
-    private ArrayList<UTScore> UTScoreList = new ArrayList<>();
+    private List<UTScore> UTScoreList = Collections.synchronizedList(new ArrayList<>());
 
-    private Status status;
+    private volatile Status status;
 
-    private ArrayList<String> agentIds = new ArrayList<>();
+    private List<String> agentIds = Collections.synchronizedList(new ArrayList<>());
+
+    public boolean isLocal;
+    public String cell;
 
     private String associatedTrip;
 
@@ -78,30 +83,24 @@ public class DecisionTask {
 
     public void setUtilityScore(String agentID, Double UTScore) {
         UTScore agentScore = new UTScore(agentID, UTScore);
-        UTScoreList.add(agentScore);
+        synchronized (UTScoreList) {
+            UTScoreList.add(agentScore);
+        }
     }
 
     public void setStatus(Status newStatus) {
         this.status = newStatus;
     }
 
-    public void setAgentIds(ArrayList<String> agentIds) {
-        this.agentIds = agentIds;
-    }
-
-    public void addNeighbourIDs(ArrayList<String> neighbourIDs) {
-        this.agentIds.addAll(neighbourIDs);
-    }
-
     public Job getJob() {
         return job;
     }
 
-    public ArrayList<UTScore> getUTScoreList() {
+    public List<UTScore> getUTScoreList() {
         return UTScoreList;
     }
 
-    public ArrayList<String> getAgentIds() {
+    public List<String> getAgentIds() {
         return agentIds;
     }
 

@@ -6,9 +6,6 @@
         <population>ees\scenarios\matsim-boston\boston-population.xml</population>
     </scenario>
 
-    <file target_file="ees/scenarios/matsim-boston/boston-population.xml">
-    </file>
-
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
         <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
         <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
@@ -16,41 +13,60 @@
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">6.0</field>
-        <field field_name="CNP_ACTIVE">false</field>
+        <field field_name="DRIVING_SPEED">40.0</field>
+        <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">420.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
         <field field_name="CHARGING_THRESHOLD">0.4</field>
-        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">1200000</field>
-        <field field_name="MANAGER_WAIT_TIME">1200000</field>
-        <field field_name="CONFIRM_WAIT_TIME">1200000</field>
-        <field field_name="PROPOSALS_WAIT_TIME">1200000</field>
-        <field field_name="REQUEST_WAIT_TIME">1200000</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">20000</field>
+        <field field_name="MANAGER_WAIT_TIME">20000</field>
+        <field field_name="CONFIRM_WAIT_TIME">20000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">20000</field>
+        <field field_name="REQUEST_WAIT_TIME">5000</field>
         <field field_name="MIN_CNP_TRIKES">4</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/subsample_1.csv</field>
-        <field field_name="REQUEST_WAIT_TIME">1200000</field>
-        <field field_name="MIN_TRIKES">4</field>
-        <field field_name="NEIGHBOURS_WAIT_TIME">1200000</field>
+        <field field_name="CSV_SOURCE">ees/boston2.csv</field>
+        <field field_name="REQUEST_WAIT_TIME">5000</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>
         <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
-        <field field_name="CLEANUP_TIMER">3600000</field>
-    </class>
-    <class class_name="CentralPlanner">
-        <field field_name="OUTPUT_PATH">output</field>
-<!--        <field field_name="PATHFINDING_METHOD">euclidean</field>-->
-<!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
-        <field field_name="PATHFINDING_METHOD">fast_dijkstra</field>
+        <field field_name="CLEANUP_TIMER">600000</field>
     </class>
 
     <cells resolutions="2">
         <areaagent>
             <cell>822a37fffffffff</cell>
         </areaagent>
+        <trikeagent>
+            <spawn><cell>8f2a30661456949</cell><num>3</num></spawn>
+            <spawn><cell>8f2a306614d8a19</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30663804695</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30660a0bd4c</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30644b58781</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30644b754e1</cell><num>2</num></spawn>
+            <spawn><cell>8f2a3066ec90228</cell><num>2</num></spawn>
+            <spawn><cell>8f2a306614637b3</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3066346c374</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30645033069</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30675b9ecc6</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306712c5c9b</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30644213540</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30660764714</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306464d1a91</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3066bca2416</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30645033069</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30662cddaae</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306615a9d59</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30668433799</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3064d7a3799</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30660d64331</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3066c48e85a</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306410c26db</cell><num>1</num></spawn>
+        </trikeagent>
         <zone>19 T</zone>
         <radius>0</radius>
     </cells>

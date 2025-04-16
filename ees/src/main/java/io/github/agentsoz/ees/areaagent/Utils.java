@@ -34,10 +34,7 @@ import org.w3c.dom.Element;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,6 +56,8 @@ public class Utils {
         if (matcher.find()) {
             index = Integer.parseInt(matcher.group());
         }
+
+        areaAgent.locatedAgentList.setAreaAgent(areaAgent);
 
         areaAgent.areaAgentId = "area: " + index;
         areaAgent.myTag = areaAgent.areaAgentId;
@@ -137,6 +136,14 @@ public class Utils {
                 break;
             }
 
+            if (Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)) {
+                if (areaAgent.load >= AreaAgent.NO_TRIKES_NO_TRIPS_LOAD) {
+                    areaAgent.load += 1.0;
+                } else {
+                    areaAgent.load += 1.0 / areaAgent.locatedAgentList.size();
+                }
+            }
+
             String selectedAgent;
             if (job.getPrecalculatedVehicle() != null) {
                 // select precalculated Agent
@@ -147,8 +154,10 @@ public class Utils {
             }
 
             if (selectedAgent == null) {
-                areaAgent.jobsToDelegate.add(new DelegateInfo(job));
-                System.out.println(job.getID() + " is delegated");
+                if (!job.getID().startsWith("area")) {
+                    areaAgent.jobsToDelegate.add(new DelegateInfo(job));
+                    System.out.println(job.getID() + " is delegated");
+                }
                 jobList.remove(0);
             } else {
                 //message creation
@@ -156,18 +165,15 @@ public class Utils {
                 LocalTime bookingTime = LocalTime.now();
                 System.out.println("START Negotiation - JobID: " + job.getID() + " Time: " + bookingTime);
                 Message message = new Message(areaAgent.areaAgentId, selectedAgent, Message.ComAct.REQUEST, JadexModel.simulationtime, messageContent);
-                IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
                 areaAgent.requests.add(message);
-                service.sendMessage(message.serialize());
-
+                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                 //remove job from list
                 jobList.remove(0);
                 System.out.println("AREA AGENT: JOB was SENT");
             }
         }
     }
-
-
 
     private void initJobs() {
         String csvFilePath = AreaConstants.CSV_SOURCE;
@@ -202,5 +208,53 @@ public class Utils {
                 System.out.println(job.getID());
             }
         }
+    }
+
+    public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue) {
+        Map<String, K> choices = new HashMap<>();
+
+        //  find the lowest load
+        Iterator<Map.Entry<String, T>> iterator = map1.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, T> entry1 = iterator.next();
+            if (entry1.getValue().compareTo(lowestValue) < 0) {
+                lowestValue = entry1.getValue();
+            }
+        }
+
+        //  find all agents that have the lowest load
+        iterator = map1.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, T> entry2 = iterator.next();
+            if (entry2.getValue() == lowestValue) {
+                choices.put(entry2.getKey(), map2.get(entry2.getKey()));
+            }
+        }
+
+        return choices;
+    }
+
+    public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue) {
+        Map<String, K> choices = new HashMap<>();
+
+        //  find the lowest load
+        Iterator<Map.Entry<String, T>> iterator = map1.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, T> entry1 = iterator.next();
+            if (entry1.getValue().compareTo(lowestValue) < 0) {
+                lowestValue = entry1.getValue();
+            }
+        }
+
+        //  find all agents that have the lowest load
+        iterator = map1.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, T> entry2 = iterator.next();
+            if (entry2.getValue() == lowestValue) {
+                choices.put(entry2.getKey(), map2.get(entry2.getKey()));
+            }
+        }
+
+        return choices;
     }
 }

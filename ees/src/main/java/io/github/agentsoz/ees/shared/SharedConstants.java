@@ -42,7 +42,7 @@ public class SharedConstants {
     public static long initDateTS = 0;
 
     public static void configure() {
-        Element classElement = XMLConfig.getClassElement("TrikeAgent.java");
+        Element classElement = XMLConfig.getClassElement("SharedConstants.java");
         assignIfNotNull(classElement, "FIREBASE_ENABLED", Boolean::parseBoolean,
                 value -> SharedConstants.FIREBASE_ENABLED = value);
         assignIfNotNull(classElement, "SIMULATION_START_TIME", String::toString,

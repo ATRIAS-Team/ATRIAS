@@ -84,39 +84,45 @@ public class AreaAgentService implements IAreaTrikeService {
         return ret;
     }
 
-    public void sendMessage(String messageStr) {
-        final AreaAgent areaAgent = (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-        Message messageObj = Message.deserialize(messageStr);
 
-        if (areaAgent.receivedMessageIds.containsKey(messageObj.getId())) {
-            return;
-        }
-        areaAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
-        switch (messageObj.getComAct()) {
-            case INFORM:
-            case ACK:
-            case NACK:
-                areaAgent.messagesBuffer.write(messageObj);
-                break;
-            case REQUEST:
-                switch (messageObj.getContent().getAction()) {
-                    case "trikesInArea":
-                        areaAgent.messagesBuffer.write(messageObj);
-                        break;
-                }
-                break;
-            case CALL_FOR_PROPOSAL:
-            case REJECT_PROPOSAL:
-                areaAgent.areaMessagesBuffer.write(messageObj);
-                break;
-            case PROPOSE:
-            case REFUSE:
-                areaAgent.proposalBuffer.write(messageObj);
-                break;
-            case ACCEPT_PROPOSAL:
-                areaAgent.jobRingBuffer.write(messageObj);
-                break;
-        }
-    }
+	public IFuture<Void> sendMessage(String messageStr){
+		final AreaAgent areaAgent	= (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
+		Message messageObj = Message.deserialize(messageStr);
+
+		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return IFuture.DONE;
+		areaAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
+
+		switch (messageObj.getComAct()){
+			case INFORM:
+			case ACK:
+			case NACK:
+				areaAgent.messagesBuffer.write(messageObj);
+				areaAgent.plans.checkTrikeMessagesBuffer();
+				break;
+			case REQUEST:
+				switch (messageObj.getContent().getAction()) {
+					case "trikesInArea":
+						areaAgent.messagesBuffer.write(messageObj);
+						//areaAgent.plans.checkTrikeMessagesBuffer();
+						break;
+					}
+				break;
+			case CALL_FOR_PROPOSAL:
+			case REJECT_PROPOSAL:
+				areaAgent.areaMessagesBuffer.write(messageObj);
+				//areaAgent.plans.checkAreaMessagesBuffer();
+				break;
+			case PROPOSE:
+			case REFUSE:
+				areaAgent.proposalBuffer.write(messageObj);
+				//areaAgent.plans.checkProposalBuffer();
+				break;
+			case ACCEPT_PROPOSAL:
+				areaAgent.jobRingBuffer.write(messageObj);
+				//areaAgent.plans.checkAssignedJobs();
+				break;
+		}
+		return IFuture.DONE;
+	}
 }

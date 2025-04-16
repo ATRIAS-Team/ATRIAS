@@ -59,10 +59,7 @@ import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 import static io.github.agentsoz.ees.trikeagent.TrikeConstants.*;
@@ -80,6 +77,8 @@ public class Plans {
     {
         if (trikeAgent.agentID != null) // only react if the agentID exists
         {
+            SharedUtils.trikeAgentMap.put(trikeAgent.agentID, trikeAgent);
+
             if (SimIDMapper.NumberSimInputAssignedID.size() == JadexModel.SimSensoryInputBrokernumber) // to make sure all SimInputBroker also receives its ID so vehicle agent could choose one SimInputBroker ID to register
                 if (!trikeAgent.sent) { // to make sure the following part only executed once
                     trikeAgent.sent = true;
@@ -162,7 +161,6 @@ public class Plans {
                 case "NotStarted": {
                     utils.currentTripStatus();
                     trikeAgent.canExecute = false;
-                    trikeAgent.isMatsimFree = false;
                     utils.sendDriveTotoAdc();
                     utils.updateCurrentTripProgress("DriveToStart");
                     utils.currentTripStatus();
@@ -184,7 +182,6 @@ public class Plans {
                                 executeTrips();
                             } else {
                                 trikeAgent.canExecute = false;
-                                trikeAgent.isMatsimFree = false;
                                 utils.sendDriveTotoAdc();
                                 utils.updateCurrentTripProgress("DriveToEnd");
                                 utils.currentTripStatus();
@@ -220,15 +217,14 @@ public class Plans {
     public void sensoryUpdate() {
         while (!trikeAgent.actionContentRingBuffer.isEmpty()){
             ActionContent actionContent = trikeAgent.actionContentRingBuffer.read();
-            if (trikeAgent.isMatsimFree && !trikeAgent.currentTrip.isEmpty()) {
+            if (!trikeAgent.currentTrip.isEmpty()) {
                 if (actionContent.getAction_type().equals("drive_to") && actionContent.getState() == ActionContent.State.PASSED) {
                     System.out.println("Agent " + trikeAgent.agentID + " finished with the previous trip and now can take the next trip");
                     System.out.println("AgentID: " + trikeAgent.agentID + actionContent.getParameters()[0]);
                     double metersDriven = Double.parseDouble((String) actionContent.getParameters()[1]);
                     utils.updateBeliefAfterAction(metersDriven);
-                    trikeAgent.canExecute = true;
-                    executeTrips();
                     utils.updateAtInputBroker();
+                    trikeAgent.canExecute = true;
                 }
             }
         }
@@ -239,16 +235,28 @@ public class Plans {
         while (!trikeAgent.messagesBuffer.isEmpty()) {
             Message message = trikeAgent.messagesBuffer.read();
 
-            ArrayList<String> neighbourList = message.getContent().getValues();
-            String jobId = neighbourList.remove(0); //JobID
-            neighbourList.remove(0); //#
+            ArrayList<String> neighborList = message.getContent().getValues();
+            String jobID = neighborList.remove(0); //JobID
+            neighborList.remove(0); //#
 
-            if(trikeAgent.decisionTasks.containsKey(jobId)){
-                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobId);
-                decisionTask.numResponses++;
-                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
-                    decisionTask.getAgentIds().addAll(neighbourList);
+            DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+            if (decisionTask == null) break;
+
+            if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
+                synchronized (trikeAgent.requests){
+                    trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
                 }
+                Collections.shuffle(neighborList);
+                synchronized (decisionTask.getAgentIds()){
+                    int counter = 0;
+                    for(String neighbor: neighborList){
+                        decisionTask.getAgentIds().add(neighbor);
+                        if(++counter == MAX_CNP_TRIKES){
+                            break;
+                        }
+                    }
+                }
+                decisionTask.numResponses++;
             }
         }
     }
@@ -267,12 +275,12 @@ public class Plans {
                     String jobID = message.getContent().getValues().get(0);
                     DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if (decisionTask == null) break;
-                    decisionTask.numResponses++;
 
                     if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
                         Double propose = Double.parseDouble(message.getContent().getValues().get(2));
                         String senderID = message.getSenderId();
                         decisionTask.setUtilityScore(senderID, propose);
+                        decisionTask.numResponses++;
                     }else{
                         //  optional: reject proposal
                     }
@@ -285,11 +293,14 @@ public class Plans {
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
                         decisionTask.extra = message.getId().toString();
                         decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
-                        decisionTask.timeStamp = SharedUtils.getSimTime();
-                    } else {
+                    }
+                    else if(decisionTask.getStatus() == DecisionTask.Status.CONFIRM_READY){
+                        //  do nothing
+                    }
+                    else {
                         Message refuseMessage = Message.refuse(message);
-                        IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
-                        service.sendMessage(refuseMessage.serialize());
+                        //IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
+                        SharedUtils.sendMessage(refuseMessage.getReceiverId(), refuseMessage.serialize());
                     }
                     break;
                 }
@@ -309,7 +320,9 @@ public class Plans {
                     if (decisionTask == null) break;
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
                         decisionTask.setStatus(DecisionTask.Status.DELEGATED);
-                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                        synchronized (trikeAgent.requests){
+                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                        }
                     }
                     break;
                 }
@@ -318,9 +331,10 @@ public class Plans {
                     DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                     if (decisionTask == null) break;
                     if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
-                        //decisionTask.setStatus(DecisionTask.Status.DELEGATE);
                         decisionTask.setStatus(DecisionTask.Status.COMMIT);
-                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                        synchronized (trikeAgent.requests){
+                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                        }
                     }
                     break;
                 }
@@ -328,14 +342,13 @@ public class Plans {
         }
     }
 
-
     public void  checkJobBuffer(){
         while (!trikeAgent.jobsBuffer.isEmpty()){
             Message message = trikeAgent.jobsBuffer.read();
             if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
                 Message response = Message.nack(message);
-                IAreaTrikeService service = messageToService(trikeAgent.agent, response);
-                service.sendMessage(message.serialize());
+                //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
+                SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
                 return;
             }
 
@@ -345,23 +358,31 @@ public class Plans {
             trikeAgent.AddDecisionTask(decisionTask);
 
             Message response = Message.ack(message);
-            IAreaTrikeService service = messageToService(trikeAgent.agent, response);
-            service.sendMessage(message.serialize());
+            //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
+            SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
         }
     }
 
     public void checkRequestTimeouts(){
-        Iterator<Message> iterator = trikeAgent.requests.iterator();
-        long currentTimeStamp = SharedUtils.getSimTime();
+        synchronized (trikeAgent.requests){
+            Iterator<Message> iterator = trikeAgent.requests.iterator();
+            long currentTimeStamp = SharedUtils.getSimTime();
 
-        while(iterator.hasNext()){
-            Message message = iterator.next();
-            if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
-                iterator.remove();
-                IAreaTrikeService service = messageToService(trikeAgent.agent, message);
-                message.setTimeStamp(currentTimeStamp);
-                trikeAgent.requests.add(message);
-                service.sendMessage(message.serialize());
+            while(iterator.hasNext()){
+                Message message = iterator.next();
+                if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
+                    if(message.getAttempts() < 1){
+                        iterator.remove();
+                        //IAreaTrikeService service = messageToService(trikeAgent.agent, message);
+                        message.setTimeStamp(currentTimeStamp);
+                        trikeAgent.requests.add(message.reattempt());
+                        SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                        System.out.println(message + " was retried!");
+                    }else{
+                        System.out.println(message + " was not delivered!");
+                        iterator.remove();
+                    }
+                }
             }
         }
     }

@@ -7,7 +7,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
-    <shortenClasspath name="ARGS_FILE" />
+    <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
