@@ -24,12 +24,14 @@
         <field field_name="CONFIRM_WAIT_TIME">10000</field>
         <field field_name="PROPOSALS_WAIT_TIME">10000</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
-        <field field_name="MIN_CNP_TRIKES">32</field>
+        <field field_name="MIN_CNP_TRIKES">48</field>
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="CSV_SOURCE">ees/boston4.csv</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
+        <field field_name="LOAD_DECAY_FACTOR">0.8</field>
+        <field field_name="LOAD_TRIGGER">1.6</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>

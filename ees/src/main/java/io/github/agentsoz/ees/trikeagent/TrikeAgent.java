@@ -36,7 +36,6 @@ import io.github.agentsoz.ees.JadexService.NotifyService.TrikeAgentReceiveServic
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
-import io.github.agentsoz.ees.util.RingBuffer;
 import io.github.agentsoz.ees.Run.XMLConfig;
 import io.github.agentsoz.util.Location;
 
@@ -45,12 +44,10 @@ import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
 import jadex.bridge.component.IExecutionFeature;
-import jadex.bridge.component.IPojoComponentFeature;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.annotation.OnStart;
 import jadex.bridge.service.component.IRequiredServicesFeature;
 import jadex.bridge.service.types.clock.IClockService;
-import jadex.commons.future.IFuture;
 import jadex.micro.annotation.*;
 import org.w3c.dom.Element;
 import java.util.*;
@@ -99,17 +96,6 @@ public class TrikeAgent{
     public List<Trip> tripList = Collections.synchronizedList(new ArrayList<>()); //contains all the trips
     @Belief    //contains the current Trip
     public List<Trip> currentTrip = Collections.synchronizedList(new ArrayList<>());
-
-    @Belief
-    public RingBuffer<ActionContent> actionContentRingBuffer = new RingBuffer<>(32);
-    @Belief
-    public RingBuffer<PerceptContent> perceptContentRingBuffer = new RingBuffer<>(1);
-    @Belief
-    public RingBuffer<Message> messagesBuffer = new RingBuffer<>(64);
-    @Belief
-    public RingBuffer<Message> jobsBuffer = new RingBuffer<>(16);
-    @Belief
-    public RingBuffer<Message> cnpBuffer = new RingBuffer<>(2048);
 
     public Map<UUID, Long> receivedMessageIds = new ConcurrentHashMap<>(2048);
 
@@ -177,41 +163,21 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new Log());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
 
-        //bdiFeature.dispatchTopLevelGoal(new PerformSIMReceive());
-
-        //bdiFeature.dispatchTopLevelGoal(new CheckMessagesBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new CNPBuffer());
-        //bdiFeature.dispatchTopLevelGoal(new JobBuffer());
-
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
         bdiFeature.dispatchTopLevelGoal(new Requests());
     }
 
-    @Goal(recur=true, recurdelay=800, randomselection = true)
-    private class JobBuffer {
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return jobsBuffer.isEmpty();
-        }
-    }
-
-    @Plan(trigger=@Trigger(goals=JobBuffer.class))
-    private void checkJobBuffer() {
-       plans.checkJobBuffer();
-    }
-
-
     /**
      * This is just a debug Goal that will print many usefull information every 10s
      */
-    @Goal(recur=true, recurdelay=3000, randomselection = true)
+    @Goal(recur=true, recurdelay=3000)
     private class Log {}
 
     @Plan(trigger=@Trigger(goals=Log.class))
     private void log() {
     }
 
-    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    @Goal(recur = true, recurdelay = 1000)
     private class MaintainBatteryLoaded {
         @GoalCreationCondition(factchanged = "estimateBatteryAfterTIP") //
         public MaintainBatteryLoaded() {
@@ -226,7 +192,7 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay= 10, randomselection = true)
+    @Goal(recur=true, recurdelay= 15)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -244,7 +210,7 @@ public class TrikeAgent{
      *  desired behavior:
      *  start: when new trip is generated
      */
-    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    @Goal(recur = true, recurdelay = 1000)
     private class MaintainTripService {
         @GoalMaintainCondition
         boolean sentToMATSIM() {
@@ -263,7 +229,7 @@ public class TrikeAgent{
     // Trike Agent should prepare everything for the synchronization process
     //#######################################################################
 
-    @Goal(recur = true, recurdelay = 3000, randomselection = true)
+    @Goal(recur = true, recurdelay = 3000)
     private class ReactToAgentIDAdded {}
 
     @Plan(trigger = @Trigger(goals = ReactToAgentIDAdded.class))
@@ -277,46 +243,7 @@ public class TrikeAgent{
     //written to its belief base by the SimSensoryInputBroker
     //#######################################################################
 
-    @Goal(recur = true,recurdelay = 1000, randomselection = true)
-    private class PerformSIMReceive {
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return actionContentRingBuffer.isEmpty();
-        }
-    }
-
-    @Plan(trigger = @Trigger(goals = PerformSIMReceive.class))
-    private void sensoryUpdate() {
-        plans.sensoryUpdate();
-    }
-
-    @Goal(recur = true, recurdelay =  200, randomselection = true)
-    private class CheckMessagesBuffer{
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return messagesBuffer.isEmpty();
-        }
-    }
-
-    @Plan(trigger = @Trigger(goals = CheckMessagesBuffer.class))
-    private void checkMessagesBuffer(){
-        plans.checkMessagesBuffer();
-    }
-
-    @Goal(recur = true, recurdelay = 200, randomselection = true)
-    private class CNPBuffer{
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return cnpBuffer.isEmpty();
-        }
-    }
-
-    @Plan(trigger = @Trigger(goals = CNPBuffer.class))
-    private void checkCNPBuffer(){
-        plans.checkCNPBuffer();
-    }
-
-    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    @Goal(recur = true, recurdelay = 1000)
     private class Requests{
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -329,7 +256,7 @@ public class TrikeAgent{
         plans.checkRequestTimeouts();
     }
 
-    @Goal(recur = true, recurdelay = 10000, randomselection = true)
+    @Goal(recur = true, recurdelay = 10000)
     private class ReceivedMessages{}
 
     @Plan(trigger=@Trigger(goals= ReceivedMessages.class))
@@ -377,23 +304,19 @@ public class TrikeAgent{
             case ACCEPT_PROPOSAL:
             case REJECT_PROPOSAL:
             case REFUSE:
-                this.cnpBuffer.write(messageObj);
-                plans.checkCNPBuffer();
+                plans.checkCNPBuffer(messageObj);
                 break;
             case INFORM:{
-                this.messagesBuffer.write(messageObj);
-                plans.checkMessagesBuffer();
+                plans.checkMessagesBuffer(messageObj);
                 break;
             }
             case REQUEST:
-                this.jobsBuffer.write(messageObj);
-                plans.checkJobBuffer();
+                plans.checkJobBuffer(messageObj);
                 break;
             case ACK:
                 switch (messageObj.getContent().getAction()){
                     case "confirmAccept": {
-                        this.cnpBuffer.write(messageObj);
-                        plans.checkCNPBuffer();
+                        plans.checkCNPBuffer(messageObj);
                         break;
                     }
                 }
@@ -401,16 +324,11 @@ public class TrikeAgent{
         }
     }
 
-    public void NotifyotherAgent(ExecutorService executorService, List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
-        executorService.submit(()->{
-            // Reply if the message contains the keyword.
-            final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
-
-            for (ActionContent actionContent : ActionContentList){
-                if(activestatus){
-                    trikeAgent.actionContentRingBuffer.write(actionContent);
-                    trikeAgent.plans.sensoryUpdate();
-                }
+    public void NotifyotherAgent(List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
+        SharedUtils.executorService.submit(()->{
+            if (activestatus)
+            {
+                this.plans.sensoryUpdate(ActionContentList);
             }
         });
     }

@@ -26,9 +26,9 @@ import io.github.agentsoz.ees.shared.Job;
 import io.github.agentsoz.util.Location;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class DecisionTask {
     private Job job;
@@ -36,7 +36,7 @@ public class DecisionTask {
     public long timeStamp;
 
     public long numRequests = 0;
-    public volatile long numResponses = 0;
+    public AtomicLong numResponses = new AtomicLong(0);
 
 
     private String origin;
@@ -45,7 +45,7 @@ public class DecisionTask {
 
     private volatile Status status;
 
-    private List<String> agentIds = Collections.synchronizedList(new ArrayList<>());
+    private Set<String> agentIds = ConcurrentHashMap.newKeySet();
 
     public boolean isLocal;
     public String cell;
@@ -104,7 +104,7 @@ public class DecisionTask {
 
     public List<UTScore> getUTScoreList(){return UTScoreList;}
 
-    public List<String> getAgentIds(){return agentIds;}
+    public Set<String> getAgentIds(){return agentIds;}
 
     public enum Status{
         NEW, DELEGATE, COMMIT, CFP_READY,
@@ -141,10 +141,10 @@ public class DecisionTask {
 
     public void initRequestCount(long numRequests){
         this.numRequests = numRequests;
-        this.numResponses = 0;
+        this.numResponses.set(0);
     }
 
     public boolean responseReady(){
-        return numRequests == numResponses;
+        return numRequests == numResponses.get();
     }
 }

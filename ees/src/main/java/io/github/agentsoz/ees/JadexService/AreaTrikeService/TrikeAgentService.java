@@ -65,23 +65,23 @@ public class TrikeAgentService implements IAreaTrikeService {
 			case ACCEPT_PROPOSAL:
 			case REJECT_PROPOSAL:
 			case REFUSE:
-				trikeAgent.cnpBuffer.write(messageObj);
-				//trikeAgent.plans.checkCNPBuffer();
+				//trikeAgent.cnpBuffer.write(messageObj);
+				trikeAgent.plans.checkCNPBuffer(messageObj);
 				break;
 			case INFORM:{
-				trikeAgent.messagesBuffer.write(messageObj);
-				//trikeAgent.plans.checkMessagesBuffer();
+				//trikeAgent.messagesBuffer.write(messageObj);
+				trikeAgent.plans.checkMessagesBuffer(messageObj);
 				break;
 			}
 			case REQUEST:
-				trikeAgent.jobsBuffer.write(messageObj);
-				//trikeAgent.plans.checkJobBuffer();
+				//trikeAgent.jobsBuffer.write(messageObj);
+				trikeAgent.plans.checkJobBuffer(messageObj);
 				break;
 			case ACK:
 				switch (messageObj.getContent().getAction()){
 					case "confirmAccept": {
-						trikeAgent.cnpBuffer.write(messageObj);
-						//trikeAgent.plans.checkCNPBuffer();
+						//trikeAgent.cnpBuffer.write(messageObj);
+						trikeAgent.plans.checkCNPBuffer(messageObj);
 						break;
 					}
 				}

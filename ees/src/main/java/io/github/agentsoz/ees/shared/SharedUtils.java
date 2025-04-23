@@ -58,7 +58,7 @@ public class SharedUtils {
     public static Map<String, TrikeAgent> trikeAgentMap = new ConcurrentHashMap<>();
     public static Map<String, AreaAgent> areaAgentMap = new ConcurrentHashMap<>();
 
-    public static ExecutorService executorService = Executors.newWorkStealingPool();
+    public static ExecutorService executorService = Executors.newWorkStealingPool(6);
 
     public static void sendMessage(String receiver, String messageStr){
         executorService.submit(()->{

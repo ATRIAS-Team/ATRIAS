@@ -93,32 +93,7 @@ public class AreaAgentService implements IAreaTrikeService
 
 		switch (messageObj.getComAct()){
 			case INFORM:
-			case ACK:
-			case NACK:
-				areaAgent.messagesBuffer.write(messageObj);
-				areaAgent.plans.checkTrikeMessagesBuffer();
-				break;
-			case REQUEST:
-				switch (messageObj.getContent().getAction()) {
-					case "trikesInArea":
-						areaAgent.messagesBuffer.write(messageObj);
-						//areaAgent.plans.checkTrikeMessagesBuffer();
-						break;
-					}
-				break;
-			case CALL_FOR_PROPOSAL:
-			case REJECT_PROPOSAL:
-				areaAgent.areaMessagesBuffer.write(messageObj);
-				//areaAgent.plans.checkAreaMessagesBuffer();
-				break;
-			case PROPOSE:
-			case REFUSE:
-				areaAgent.proposalBuffer.write(messageObj);
-				//areaAgent.plans.checkProposalBuffer();
-				break;
-			case ACCEPT_PROPOSAL:
-				areaAgent.jobRingBuffer.write(messageObj);
-				//areaAgent.plans.checkAssignedJobs();
+				areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
 				break;
 		}
 		return IFuture.DONE;
