@@ -288,9 +288,12 @@ public class Plans {
 
         boolean isOverload = isTrigger && !isEmpty && currentTime >= areaAgent.rebalanceInitTS;
 
-        if(currentTime >= areaAgent.rebalanceInitTS && areaAgent.load <= 0.15){
-            areaAgent.MIN_TRIKES = 0;
+        if(currentTime >= areaAgent.rebalanceInitTS){
+            if(areaAgent.load <= 0.1){
+                areaAgent.MIN_TRIKES = 0;
+            }
         }
+
 
         synchronized (areaAgent.jobsToDelegate){
             if((isMin || isOverload) && currentTime >= areaAgent.lastDelegateRequestTS + 180000){

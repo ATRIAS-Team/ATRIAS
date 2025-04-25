@@ -135,7 +135,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 800)
+    @Goal(recur = true, recurdelay = 500)
     private class CheckDelegateInfo{
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -148,7 +148,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 800)
+    @Goal(recur = true, recurdelay = 500)
     private class DelegateJobs{
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -206,7 +206,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 500)
+    @Goal(recur = true, recurdelay = 300)
     private class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition

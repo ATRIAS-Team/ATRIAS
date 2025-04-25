@@ -126,7 +126,7 @@ public class Utils {
 
 
     public void sendJobToAgent(List<Job> jobList){
-        while (true){
+        while (!jobList.isEmpty()){
             //  current job
             Job job = jobList.get(0);
             if(job == null) break;
@@ -135,7 +135,7 @@ public class Utils {
             if(jobTimeStamp > simTimeStamp) break;
 
             if(Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)){
-                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || areaAgent.locatedAgentList.size() == 0){
                     areaAgent.load += 1.0;
                 }else{
                     areaAgent.load += 1.0 / areaAgent.locatedAgentList.size();

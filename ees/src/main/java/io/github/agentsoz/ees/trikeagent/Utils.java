@@ -563,15 +563,15 @@ public class Utils {
                 }
                 case CONFIRM_READY: {
                     long currentTime = SharedUtils.getSimTime();
-                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
-                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
-                        System.out.println("CANCELLED");
-                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
-                        System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
-                                delta);
-                        hasChanged = true;
-                        break;
-                    }
+                    //if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
+                    //    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                    //    System.out.println("CANCELLED");
+                    //    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    //    System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                    //            delta);
+                    //    hasChanged = true;
+                    //    break;
+                    //}
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                     System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() +

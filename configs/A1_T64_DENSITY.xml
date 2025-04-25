@@ -13,7 +13,7 @@
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">40.0</field>
+        <field field_name="DRIVING_SPEED">25.0</field>
         <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">900.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>

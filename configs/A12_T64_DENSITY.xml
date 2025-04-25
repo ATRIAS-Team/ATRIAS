@@ -13,7 +13,7 @@
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">40.0</field>
+        <field field_name="DRIVING_SPEED">25.0</field>
         <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">900.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
@@ -24,7 +24,7 @@
         <field field_name="CONFIRM_WAIT_TIME">10000</field>
         <field field_name="PROPOSALS_WAIT_TIME">10000</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
-        <field field_name="MIN_CNP_TRIKES">48</field>
+        <field field_name="MIN_CNP_TRIKES">32</field>
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="CSV_SOURCE">ees/boston4.csv</field>

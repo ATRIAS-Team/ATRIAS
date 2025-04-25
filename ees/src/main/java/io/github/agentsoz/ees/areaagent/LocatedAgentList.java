@@ -43,7 +43,7 @@ public class LocatedAgentList {
             case "register": {
                 LocatedAgentList.add(agent);
 
-                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size() == 0){
                     areaAgent.load = areaAgent.load - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
                 }
                 else{
