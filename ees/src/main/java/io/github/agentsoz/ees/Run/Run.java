@@ -39,8 +39,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
-import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Emergency Evacuation Simulator (EES) main program.
@@ -59,7 +61,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 2;
+    private double optTimestep = 10;
 
 
     public static void main(String[] args) {
@@ -91,7 +93,7 @@ public class Run implements DataClient {
 
     }
 
-    public void start(Config cfg, Map<Integer, List<String[]>> bdiMap) {
+    public void start(Config cfg, Map<Integer, List<String[]>> bdiMap){
         parse(cfg.getModelConfig(""));
 
         log.info("Starting the data server");
@@ -145,43 +147,35 @@ public class Run implements DataClient {
         jadexmodel.useSequenceLock(sequenceLock);
         matsimEvacModel.useSequenceLock(sequenceLock);
 
-        long prevTime = Instant.now().toEpochMilli();
-        while (true) {
-            // Wait till both models are done before incrementing time
-            synchronized (sequenceLock) {
-                long currentTime = Instant.now().toEpochMilli();
-                if(currentTime >= prevTime + 200){
-                    dataServer.stepTime();
-                    prevTime = currentTime;
-                }
-            }
-            // Wait till both models are done before checking for termination condition
-            synchronized (sequenceLock) {
-                if (matsimEvacModel.isFinished()) {
-                    break;
-                }
-            }
-
-            JadexModel.inBDIcycle = false;
-            // ABM to take control; the ABM thread should synchronize on adc_from_abm
-            dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
-            // BDI to take control; the BDI thread should synchronize on adc_from_bdi
-            JadexModel.inBDIcycle = true;
-            dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
-            JadexModel.inBDIcycle = false;
+        while (true){
+        synchronized (sequenceLock) {
+            dataServer.stepTime();
         }
 
+        synchronized (sequenceLock) {
+            if (matsimEvacModel.isFinished()) {
+                break;
+
+            }
+        }
+
+        JadexModel.inBDIcycle = false;
+        // ABM to take control; the ABM thread should synchronize on adc_from_abm
+        dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
+        // BDI to take control; the BDI thread should synchronize on adc_from_bdi
+        JadexModel.inBDIcycle = true;
+        dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
+        JadexModel.inBDIcycle = false;
+        }
         // finish up
         log.info("Finishing up");
         matsimEvacModel.finish() ;
 
-
-
         DataServer.cleanup() ;
         jadexmodel.finish();
         log.info("All done");
-        System.exit(0);
     }
+
 
     private void parse(Map<String, String> opts) {
         if (opts == null) {

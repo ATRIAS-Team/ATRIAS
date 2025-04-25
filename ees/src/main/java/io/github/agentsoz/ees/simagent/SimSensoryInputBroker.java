@@ -182,7 +182,7 @@ public class SimSensoryInputBroker {
 						if ((!ActionContentList.isEmpty()) || (!PerceptContentList.isEmpty())) {
 							System.out.println(SensoryInputID + " start delivering data from MATSIM to "+agentId);
 							TrikeAgent trikeAgent = SharedUtils.trikeAgentMap.get(agentId);
-							trikeAgent.NotifyotherAgent(executorService, ActionContentList, PerceptContentList, Activestatus);
+							trikeAgent.NotifyotherAgent(ActionContentList, PerceptContentList, Activestatus);
 
 							//ServiceQuery<INotifyService> query = new ServiceQuery<>(INotifyService.class);
 							//query.setScope(ServiceScope.PLATFORM); // local platform, for remote use GLOBAL

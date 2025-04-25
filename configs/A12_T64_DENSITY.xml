@@ -13,7 +13,7 @@
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">40.0</field>
+        <field field_name="DRIVING_SPEED">25.0</field>
         <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">900.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
@@ -30,6 +30,8 @@
         <field field_name="CSV_SOURCE">ees/boston4.csv</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
+        <field field_name="LOAD_DECAY_FACTOR">0.8</field>
+        <field field_name="LOAD_TRIGGER">1.6</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>

@@ -349,7 +349,6 @@ public class Utils {
                         currentDecisionTask.extra = requestMessage.getId().toString();
                         trikeAgent.requests.add(requestMessage);
 
-                        //IAreaTrikeService service = messageToService(trikeAgent.agent, requestMessage);
                         SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
                     }else{
                         //  need to broadcast cnp
@@ -362,7 +361,6 @@ public class Utils {
                                     SharedUtils.getSimTime(),  messageContent);
                             currentDecisionTask.extra = requestMessage.getId().toString();
 
-                            //IAreaTrikeService service = messageToService(trikeAgent.agent, requestMessage);
                             SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
                         }
                     }
@@ -387,7 +385,7 @@ public class Utils {
 
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("WAITING_NEIGHBORS finished " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
-                                delta);
+                                delta + " " + currentDecisionTask.numRequests + " " + currentDecisionTask.numResponses.get());
 
                         break;
                     }
@@ -417,13 +415,11 @@ public class Utils {
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     Job JobForCFP = currentDecisionTask.getJob();
-                    List<String> agentIds = currentDecisionTask.getAgentIds();
+                    Set<String> agentIds = currentDecisionTask.getAgentIds();
 
-                    synchronized (agentIds){
-                        currentDecisionTask.initRequestCount(agentIds.size());
-                        for (String agentId : agentIds) {
-                            testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
-                        }
+                    currentDecisionTask.initRequestCount(agentIds.size());
+                    for (String agentId : agentIds) {
+                        testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
                     }
 
                     hasChanged = true;
@@ -435,11 +431,12 @@ public class Utils {
                 case WAITING_PROPOSALS: {
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME
-                            || currentDecisionTask.responseReady()) {
+                            || currentDecisionTask.numRequests == currentDecisionTask.getUTScoreList().size() - 1) {
                         currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("WAITING PROPOSALS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
-                                delta);
+                                delta + " " + currentDecisionTask.numRequests + " " + currentDecisionTask.numResponses.get());
+
 
                         hasChanged = true;
                         break;
@@ -508,11 +505,11 @@ public class Utils {
                             trikeAgent.requests.removeIf(request -> request.getId()
                                     .equals(UUID.fromString(currentDecisionTask.extra)));
                         }
-                        currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        //currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        currentDecisionTask.setStatus(DecisionTask.Status.DELEGATED);
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("WAITING CONFIRM TIMEOUT " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
                                 delta);
-                        System.out.println("DID HIMSELF");
                         hasChanged = true;
                         break;
                     }
@@ -566,16 +563,15 @@ public class Utils {
                 }
                 case CONFIRM_READY: {
                     long currentTime = SharedUtils.getSimTime();
-                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 10){
-                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
-                        System.out.println("CANCELLED");
-                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
-                        System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
-                                delta);
-                        hasChanged = true;
-                        break;
-                    }
-
+                    //if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
+                    //    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                    //    System.out.println("CANCELLED");
+                    //    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    //    System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                    //            delta);
+                    //    hasChanged = true;
+                    //    break;
+                    //}
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                     System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() +
@@ -612,9 +608,9 @@ public class Utils {
 
         synchronized (trikeAgent.tripList){
             if (trikeAgent.chargingTripAvailable.equals("0")) {
-                Double a = 0.5;
-                Double b = 0.25;
-                Double c = 0.25;
+                Double a = 0.8;
+                Double b = 0.15;
+                Double c = 0.05;
 
                 Double uPunctuality = null;
                 Double uBattery = null;
@@ -867,10 +863,8 @@ public class Utils {
     //  example of trike to trike communic ation
     public void testTrikeToTrikeService(String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
         //message creation
-        //ArrayList<String> values = new ArrayList<>();
         MessageContent messageContent = new MessageContent(action, values);
         Message testMessage = new Message(trikeAgent.agentID,""+receiverID, comAct, SharedUtils.getSimTime(),  messageContent);
-        //IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
 
         //calls trikeMessage methods of TrikeAgentService class
         SharedUtils.sendMessage(testMessage.getReceiverId(), testMessage.serialize());

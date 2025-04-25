@@ -23,8 +23,6 @@ package io.github.agentsoz.ees.areaagent;
  */
 
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,15 +41,15 @@ public class LocatedAgentList {
     public void updateLocatedAgentList(LocatedAgent agent, long timestamp, String action){
         switch (action){
             case "register": {
-                areaAgent.lastDelegateRequestTS = 0;
                 LocatedAgentList.add(agent);
 
-                if(areaAgent.load >= AreaAgent.NO_TRIKES_NO_TRIPS_LOAD){
-                    areaAgent.load = areaAgent.load - AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
+                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size() == 0){
+                    areaAgent.load = areaAgent.load - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
                 }
                 else{
                     areaAgent.load *= ((size() - 1.0) / size());
                 }
+                areaAgent.lastDelegateRequestTS = -1;
                 break;
             }
             case "update": {
@@ -66,14 +64,14 @@ public class LocatedAgentList {
             }
             case "deregister": {
                 synchronized (LocatedAgentList){
-                    areaAgent.lastDelegateRequestTS = 0;
                     LocatedAgentList.removeIf(locatedAgent -> locatedAgent.getAgentID().equals(agent.getAgentID()));
 
                     if(size() == 0){
-                        areaAgent.load += AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
+                        areaAgent.load += AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
                     }else{
                         areaAgent.load *= ((size() + 1.0) / size());
                     }
+                    areaAgent.lastDelegateRequestTS = -1;
                 }
                 break;
             }

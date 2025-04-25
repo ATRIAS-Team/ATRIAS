@@ -33,7 +33,13 @@ public class AreaConstants {
 
     public static int NEIGHBOURS_WAIT_TIME = 10000;
 
+    public static double LOAD_TRIGGER = 1.5;
+
+    public static double LOAD_DECAY_FACTOR = 0.8;
+
     public static String CSV_SOURCE = "ees/subsample_2.csv";
+
+    public static final double NO_TRIKES_NO_TRIPS_LOAD = 100;
 
     public static void configure(Element classElement) {
         assignIfNotNull(classElement,"CSV_SOURCE", String::toString,
@@ -44,5 +50,9 @@ public class AreaConstants {
                 value -> AreaConstants.MIN_TRIKES = value);
         assignIfNotNull(classElement,"NEIGHBOURS_WAIT_TIME", Integer::parseInt,
                 value -> AreaConstants.NEIGHBOURS_WAIT_TIME = value);
+        assignIfNotNull(classElement,"LOAD_TRIGGER", Double::parseDouble,
+                value -> AreaConstants.LOAD_TRIGGER = value);
+        assignIfNotNull(classElement,"LOAD_DECAY_FACTOR", Double::parseDouble,
+                value -> AreaConstants.LOAD_DECAY_FACTOR = value);
     }
 }

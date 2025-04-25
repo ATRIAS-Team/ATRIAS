@@ -117,7 +117,7 @@ public class Utils {
 
         while (TrikeMain.TrikeAgentNumber != JadexModel.TrikeAgentnumber) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -126,7 +126,7 @@ public class Utils {
 
 
     public void sendJobToAgent(List<Job> jobList){
-        while (true){
+        while (!jobList.isEmpty()){
             //  current job
             Job job = jobList.get(0);
             if(job == null) break;
@@ -135,7 +135,7 @@ public class Utils {
             if(jobTimeStamp > simTimeStamp) break;
 
             if(Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)){
-                if(areaAgent.load >= AreaAgent.NO_TRIKES_NO_TRIPS_LOAD){
+                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || areaAgent.locatedAgentList.size() == 0){
                     areaAgent.load += 1.0;
                 }else{
                     areaAgent.load += 1.0 / areaAgent.locatedAgentList.size();
@@ -156,7 +156,6 @@ public class Utils {
                 LocalTime bookingTime = LocalTime.now();
                 System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
                 Message message = new Message(areaAgent.areaAgentId, closestAgent, Message.ComAct.REQUEST, SharedUtils.getSimTime(), messageContent);
-                //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
                 areaAgent.requests.add(message);
                 SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                 //remove job from list
@@ -195,14 +194,14 @@ public class Utils {
         }
     }
 
-    public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue){
+    public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue, T stop){
         Map<String, K> choices = new HashMap<>();
 
         //  find the lowest load
         Iterator<Map.Entry<String, T>> iterator = map1.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, T> entry1 = iterator.next();
-            if (entry1.getValue().compareTo(lowestValue) < 0) {
+            if (entry1.getValue().compareTo(lowestValue) < 0 && entry1.getValue().compareTo(stop) >= 0) {
                 lowestValue = entry1.getValue();
             }
         }
