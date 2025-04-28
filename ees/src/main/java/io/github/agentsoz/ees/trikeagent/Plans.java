@@ -214,9 +214,8 @@ public class Plans {
         }
     }
 
-    public void sensoryUpdate() {
-        while (!trikeAgent.actionContentRingBuffer.isEmpty()){
-            ActionContent actionContent = trikeAgent.actionContentRingBuffer.read();
+    public void sensoryUpdate(List<ActionContent> actionContents) {
+        for (ActionContent actionContent:actionContents) {
             if (!trikeAgent.currentTrip.isEmpty()) {
                 if (actionContent.getAction_type().equals("drive_to") && actionContent.getState() == ActionContent.State.PASSED) {
                     System.out.println("Agent " + trikeAgent.agentID + " finished with the previous trip and now can take the next trip");
@@ -230,137 +229,130 @@ public class Plans {
         }
     }
 
-    public void checkMessagesBuffer() {
+    public void checkMessagesBuffer(Message message) {
         //  asking area for trikes
-        while (!trikeAgent.messagesBuffer.isEmpty()) {
-            Message message = trikeAgent.messagesBuffer.read();
+        ArrayList<String> neighborList = message.getContent().getValues();
+        String jobID = neighborList.remove(0); //JobID
+        neighborList.remove(0); //#
 
-            ArrayList<String> neighborList = message.getContent().getValues();
-            String jobID = neighborList.remove(0); //JobID
-            neighborList.remove(0); //#
+        DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+        if (decisionTask == null) return;
 
-            DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-            if (decisionTask == null) break;
-
-            if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
-                synchronized (trikeAgent.requests){
-                    trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
-                }
-                Collections.shuffle(neighborList);
-                synchronized (decisionTask.getAgentIds()){
-                    int counter = 0;
-                    for(String neighbor: neighborList){
-                        decisionTask.getAgentIds().add(neighbor);
-                        if(++counter == MAX_CNP_TRIKES){
-                            break;
-                        }
+        if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
+            synchronized (trikeAgent.requests){
+                trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+            }
+            Collections.shuffle(neighborList);
+            synchronized (decisionTask.getAgentIds()){
+                int counter = 0;
+                for(String neighbor: neighborList){
+                    decisionTask.getAgentIds().add(neighbor);
+                    if(++counter == MAX_CNP_TRIKES){
+                        break;
                     }
                 }
-                decisionTask.numResponses++;
+            }
+            decisionTask.numResponses.addAndGet(1);
+        }
+    }
+
+    public void checkCNPBuffer(Message message) {
+        switch (message.getComAct()){
+            case CALL_FOR_PROPOSAL: {
+                Job job = new Job(message.getContent().getValues());
+                DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.PROPOSED);
+                trikeAgent.AddDecisionTask(decisionTask);
+                break;
+            }
+            case PROPOSE: {
+                String jobID = message.getContent().getValues().get(0);
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                if (decisionTask == null) break;
+
+                if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
+                    Double propose = Double.parseDouble(message.getContent().getValues().get(2));
+                    String senderID = message.getSenderId();
+                    decisionTask.setUtilityScore(senderID, propose);
+                    decisionTask.numResponses.addAndGet(1);
+                }else{
+                    System.out.println("ERROR1");
+                }
+                break;
+            }
+            case ACCEPT_PROPOSAL: {
+                String jobID = message.getContent().getValues().get(0);
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                if (decisionTask == null){
+                    System.out.println("ERROR2");
+                    break;
+                }
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
+                    decisionTask.extra = message.getId().toString();
+                    decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
+                }
+                else if(decisionTask.getStatus() == DecisionTask.Status.CONFIRM_READY){
+                    //  do nothing
+                }
+                else {
+                    Message refuseMessage = Message.refuse(message);
+                    //IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
+                    SharedUtils.sendMessage(refuseMessage.getReceiverId(), refuseMessage.serialize());
+                }
+                break;
+            }
+            case REJECT_PROPOSAL: {
+                String jobID = message.getContent().getValues().get(0);
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                if (decisionTask == null) break;
+
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
+                    trikeAgent.decisionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                }
+                break;
+            }
+            case ACK: {
+                String jobID = message.getContent().getValues().get(0);
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                if (decisionTask == null) break;
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
+                    decisionTask.setStatus(DecisionTask.Status.DELEGATED);
+                    synchronized (trikeAgent.requests){
+                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                    }
+                }
+                break;
+            }
+            case REFUSE:{
+                String jobID = message.getContent().getValues().get(0);
+                DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
+                if (decisionTask == null) break;
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
+                    decisionTask.setStatus(DecisionTask.Status.COMMIT);
+                    synchronized (trikeAgent.requests){
+                        trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
+                    }
+                }
+                break;
             }
         }
     }
 
-    public void checkCNPBuffer() {
-        while (!trikeAgent.cnpBuffer.isEmpty()){
-            Message message = trikeAgent.cnpBuffer.read();
-            switch (message.getComAct()){
-                case CALL_FOR_PROPOSAL: {
-                    Job job = new Job(message.getContent().getValues());
-                    DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.PROPOSED);
-                    trikeAgent.AddDecisionTask(decisionTask);
-                    break;
-                }
-                case PROPOSE: {
-                    String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-                    if (decisionTask == null) break;
-
-                    if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
-                        Double propose = Double.parseDouble(message.getContent().getValues().get(2));
-                        String senderID = message.getSenderId();
-                        decisionTask.setUtilityScore(senderID, propose);
-                        decisionTask.numResponses++;
-                    }else{
-                        //  optional: reject proposal
-                    }
-                    break;
-                }
-                case ACCEPT_PROPOSAL: {
-                    String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-                    if (decisionTask == null) break;
-                    if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
-                        decisionTask.extra = message.getId().toString();
-                        decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
-                    }
-                    else if(decisionTask.getStatus() == DecisionTask.Status.CONFIRM_READY){
-                        //  do nothing
-                    }
-                    else {
-                        Message refuseMessage = Message.refuse(message);
-                        //IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
-                        SharedUtils.sendMessage(refuseMessage.getReceiverId(), refuseMessage.serialize());
-                    }
-                    break;
-                }
-                case REJECT_PROPOSAL: {
-                    String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-                    if (decisionTask == null) break;
-
-                    if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
-                        trikeAgent.decisionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
-                    }
-                    break;
-                }
-                case ACK: {
-                    String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-                    if (decisionTask == null) break;
-                    if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
-                        decisionTask.setStatus(DecisionTask.Status.DELEGATED);
-                        synchronized (trikeAgent.requests){
-                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
-                        }
-                    }
-                    break;
-                }
-                case REFUSE:{
-                    String jobID = message.getContent().getValues().get(0);
-                    DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
-                    if (decisionTask == null) break;
-                    if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
-                        decisionTask.setStatus(DecisionTask.Status.COMMIT);
-                        synchronized (trikeAgent.requests){
-                            trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    public void  checkJobBuffer(){
-        while (!trikeAgent.jobsBuffer.isEmpty()){
-            Message message = trikeAgent.jobsBuffer.read();
-            if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
-                Message response = Message.nack(message);
-                //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
-                SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
-                return;
-            }
-
-            Job job = new Job(message.getContent().getValues());
-            DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
-            System.out.println("Job " + job.getID() + " accepted!");
-            trikeAgent.AddDecisionTask(decisionTask);
-
-            Message response = Message.ack(message);
+    public void  checkJobBuffer(Message message){
+        if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
+            Message response = Message.nack(message);
             //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
             SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
+            return;
         }
+
+        Job job = new Job(message.getContent().getValues());
+        DecisionTask decisionTask = new DecisionTask(job, message.getSenderId(), DecisionTask.Status.NEW);
+        System.out.println("Job " + job.getID() + " accepted!");
+        trikeAgent.AddDecisionTask(decisionTask);
+
+        Message response = Message.ack(message);
+        //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
+        SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
     }
 
     public void checkRequestTimeouts(){

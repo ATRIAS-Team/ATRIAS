@@ -21,8 +21,6 @@ package io.github.agentsoz.ees.Run;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-
 import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
 import io.github.agentsoz.dataInterface.DataClient;
@@ -39,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -47,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Emergency Evacuation Simulator (EES) main program.
+ *
  * @author Dhirendra Singh
  */
 public class Run implements DataClient {
@@ -62,8 +60,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 2;
-
+    private double optTimestep = 10;
 
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");
@@ -75,12 +72,11 @@ public class Run implements DataClient {
         Cells.applyConfig(configPath);
         SharedConstants.configure();
 
-
         args = xmlConfig.setArgs(xmlConfigRoot);
 
         // Read the config
         Config cfg = new Config();
-        Map<String,String> opts = cfg.parse(args);
+        Map<String, String> opts = cfg.parse(args);
         cfg.loadFromFile(opts.get(Config.OPT_CONFIG));
 
         // Get BDI agents map from the MATSim population file
@@ -107,32 +103,26 @@ public class Run implements DataClient {
         dataServer.subscribe(this, Constants.AGENT_DATA_CONTAINER_FROM_BDI);
 
         // initialise the fire model and register it as an active data source
-
         // initialise the MATSim model and register it as an active data source
         log.info("Creating MATSim model");
         MATSimEvacModel matsimEvacModel = new MATSimEvacModel(cfg.getModelConfig(Config.eModelMatsim), dataServer);
         matsimEvacModel.loadAndPrepareConfig();
         EvacConfig evacConfig = matsimEvacModel.getEvacConfig();
-        Scenario scenario = matsimEvacModel.loadAndPrepareScenario() ;
+        Scenario scenario = matsimEvacModel.loadAndPrepareScenario();
 
         // initialise the diffusion model and register it as an active data source
         log.info("Starting information diffusion model");
-
-
 
         // initialise the Jadex model, register it as an active data source, and start it
         log.info("Starting Jadex BDI model");
 
         Object[] requiredBDIinfo = JadexModel.extractXMLData();
-        JadexModel jadexmodel = new JadexModel(cfg.getModelConfig(Config.eModelBdi), dataServer, (QueryPerceptInterface)matsimEvacModel);
+        JadexModel jadexmodel = new JadexModel(cfg.getModelConfig(Config.eModelBdi), dataServer, (QueryPerceptInterface) matsimEvacModel);
         jadexmodel.setAgentDataContainer(adc_from_bdi);
         jadexmodel.init(requiredBDIinfo);
         jadexmodel.start();
 
-
         //--- DeckGL event writer
-
-
         // --- initialize and start MATSim
         log.info("Starting MATSim model");
         System.out.println("MY PRINT " + bdiMap.keySet());
@@ -141,30 +131,20 @@ public class Run implements DataClient {
 
         matsimEvacModel.start();
 
-
-
         // start the main simulation loop
         log.info("Starting the simulation loop");
         jadexmodel.useSequenceLock(sequenceLock);
         matsimEvacModel.useSequenceLock(sequenceLock);
 
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-        executorService.scheduleAtFixedRate(()->{
+        while (true) {
             synchronized (sequenceLock) {
                 dataServer.stepTime();
             }
 
             synchronized (sequenceLock) {
                 if (matsimEvacModel.isFinished()) {
-                    // finish up
-                    log.info("Finishing up");
-                    matsimEvacModel.finish() ;
+                    break;
 
-                    DataServer.cleanup() ;
-                    jadexmodel.finish();
-                    log.info("All done");
-                    executorService.shutdown();
                 }
             }
 
@@ -175,51 +155,15 @@ public class Run implements DataClient {
             JadexModel.inBDIcycle = true;
             dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
             JadexModel.inBDIcycle = false;
-        }, 0, 200, TimeUnit.MILLISECONDS);
+        }
+        // finish up
+        log.info("Finishing up");
+        matsimEvacModel.finish();
 
-        //  Formel: (1000 / period) * 2 sind Sekunden in der Simulation pro 1 echte Sekunde.
-        //  400 -> 2.5 * 2 = 5 sim Sekunden pro 1 Sekunde
-        //  1000 -> 2 Sim Sekunden pro 1 echte Sekunde
-        //  200 -> 5 * 2 = 10 usw.
+        DataServer.cleanup();
+        jadexmodel.finish();
+        log.info("All done");
     }
-
-//        long prevTime = Instant.now().toEpochMilli();
-//        while (true) {
-//            // Wait till both models are done before incrementing time
-//            synchronized (sequenceLock) {
-//                long currentTime = Instant.now().toEpochMilli();
-//                if(currentTime >= prevTime + 200){
-//                    dataServer.stepTime();
-//                    prevTime = currentTime;
-//                }
-//            }
-//            // Wait till both models are done before checking for termination condition
-//            synchronized (sequenceLock) {
-//                if (matsimEvacModel.isFinished()) {
-//                    break;
-//                }
-//            }
-//
-//            JadexModel.inBDIcycle = false;
-//            // ABM to take control; the ABM thread should synchronize on adc_from_abm
-//            dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
-//            // BDI to take control; the BDI thread should synchronize on adc_from_bdi
-//            JadexModel.inBDIcycle = true;
-//            dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
-//            JadexModel.inBDIcycle = false;
-//        }
-//
-//        // finish up
-//        log.info("Finishing up");
-//        matsimEvacModel.finish() ;
-//
-//
-//
-//        DataServer.cleanup() ;
-//        jadexmodel.finish();
-//        log.info("All done");
-//        System.exit(0);
-//    }
 
     private void parse(Map<String, String> opts) {
         if (opts == null) {
@@ -227,7 +171,7 @@ public class Run implements DataClient {
         }
         for (String opt : opts.keySet()) {
             log.info("Found option: {}={}", opt, opts.get(opt));
-            switch(opt) {
+            switch (opt) {
                 case Config.eGlobalRandomSeed:
                     Global.setRandomSeed(Long.parseLong(opts.get(opt)));
                     break;
@@ -242,12 +186,13 @@ public class Run implements DataClient {
 
     /**
      * Convert HHMM string to seconds
+     *
      * @param HHMM time in HHMM format
      * @return time in seconds
      */
     private static double hhMmToS(String HHMM) {
         String[] tokens = HHMM.split(":");
-        int[] hhmm = new int[]{Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1])};
+        int[] hhmm = new int[]{Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1])};
         double secs = Time.convertTime(hhmm[0], Time.TimestepUnit.HOURS, Time.TimestepUnit.SECONDS)
                 + Time.convertTime(hhmm[1], Time.TimestepUnit.MINUTES, Time.TimestepUnit.SECONDS);
         return secs;
@@ -255,6 +200,7 @@ public class Run implements DataClient {
 
     /**
      * Allows models to be overriden; interim solution for #37
+     *
      * @param model the model to override with
      * @return the run object
      */
@@ -263,13 +209,11 @@ public class Run implements DataClient {
             if (model instanceof DataServer) {
                 this.dataServer = (DataServer) model;
 
-            }
-
-            else {
+            } else {
                 throw new RuntimeException(
-                        "Not all models can be overriden in this way. " +
-                                " A cleaner mechanism is under development, " +
-                                "see https://github.com/agentsoz/ees/issues/37"
+                        "Not all models can be overriden in this way. "
+                        + " A cleaner mechanism is under development, "
+                        + "see https://github.com/agentsoz/ees/issues/37"
                 );
             }
         }
@@ -277,7 +221,7 @@ public class Run implements DataClient {
     }
 
     private Map<String, DataClient> createDataListeners() {
-        Map<String, DataClient> listeners = new  HashMap<>();
+        Map<String, DataClient> listeners = new HashMap<>();
 
         // Saves the incoming agent data container from BDI
         listeners.put(Constants.AGENT_DATA_CONTAINER_FROM_BDI, (DataClient<AgentDataContainer>) (time, dataType, data) -> {

@@ -75,17 +75,10 @@ public class TrikeAgentReceiveService implements INotifyService {
 		// Reply if the message contains the keyword.
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 
-		for (ActionContent actionContent : ActionContentList){
-			trikeAgent.actionContentRingBuffer.write(actionContent);
-		}
-
-		for (PerceptContent perceptContent : PerceptContentList){
-			trikeAgent.perceptContentRingBuffer.write(perceptContent);
-		}
 
 		if (activestatus)
 		{
-			trikeAgent.plans.sensoryUpdate();
+			trikeAgent.plans.sensoryUpdate(ActionContentList);
 		}
 	}
 }

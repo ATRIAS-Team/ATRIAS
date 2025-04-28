@@ -41,68 +41,57 @@ public class Plans {
         this.utils = utils;
     }
 
-    public void checkAssignedJobs(){
-        while (!areaAgent.jobRingBuffer.isEmpty()){
-            Message message = areaAgent.jobRingBuffer.read();
-            areaAgent.assignedJobs.add(new Job(message.getContent().getValues()));
+    public void checkAssignedJobs(Message message){
+        areaAgent.assignedJobs.add(new Job(message.getContent().getValues()));
 
-            Message responseMsg = Message.ack(message);
-            responseMsg.getContent().values = new ArrayList<>();
+        Message responseMsg = Message.ack(message);
+        responseMsg.getContent().values = new ArrayList<>();
 
-            //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, responseMsg);
-            SharedUtils.sendMessage(responseMsg.getReceiverId(), responseMsg.serialize());
-        }
+        SharedUtils.sendMessage(responseMsg.getReceiverId(), responseMsg.serialize());
     }
 
-    public void checkAreaMessagesBuffer(){
-        while(!areaAgent.areaMessagesBuffer.isEmpty()){
-        Message bufferMessage = areaAgent.areaMessagesBuffer.read();
+    public void checkAreaMessagesBuffer(Message bufferMessage){
         String areaId = bufferMessage.getSenderId();
 
         switch (bufferMessage.getComAct()){
-                case CALL_FOR_PROPOSAL:{
-                    Message.ComAct responseAct;
-                    if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES){
-                        responseAct = Message.ComAct.REFUSE;
-                    }else{
-                        responseAct = Message.ComAct.PROPOSE;
-                    }
-                    MessageContent messageContent = new MessageContent(responseAct.name());
-                    messageContent.values.add(bufferMessage.getContent().getValues().get(1));
-                    messageContent.values.add(areaAgent.cell);
-                    messageContent.values.add("" + areaAgent.load);
+            case CALL_FOR_PROPOSAL:{
+                Message.ComAct responseAct;
+                if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES){
+                    responseAct = Message.ComAct.REFUSE;
+                }else{
+                    responseAct = Message.ComAct.PROPOSE;
+                }
+                MessageContent messageContent = new MessageContent(responseAct.name());
+                messageContent.values.add(bufferMessage.getContent().getValues().get(1));
+                messageContent.values.add(areaAgent.cell);
+                messageContent.values.add("" + areaAgent.load);
 
-                    Message message = new Message(areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
-                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
-                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
-                    break;
-                }
-                case REJECT_PROPOSAL: {
-                    break;
-                }
+                Message message = new Message(areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
+                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                break;
+            }
+            case REJECT_PROPOSAL: {
+                break;
             }
         }
     }
 
-    public void checkProposalBuffer(){
-        while (!areaAgent.proposalBuffer.isEmpty()){
-            Message bufferMessage = areaAgent.proposalBuffer.read();
-            String areaId = bufferMessage.getSenderId();
-            String areaCell = bufferMessage.getContent().values.get(1);
-            double load = Double.parseDouble(bufferMessage.getContent().values.get(2));
+    public void checkProposalBuffer(Message bufferMessage){
+        String areaId = bufferMessage.getSenderId();
+        String areaCell = bufferMessage.getContent().values.get(1);
+        double load = Double.parseDouble(bufferMessage.getContent().values.get(2));
 
-            synchronized (areaAgent.jobsToDelegate){
-                for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate){
-                    if(delegateInfo.job.getID().equals(bufferMessage.getContent().values.get(0))){
-                        if(bufferMessage.getComAct() == Message.ComAct.PROPOSE){
-                            long hops = Cells.getHops(areaAgent.cell, areaCell);
-                            delegateInfo.agentHops.put(areaId, hops);
-                            BigDecimal bigDecimal = BigDecimal.valueOf(load).setScale(2, RoundingMode.HALF_UP);
-                            delegateInfo.agentLoad.put(areaId, bigDecimal.doubleValue());
-                        }else{
-                            delegateInfo.agentHops.put(areaId, Long.MAX_VALUE);
-                            delegateInfo.agentLoad.put(areaId, Double.MAX_VALUE);
-                        }
+        synchronized (areaAgent.jobsToDelegate){
+            for (DelegateInfo delegateInfo: areaAgent.jobsToDelegate){
+                if(delegateInfo.job.getID().equals(bufferMessage.getContent().values.get(0))){
+                    if(bufferMessage.getComAct() == Message.ComAct.PROPOSE){
+                        long hops = Cells.getHops(areaAgent.cell, areaCell);
+                        delegateInfo.agentHops.put(areaId, hops);
+                        BigDecimal bigDecimal = BigDecimal.valueOf(load).setScale(2, RoundingMode.HALF_UP);
+                        delegateInfo.agentLoad.put(areaId, bigDecimal.doubleValue());
+                    }else{
+                        delegateInfo.agentHops.put(areaId, Long.MAX_VALUE);
+                        delegateInfo.agentLoad.put(areaId, Double.MAX_VALUE);
                     }
                 }
             }
@@ -126,7 +115,6 @@ public class Plans {
                     MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
                     Message message = new Message(areaAgent.areaAgentId, neighbourId,
                             Message.ComAct.CALL_FOR_PROPOSAL, SharedUtils.getSimTime(), messageContent);
-                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
                     delegateInfo.timeStamp = SharedUtils.getSimTime();
                     SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                 }
@@ -148,12 +136,12 @@ public class Plans {
 
                 String bestAreaAgent = null;
                 long lowestHops = Long.MAX_VALUE;
-                double lowestLoad = AreaAgent.NO_TRIKES_NO_TRIPS_LOAD;
+                double lowestLoad = AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
 
                 //  check if it is a rebalance trip
                 if(delegateInfo.job.getID().startsWith("area")) {
                     Map<String, Long> choices = areaAgent.utils.findLowestChoices(delegateInfo.agentLoad,
-                            delegateInfo.agentHops, lowestLoad);
+                            delegateInfo.agentHops, lowestLoad, 0.0);
 
 
                     //  find best agent by lowest hops
@@ -165,15 +153,24 @@ public class Plans {
                     }
                 }
                 else{
-                    Map<String, Double> choices = areaAgent.utils.findLowestChoices(delegateInfo.agentHops,
-                            delegateInfo.agentLoad, lowestHops);
+                    long stop = 1L;
+                    do{
+                        Map<String, Double> choices = areaAgent.utils.findLowestChoices(delegateInfo.agentHops,
+                                delegateInfo.agentLoad, lowestHops, stop);
 
-                    //  find best agent by lowest load
-                    for (Map.Entry<String, Double> entry : choices.entrySet()) {
-                        if (entry.getValue() < lowestLoad) {
-                            lowestLoad = entry.getValue();
-                            bestAreaAgent = entry.getKey();
+                        //  find best agent by lowest load
+                        for (Map.Entry<String, Double> entry : choices.entrySet()) {
+                            if (entry.getValue() < lowestLoad) {
+                                lowestLoad = entry.getValue();
+                                bestAreaAgent = entry.getKey();
+                            }
                         }
+                        stop++;
+                    }while (stop < 4 && lowestLoad >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD);
+
+                    if(lowestLoad >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                        iterator.remove();
+                        return;
                     }
                 }
 
@@ -195,68 +192,61 @@ public class Plans {
         }
     }
 
-    public void checkTrikeMessagesBuffer(){
-        while (!areaAgent.messagesBuffer.isEmpty()){
-            Message bufferMessage = areaAgent.messagesBuffer.read();
-
-            switch (bufferMessage.getComAct()){
-                case INFORM:{
-                    ArrayList<String> locationParts = bufferMessage.getContent().getValues();
-                    //Location location = new Location(locationParts.get(0), Double.parseDouble(locationParts.get(1)), Double.parseDouble(locationParts.get(2)));
-                    Location location = null;
-                    if(locationParts != null){
-                        location = new Location("", Double.parseDouble(locationParts.get(0)), Double.parseDouble(locationParts.get(1)));
-                    }
-                    LocatedAgent locatedAgent = new LocatedAgent(bufferMessage.getSenderId(), location);
-                    areaAgent.locatedAgentList.updateLocatedAgentList(locatedAgent, bufferMessage.getTimeStamp(), bufferMessage.getContent().getAction());
-                    break;
+    public void checkTrikeMessagesBuffer(Message bufferMessage){
+        switch (bufferMessage.getComAct()){
+            case INFORM:{
+                ArrayList<String> locationParts = bufferMessage.getContent().getValues();
+                Location location = null;
+                if(locationParts != null){
+                    location = new Location("", Double.parseDouble(locationParts.get(0)), Double.parseDouble(locationParts.get(1)));
                 }
-                case REQUEST: {
-                    ArrayList<String> locatedAgentIds = new ArrayList<>();
-                    locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
-                    locatedAgentIds.add("#");
+                LocatedAgent locatedAgent = new LocatedAgent(bufferMessage.getSenderId(), location);
+                areaAgent.locatedAgentList.updateLocatedAgentList(locatedAgent, bufferMessage.getTimeStamp(), bufferMessage.getContent().getAction());
+                break;
+            }
+            case REQUEST: {
+                ArrayList<String> locatedAgentIds = new ArrayList<>();
+                locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
+                locatedAgentIds.add("#");
 
-                    //todo: when everywhere just the ID and not user: is used remove this
-                    String requestID = bufferMessage.getSenderId();
-                    synchronized (areaAgent.locatedAgentList.LocatedAgentList){
-                        boolean isPart = false;
-                        for (LocatedAgent locatedAgent: areaAgent.locatedAgentList.LocatedAgentList) {
-                            if ((!locatedAgent.getAgentID().equals(requestID))) {
-                                locatedAgentIds.add(locatedAgent.getAgentID());
-                            }else{
-                                isPart = true;
-                            }
-                        }
-
-                        if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES && !isPart){
-                            locatedAgentIds = new ArrayList<>();
-                            locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
-                            locatedAgentIds.add("#");
+                //todo: when everywhere just the ID and not user: is used remove this
+                String requestID = bufferMessage.getSenderId();
+                synchronized (areaAgent.locatedAgentList.LocatedAgentList){
+                    boolean isPart = false;
+                    for (LocatedAgent locatedAgent: areaAgent.locatedAgentList.LocatedAgentList) {
+                        if ((!locatedAgent.getAgentID().equals(requestID))) {
+                            locatedAgentIds.add(locatedAgent.getAgentID());
+                        }else{
+                            isPart = true;
                         }
                     }
 
-                    MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
-                    Message message = new Message(bufferMessage.getReceiverId(), bufferMessage.getSenderId(),
-                            Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
-                    //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                    if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES && !isPart){
+                        locatedAgentIds = new ArrayList<>();
+                        locatedAgentIds.add(bufferMessage.getContent().getValues().get(0));
+                        locatedAgentIds.add("#");
+                    }
+                }
 
-                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
-                    break;
+                MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
+                Message message = new Message(bufferMessage.getReceiverId(), bufferMessage.getSenderId(),
+                        Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
+                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                break;
+            }
+            case ACK: {
+                synchronized (areaAgent.requests){
+                    areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
                 }
-                case ACK: {
-                    synchronized (areaAgent.requests){
-                        areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
-                    }
-                    break;
+                break;
+            }
+            case NACK:{
+                synchronized (areaAgent.requests){
+                    areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
                 }
-                case NACK:{
-                    synchronized (areaAgent.requests){
-                        areaAgent.requests.removeIf(request -> request.getId().equals(bufferMessage.getId()));
-                    }
-                    Job job = new Job(bufferMessage.getContent().getValues());
-                    areaAgent.utils.sendJobToAgent(List.of(job));
-                    break;
-                }
+                Job job = new Job(bufferMessage.getContent().getValues());
+                areaAgent.utils.sendJobToAgent(List.of(job));
+                break;
             }
         }
     }
@@ -290,13 +280,26 @@ public class Plans {
 
         boolean isMin = areaAgent.jobsToDelegate.size() + areaAgent.locatedAgentList.size() < areaAgent.MIN_TRIKES;
 
-        boolean isOverload = areaAgent.load >= 1.5;
+        boolean isTrigger = areaAgent.load >= AreaConstants.LOAD_TRIGGER;
+
+        boolean isEmpty = areaAgent.MIN_TRIKES == 0 && areaAgent.load == AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+
+        long currentTime = SharedUtils.getSimTime();
+
+        boolean isOverload = isTrigger && !isEmpty && currentTime >= areaAgent.rebalanceInitTS;
+
+        if(currentTime >= areaAgent.rebalanceInitTS){
+            if(areaAgent.load <= 0.1){
+                areaAgent.MIN_TRIKES = 0;
+            }
+        }
+
 
         synchronized (areaAgent.jobsToDelegate){
-            long currentTime = SharedUtils.getSimTime();
-            if(JadexModel.simulationtime > 0 && (isMin || (isOverload && currentTime >= areaAgent.rebalanceInitTS)) && currentTime >= areaAgent.lastDelegateRequestTS + 180000){
+            if((isMin || isOverload) && currentTime >= areaAgent.lastDelegateRequestTS + 180000){
+
                 if(isOverload){
-                    System.out.println("OVERLOAD");
+                    System.out.println(areaAgent.areaAgentId + " OVERLOAD");
                 }
 
                 Location cellLocation = Cells.getCellLocation(areaAgent.cell);
@@ -316,9 +319,10 @@ public class Plans {
         long currentTime = SharedUtils.getSimTime();
         if(currentTime >= areaAgent.lastLoadUpdateTS + 180000){
             areaAgent.lastLoadUpdateTS = currentTime;
-            if(areaAgent.load < AreaAgent.NO_TRIKES_NO_TRIPS_LOAD){
-                areaAgent.load *= 0.8;
-                BigDecimal bigDecimal = BigDecimal.valueOf(areaAgent.load).setScale(5, RoundingMode.HALF_UP);
+            if(areaAgent.load < AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                areaAgent.load *= AreaConstants.LOAD_DECAY_FACTOR;
+
+                BigDecimal bigDecimal = BigDecimal.valueOf(areaAgent.load).setScale(4, RoundingMode.HALF_UP);
                 areaAgent.load = bigDecimal.doubleValue();
             }
         }
