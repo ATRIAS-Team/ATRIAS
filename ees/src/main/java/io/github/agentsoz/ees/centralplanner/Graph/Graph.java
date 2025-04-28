@@ -11,7 +11,7 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
 import static io.github.agentsoz.ees.trikeagent.TrikeConstants.CHARGING_STATION_LIST;
 
 public class Graph {
-    private final HashMap<String, Node> nodes; // Maps node ID to Node object
+    public final HashMap<String, Node> nodes; // Maps node ID to Node object
     private final HashMap<Node, List<Edge>> adjacencyList;
     private final ArrayList<String> chargingStations;
     public String pathfindingMethod;

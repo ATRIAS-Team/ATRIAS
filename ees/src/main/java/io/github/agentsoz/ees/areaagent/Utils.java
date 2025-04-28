@@ -233,28 +233,4 @@ public class Utils {
 
         return choices;
     }
-
-    public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue) {
-        Map<String, K> choices = new HashMap<>();
-
-        //  find the lowest load
-        Iterator<Map.Entry<String, T>> iterator = map1.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, T> entry1 = iterator.next();
-            if (entry1.getValue().compareTo(lowestValue) < 0) {
-                lowestValue = entry1.getValue();
-            }
-        }
-
-        //  find all agents that have the lowest load
-        iterator = map1.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, T> entry2 = iterator.next();
-            if (entry2.getValue() == lowestValue) {
-                choices.put(entry2.getKey(), map2.get(entry2.getKey()));
-            }
-        }
-
-        return choices;
-    }
 }

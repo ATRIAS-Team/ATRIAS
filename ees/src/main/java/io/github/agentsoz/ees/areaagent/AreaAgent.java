@@ -1,8 +1,7 @@
 /** AreaAgent
  *  Version: v0.6 (19.11.2024)
  *  changelog: merge
- *
- * @Author Marcel, Mahkam
+ *  @Author Marcel, Mahkam
  */
 package io.github.agentsoz.ees.areaagent;
 
@@ -16,17 +15,18 @@ package io.github.agentsoz.ees.areaagent;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.shared.Job;
 import io.github.agentsoz.ees.shared.Message;
@@ -50,16 +50,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static io.github.agentsoz.ees.shared.SharedUtils.getCurrentDateTime;
 
+
 @Agent(type = "bdi")
 
 @ProvidedServices({
-    @ProvidedService(type = IAreaTrikeService.class, implementation = @Implementation(AreaAgentService.class)),})
+        @ProvidedService(type= IAreaTrikeService.class, implementation=@Implementation( AreaAgentService.class)),
+})
 @RequiredServices({
-    @RequiredService(name = "clockservice", type = IClockService.class),
-    @RequiredService(name = "sendareaagendservice", type = IAreaTrikeService.class),})
+        @RequiredService(name="clockservice", type= IClockService.class),
+        @RequiredService(name = "sendareaagendservice", type = IAreaTrikeService.class),
+})
 
 public class AreaAgent {
-
     /**
      * The bdi agent. Automatically injected
      */
@@ -71,6 +73,7 @@ public class AreaAgent {
     protected IExecutionFeature execFeature;
     @AgentFeature
     protected IRequiredServicesFeature requiredServicesFeature;
+
 
     //  JOB LISTS
     @Belief
@@ -118,9 +121,7 @@ public class AreaAgent {
     public long rebalanceInitTS = 600000;
     public long lastLoadUpdateTS = 0;
 
-    /**
-     * The agent body.
-     */
+    /** The agent body. */
     @OnStart
     private void body() {
         utils = new Utils(this);
@@ -137,6 +138,7 @@ public class AreaAgent {
         //bdiFeature.dispatchTopLevelGoal(new AreaMessagesBuffer());
         //bdiFeature.dispatchTopLevelGoal(new CheckProposals());
         //bdiFeature.dispatchTopLevelGoal(new TrikeMessagesBuffer());
+
         //bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
@@ -147,84 +149,80 @@ public class AreaAgent {
         //bdiFeature.dispatchTopLevelGoal(new TripsLoad());
     }
 
-    @Goal(recur = true, recurdelay = 700, randomselection = true)
-    private class AreaMessagesBuffer {
 
+    @Goal(recur = true, recurdelay = 700, randomselection = true)
+    private class AreaMessagesBuffer{
         @GoalMaintainCondition
-        private boolean isEmpty() {
+        private boolean isEmpty(){
             return areaMessagesBuffer.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = AreaMessagesBuffer.class))
-    private void checkAreaMessagesBuffer() {
+    @Plan(trigger=@Trigger(goals=AreaMessagesBuffer.class))
+    private void checkAreaMessagesBuffer(){
         plans.checkAreaMessagesBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 800, randomselection = true)
-    private class CheckProposals {
 
+    @Goal(recur = true, recurdelay = 800, randomselection = true)
+    private class CheckProposals{
         @GoalMaintainCondition
-        private boolean isEmpty() {
+        private boolean isEmpty(){
             return proposalBuffer.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = CheckProposals.class))
-    private void checkProposals() {
+    @Plan(trigger=@Trigger(goals=CheckProposals.class))
+    private void checkProposals(){
         plans.checkProposalBuffer();
     }
 
-    @Goal(recur = true, recurdelay = 800, randomselection = true)
-    private class CheckDelegateInfo {
 
+    @Goal(recur = true, recurdelay = 800, randomselection = true)
+    private class CheckDelegateInfo{
         @GoalMaintainCondition
-        private boolean isEmpty() {
+        private boolean isEmpty(){
             return jobsToDelegate.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = CheckDelegateInfo.class))
-    private void checkDelegateInfo() {
+    @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
+    private void checkDelegateInfo(){
         plans.checkDelegateInfo();
     }
 
-    @Goal(recur = true, recurdelay = 800, randomselection = true)
-    private class DelegateJobs {
 
+    @Goal(recur = true, recurdelay = 800, randomselection = true)
+    private class DelegateJobs{
         @GoalMaintainCondition
-        private boolean isEmpty() {
+        private boolean isEmpty(){
             return jobsToDelegate.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = DelegateJobs.class))
-    private void delegateJobs() {
+    @Plan(trigger=@Trigger(goals=DelegateJobs.class))
+    private void delegateJobs(){
         plans.delegateJobs();
     }
 
-    @Goal(recur = true, recurdelay = 3000, randomselection = true)
-    private class PrintSimTime {
-    }
 
-    @Plan(trigger = @Trigger(goals = PrintSimTime.class))
-    private void printTime() {
-        if (areaAgentId.equals("area: 0")) {
+    @Goal(recur = true, recurdelay = 3000, randomselection = true)
+    private class PrintSimTime {}
+    @Plan(trigger=@Trigger(goals=PrintSimTime.class))
+    private void printTime()
+    {
+        if(areaAgentId.equals("area: 0")){
             System.out.println(JadexModel.simulationtime);
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
             System.out.println("Simulation Time: " + getCurrentDateTime().format(dateTimeFormatter));
         }
-        System.out.println(areaAgentId + ": " + locatedAgentList.size() + " Trikes");
+        System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
         System.out.println(areaAgentId + ": " + load + " Load");
-        synchronized (jobsToDelegate) {
+        synchronized (jobsToDelegate){
             System.out.println(jobsToDelegate.size() + " jobs to delegate");
         }
-        synchronized (requests) {
+        synchronized (requests){
             System.out.println(requests.size() + " area requests");
-            if (requests.size() > 5) {
+            if(requests.size() > 5){
                 System.out.println("ALERT");
                 for (Message request : requests) {
-                    System.out.println("sender: " + request.getSenderId());
+                    System.out.println("sender: "+ request.getSenderId());
                     System.out.println("receiver: " + request.getReceiverId());
                     System.out.println("content: " + request.getContent().values);
 
@@ -233,157 +231,145 @@ public class AreaAgent {
         }
     }
 
-    @Goal(recur = true, recurdelay = 500, randomselection = true)
-    private class MaintainDistributeAssignedJobs {
 
+    @Goal(recur = true, recurdelay = 500, randomselection = true)
+    private class MaintainDistributeAssignedJobs
+    {
         @GoalMaintainCondition
-        private boolean isEmpty() {
+        private boolean isEmpty(){
             return assignedJobs.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = MaintainDistributeAssignedJobs.class))
-    private void sendAssignedJobs() {
+    @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
+    private void sendAssignedJobs()
+    {
         utils.sendJobToAgent(assignedJobs);
     }
 
+
     @Goal(recur = true, recurdelay = 800, randomselection = true)
-    private class JobBuffer {
-
+    private class JobBuffer{
         @GoalMaintainCondition
-        private boolean isEmpty() {
-            return jobRingBuffer.isEmpty();
-        }
+        private boolean isEmpty(){return jobRingBuffer.isEmpty();}
     }
+    @Plan(trigger=@Trigger(goals=JobBuffer.class))
+    private void checkJobBuffer() { plans.checkAssignedJobs(); }
 
-    @Plan(trigger = @Trigger(goals = JobBuffer.class))
-    private void checkJobBuffer() {
-        plans.checkAssignedJobs();
-    }
 
     @Goal(recur = true, recurdelay = 5000, randomselection = true)
-    private class MaintainDistributeFirebaseJobs {
-
+    private class MaintainDistributeFirebaseJobs
+    {
         @GoalMaintainCondition
-        boolean isListEmpty() {
+        boolean isListEmpty(){
             return jobList.isEmpty();
         }
     }
-
-    @Plan(trigger = @Trigger(goals = MaintainDistributeFirebaseJobs.class))
-    private void SendFirebaseJob() {
+    @Plan(trigger=@Trigger(goals=MaintainDistributeFirebaseJobs.class))
+    private void SendFirebaseJob()
+    {
         utils.sendJobToAgent(jobList);
     }
 
-    @Goal(recur = true, recurdelay = 2000)
-    private class MaintainDistributeCSVJobs {
 
-        @Goal(recur = true, recurdelay = 500, randomselection = true)
-        private class MaintainDistributeCSVJobs {
-
-            @GoalMaintainCondition
-            boolean isListEmpty() {
-                return csvJobList.isEmpty();
-            }
-        }
-
-        @Plan(trigger = @Trigger(goals = MaintainDistributeCSVJobs.class))
-        private void SendCSVJob() {
-            utils.sendJobToAgent(csvJobList);
-        }
-
-        @Goal(recur = true, recurdelay = 300, randomselection = true)
-        private class TrikeMessagesBuffer {
-
-            @GoalMaintainCondition
-            private boolean isEmpty() {
-                return messagesBuffer.isEmpty();
-            }
-        }
-
-        @Plan(trigger = @Trigger(goals = TrikeMessagesBuffer.class))
-        private void checkTrikeMessagesBuffer() {
-            plans.checkTrikeMessagesBuffer();
-        }
-
-        @Goal(recur = true, recurdelay = 1000, randomselection = true)
-        private class CheckRequests {
-
-            @GoalMaintainCondition
-            private boolean isEmpty() {
-                return requests.isEmpty();
-            }
-        }
-
-        @Plan(trigger = @Trigger(goals = CheckRequests.class))
-        private void checkRequestTimeouts() {
-            plans.checkRequestTimeouts();
-        }
-
-        @Goal(recur = true, recurdelay = 10000, randomselection = true)
-        private class ReceivedMessages {
-        }
-
-        @Plan(trigger = @Trigger(goals = ReceivedMessages.class))
-        private void cleanupReceivedMessages() {
-            SharedPlans.cleanupReceivedMessages(receivedMessageIds);
-        }
-
-        @Goal(recur = true, recurdelay = 1000, randomselection = true)
-        private class TrikeCount {
-        }
-
-        @Plan(trigger = @Trigger(goals = TrikeCount.class))
-        private void checkTrikeCount() {
-            plans.checkTrikeCount();
-        }
-
-        @Goal(recur = true, recurdelay = 3000, randomselection = true)
-        private class TripsLoad {
-        }
-
-        @Plan(trigger = @Trigger(goals = TripsLoad.class))
-        private void updateTripsLoad() {
-            plans.updateTripsLoad();
-        }
-
-        public void sendMessage(String messageStr) {
-            Message messageObj = Message.deserialize(messageStr);
-
-            if (this.receivedMessageIds.containsKey(messageObj.getId())) {
-                return;
-            }
-            this.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
-
-            switch (messageObj.getComAct()) {
-                case INFORM:
-                case ACK:
-                case NACK:
-                    this.messagesBuffer.write(messageObj);
-                    checkTrikeMessagesBuffer();
-                    break;
-                case REQUEST:
-                    switch (messageObj.getContent().getAction()) {
-                        case "trikesInArea":
-                            this.messagesBuffer.write(messageObj);
-                            plans.checkTrikeMessagesBuffer();
-                            break;
-                    }
-                    break;
-                case CALL_FOR_PROPOSAL:
-                case REJECT_PROPOSAL:
-                    this.areaMessagesBuffer.write(messageObj);
-                    plans.checkAreaMessagesBuffer();
-                    break;
-                case PROPOSE:
-                case REFUSE:
-                    this.proposalBuffer.write(messageObj);
-                    plans.checkProposalBuffer();
-                    break;
-                case ACCEPT_PROPOSAL:
-                    this.jobRingBuffer.write(messageObj);
-                    plans.checkAssignedJobs();
-                    break;
-            }
+    @Goal(recur = true, recurdelay = 500, randomselection = true)
+    private class MaintainDistributeCSVJobs
+    {
+        @GoalMaintainCondition
+        boolean isListEmpty(){
+            return csvJobList.isEmpty();
         }
     }
+    @Plan(trigger=@Trigger(goals=MaintainDistributeCSVJobs.class))
+    private void SendCSVJob()
+    {
+        utils.sendJobToAgent(csvJobList);
+    }
+
+
+    @Goal(recur = true, recurdelay = 300, randomselection = true)
+    private class TrikeMessagesBuffer{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return messagesBuffer.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=TrikeMessagesBuffer.class))
+    private void checkTrikeMessagesBuffer()
+    {
+        plans.checkTrikeMessagesBuffer();
+    }
+
+
+    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    private class CheckRequests{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return requests.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=CheckRequests.class))
+    private void checkRequestTimeouts(){
+        plans.checkRequestTimeouts();
+    }
+
+
+    @Goal(recur = true, recurdelay = 10000, randomselection = true)
+    private class ReceivedMessages{}
+    @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
+    private void cleanupReceivedMessages(){
+        SharedPlans.cleanupReceivedMessages(receivedMessageIds);
+    }
+
+    @Goal(recur = true, recurdelay = 1000, randomselection = true)
+    private class TrikeCount{}
+    @Plan(trigger=@Trigger(goals=TrikeCount.class))
+    private void checkTrikeCount(){
+        plans.checkTrikeCount();
+    }
+
+    @Goal(recur = true, recurdelay = 3000, randomselection = true)
+    private class TripsLoad{}
+
+    @Plan(trigger=@Trigger(goals=TripsLoad.class))
+    private void updateTripsLoad(){
+        plans.updateTripsLoad();
+    }
+
+    public void sendMessage(String messageStr){
+        Message messageObj = Message.deserialize(messageStr);
+
+        if(this.receivedMessageIds.containsKey(messageObj.getId())) return;
+        this.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
+
+        switch (messageObj.getComAct()){
+            case INFORM:
+            case ACK:
+            case NACK:
+                this.messagesBuffer.write(messageObj);
+                checkTrikeMessagesBuffer();
+                break;
+            case REQUEST:
+                switch (messageObj.getContent().getAction()) {
+                    case "trikesInArea":
+                        this.messagesBuffer.write(messageObj);
+                        plans.checkTrikeMessagesBuffer();
+                        break;
+                }
+                break;
+            case CALL_FOR_PROPOSAL:
+            case REJECT_PROPOSAL:
+                this.areaMessagesBuffer.write(messageObj);
+                plans.checkAreaMessagesBuffer();
+                break;
+            case PROPOSE:
+            case REFUSE:
+                this.proposalBuffer.write(messageObj);
+                plans.checkProposalBuffer();
+                break;
+            case ACCEPT_PROPOSAL:
+                this.jobRingBuffer.write(messageObj);
+                plans.checkAssignedJobs();
+                break;
+        }
+    }
+}

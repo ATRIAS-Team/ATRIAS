@@ -56,8 +56,10 @@
 
 	<module name="qsim">
 		<!-- "start/endTime" of MobSim  (00:00:00 == take earliest activity time/ run as long as active vehicles exist) -->
-		<param name="startTime" value="00:00:00" />
-		<param name="endTime" value="23:59:59" />
+		<param name="startTime" value="05:30:00" />
+		<param name="endTime" value="10:30:00" />
+<!--		<param name="startTime" value="00:00:00" />-->
+<!--		<param name="endTime" value="23:59:59" />-->
 
 		<param name = "snapshotperiod"	value = "00:00:20"/> <!-- 00:00:00 means NO snapshot writing, 00:00:30 means every 30 secs -->
 		<!--<param name="timeStepSize" value="1.0"/>-->

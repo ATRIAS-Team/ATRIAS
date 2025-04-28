@@ -9,14 +9,14 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.xmlConfigParser;
 
 public class Main {
     public static void main(String[] args) {
-        String configFilePath = "configs/Subsample 1/Boston_S1.xml";
+        String configFilePath = "configs/Subsample 1/Subsample_1_T32.xml";
         HashMap<String, String> configMap = xmlConfigParser(configFilePath);
 
 //        AntColonyScheduler sim = new AntColonyScheduler(configMap);
 //        GeneticAlgorithmScheduler sim = new GeneticAlgorithmScheduler(configMap);
 //        BruteForceScheduler sim = new BruteForceScheduler(configMap);
-//        GreedyScheduler sim = new GreedyScheduler(configMap);
-        GreedyRebalancing sim = new GreedyRebalancing(configMap);
+        GreedyScheduler sim = new GreedyScheduler(configMap);
+//        GreedyRebalancing sim = new GreedyRebalancing(configMap);
 //        GreedyGreedyRescheduling sim = new GreedyGreedyRescheduling(configMap);
 //        GreedyBruteForceRescheduling sim = new GreedyBruteForceRescheduling(configMap);
 //        GreedyGARescheduling sim = new GreedyGARescheduling(configMap);

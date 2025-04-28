@@ -41,6 +41,9 @@ import org.w3c.dom.Element;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Emergency Evacuation Simulator (EES) main program.
@@ -145,20 +148,23 @@ public class Run implements DataClient {
         jadexmodel.useSequenceLock(sequenceLock);
         matsimEvacModel.useSequenceLock(sequenceLock);
 
-        long prevTime = Instant.now().toEpochMilli();
-        while (true) {
-            // Wait till both models are done before incrementing time
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+        executorService.scheduleAtFixedRate(()->{
             synchronized (sequenceLock) {
-                long currentTime = Instant.now().toEpochMilli();
-                if(currentTime >= prevTime + 200){
-                    dataServer.stepTime();
-                    prevTime = currentTime;
-                }
+                dataServer.stepTime();
             }
-            // Wait till both models are done before checking for termination condition
+
             synchronized (sequenceLock) {
                 if (matsimEvacModel.isFinished()) {
-                    break;
+                    // finish up
+                    log.info("Finishing up");
+                    matsimEvacModel.finish() ;
+
+                    DataServer.cleanup() ;
+                    jadexmodel.finish();
+                    log.info("All done");
+                    executorService.shutdown();
                 }
             }
 
@@ -169,19 +175,51 @@ public class Run implements DataClient {
             JadexModel.inBDIcycle = true;
             dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
             JadexModel.inBDIcycle = false;
-        }
+        }, 0, 200, TimeUnit.MILLISECONDS);
 
-        // finish up
-        log.info("Finishing up");
-        matsimEvacModel.finish() ;
-
-
-
-        DataServer.cleanup() ;
-        jadexmodel.finish();
-        log.info("All done");
-        System.exit(0);
+        //  Formel: (1000 / period) * 2 sind Sekunden in der Simulation pro 1 echte Sekunde.
+        //  400 -> 2.5 * 2 = 5 sim Sekunden pro 1 Sekunde
+        //  1000 -> 2 Sim Sekunden pro 1 echte Sekunde
+        //  200 -> 5 * 2 = 10 usw.
     }
+
+//        long prevTime = Instant.now().toEpochMilli();
+//        while (true) {
+//            // Wait till both models are done before incrementing time
+//            synchronized (sequenceLock) {
+//                long currentTime = Instant.now().toEpochMilli();
+//                if(currentTime >= prevTime + 200){
+//                    dataServer.stepTime();
+//                    prevTime = currentTime;
+//                }
+//            }
+//            // Wait till both models are done before checking for termination condition
+//            synchronized (sequenceLock) {
+//                if (matsimEvacModel.isFinished()) {
+//                    break;
+//                }
+//            }
+//
+//            JadexModel.inBDIcycle = false;
+//            // ABM to take control; the ABM thread should synchronize on adc_from_abm
+//            dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
+//            // BDI to take control; the BDI thread should synchronize on adc_from_bdi
+//            JadexModel.inBDIcycle = true;
+//            dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
+//            JadexModel.inBDIcycle = false;
+//        }
+//
+//        // finish up
+//        log.info("Finishing up");
+//        matsimEvacModel.finish() ;
+//
+//
+//
+//        DataServer.cleanup() ;
+//        jadexmodel.finish();
+//        log.info("All done");
+//        System.exit(0);
+//    }
 
     private void parse(Map<String, String> opts) {
         if (opts == null) {

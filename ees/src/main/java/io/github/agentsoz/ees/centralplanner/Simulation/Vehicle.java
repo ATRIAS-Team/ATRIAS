@@ -15,7 +15,7 @@ public class Vehicle {
     public int id;
     public String futurePosition; //the position vehicle has when finished with its jobs
     public String currentPosition; //position vehicle has at a given timestep
-    public String home; //home node
+    public String home; //home node (not used)
     public LocalDateTime busyUntil;
     public ArrayList<Trip> queuedTrips = new ArrayList<>();
     public ArrayList<Trip> takenTrips = new ArrayList<>();
