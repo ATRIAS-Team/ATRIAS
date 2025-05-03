@@ -7,16 +7,16 @@
     </scenario>
 
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
-        <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="1" />
         <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
     </file>
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">40.0</field>
+        <field field_name="DRIVING_SPEED">30.0</field>
         <field field_name="CNP_ACTIVE">false</field>
         <field field_name="THETA">900.0</field>
-        <field field_name="ALLOW_CUSTOMER_MISS">true</field>
+        <field field_name="ALLOW_CUSTOMER_MISS">false</field>
         <field field_name="DISTANCE_FACTOR">3.0</field>
         <field field_name="CHARGING_THRESHOLD">0.4</field>
         <field field_name="ASK_FOR_TRIKES_WAIT_TIME">20000</field>
@@ -38,9 +38,9 @@
     </class>
     <class class_name="CentralPlanner">
         <field field_name="OUTPUT_PATH">output</field>
-        <!--        <field field_name="PATHFINDING_METHOD">euclidean</field>-->
-        <!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
-        <field field_name="PATHFINDING_METHOD">fast_dijkstra</field>
+        <field field_name="PATHFINDING_METHOD">euclidean</field>
+<!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
+<!--        <field field_name="PATHFINDING_METHOD">fast_dijkstra</field>-->
     </class>
 
     <cells resolutions="2">

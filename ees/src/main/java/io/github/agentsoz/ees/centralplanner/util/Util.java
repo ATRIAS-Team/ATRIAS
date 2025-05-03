@@ -10,6 +10,8 @@ import org.w3c.dom.Node;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Util {
@@ -173,6 +175,12 @@ public class Util {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static LocalDateTime timeParser(String time){
+        time = time.replace("T", " ");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        return LocalDateTime.parse(time, formatter);
     }
 }
 

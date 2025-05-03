@@ -3,7 +3,8 @@ package io.github.agentsoz.ees.centralplanner.Simulation;
 import io.github.agentsoz.ees.centralplanner.Graph.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+import static io.github.agentsoz.ees.centralplanner.util.Util.timeParser;
 
 public class Trip {
     public String customerID;
@@ -19,10 +20,7 @@ public class Trip {
     public String nearestStartNode;
     public String nearestEndNode;
     public Path calculatedPath;
-    public double batteryBefore;
-    public double batteryAfter;
-    public boolean rescheduled = false;
-
+    public LocalDateTime vehicleBusyTime;
 
     public Trip( String customerID, String TripID, int driveOperationNumber, String tripType, String bookingTime, String vaTime, String startX, String startY, String endX, String endY, String nearestStartNode, String nearestEndNode ) {
         this.customerID = customerID;
@@ -54,9 +52,6 @@ public class Trip {
         this.nearestStartNode = other.nearestStartNode;
         this.nearestEndNode = other.nearestEndNode;
         this.calculatedPath = other.calculatedPath;
-        this.batteryBefore = other.batteryBefore;
-        this.batteryAfter = other.batteryAfter;
-        this.rescheduled = other.rescheduled;
     }
 
     public void calculateTrip(Graph graph) {
@@ -65,22 +60,13 @@ public class Trip {
                 calculatedPath = graph.euclideanDistance(nearestStartNode, nearestEndNode);
                 break;
             case "dijkstra":
-                calculatedPath = graph.dijkstra(nearestStartNode, nearestEndNode);
-                break;
-            case "fast_dijkstra":
                 calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
                 break;
             case "aStar":
                 calculatedPath = graph.aStar(nearestStartNode, nearestEndNode);
                 break;
             default:
-                throw new IllegalArgumentException("Invalid pathfinding method: Please choose euclidean, dijkstra, fast_dijkstra or aStar");
+                throw new IllegalArgumentException("Invalid pathfinding method: Please choose euclidean, dijkstra or aStar");
         }
-    }
-
-    private LocalDateTime timeParser(String time){
-        time = time.replace("T", " ");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-        return LocalDateTime.parse(time, formatter);
     }
 }

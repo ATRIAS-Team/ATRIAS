@@ -5,17 +5,30 @@ import io.github.agentsoz.ees.centralplanner.Graph.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.github.agentsoz.ees.centralplanner.util.Util.timeParser;
+
 public class RequestReader {
     public ArrayList<Map<String, String>> rawData;
-    public ArrayList<Trip> requestedTrips = new ArrayList<Trip>();
+    public ArrayList<Trip> allRequestedTrips = new ArrayList<>();
+    public ArrayList<ArrayList<Trip>> groupedRequestedTrips = new ArrayList<>();
+    protected HashMap<String, String> configMap;
 
-    public RequestReader(String filePath, Graph graph) {
+
+    public RequestReader(HashMap<String, String> configMap, Graph graph) {
+        this.configMap = configMap;
         // get raw data from csv file
-        generateFromCSVFile(filePath);
+        generateFromCSVFile(configMap.get("CSV_SOURCE"));
+        parseRawDataToRequests(graph);
+        groupRequests();
+
+    }
+
+    private void parseRawDataToRequests(Graph graph){
         // parse data to Trip format
         for (Map<String, String> dataRow : rawData) {
 
@@ -31,7 +44,29 @@ public class RequestReader {
             Trip trip = new Trip(customerID, tripID, 2, "CustomerTrip", bookingTime, vaTime, startX, startY, endX, endY, graph.getNearestNodeID(startX, startY), graph.getNearestNodeID(endX, endY));
             trip.calculateTrip(graph);
 
-            requestedTrips.add(trip);
+            trip.calculatedPath.travelTime += Double.parseDouble(configMap.get("TRAVELTIME_DELAY"));
+
+            allRequestedTrips.add(trip);
+        }
+    }
+
+    private void groupRequests(){
+        // groups all requests into Arrays of specific time intervals
+        LocalDateTime startTime = timeParser(configMap.get("SIMULATION_START_TIME"));
+        LocalDateTime endTime = timeParser(configMap.get("SIMULATION_START_TIME")).plusHours(24);
+
+        LocalDateTime intervalStartTime = startTime;
+        LocalDateTime intervalEndTime = startTime.plusSeconds(Long.parseLong(configMap.get("TIMEINTERVAL")));
+        while (intervalStartTime.isBefore(endTime)) {
+            ArrayList<Trip> groupedTrips = new ArrayList<>();
+            for (Trip trip : allRequestedTrips) {
+                if ((trip.bookingTime.isAfter(intervalStartTime) || trip.bookingTime.isEqual(intervalStartTime)) && trip.bookingTime.isBefore(intervalEndTime)) {
+                    groupedTrips.add(trip);
+                }
+            }
+            groupedRequestedTrips.add(groupedTrips);
+            intervalStartTime = intervalEndTime;
+            intervalEndTime = intervalStartTime.plusSeconds(Long.parseLong(configMap.get("TIMEINTERVAL")));
         }
     }
 

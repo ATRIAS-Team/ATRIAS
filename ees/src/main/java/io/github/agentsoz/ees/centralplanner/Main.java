@@ -1,27 +1,20 @@
 package io.github.agentsoz.ees.centralplanner;
 
-import io.github.agentsoz.ees.centralplanner.Simulation.Rebalancing.CreateSupportingMatrices;
+import io.github.agentsoz.ees.centralplanner.Simulation.AbstractScheduler;
 import io.github.agentsoz.ees.centralplanner.Simulation.Scheduler.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 import static io.github.agentsoz.ees.centralplanner.util.Util.xmlConfigParser;
 
 public class Main {
     public static void main(String[] args) {
-        String configFilePath = "configs/Subsample 1/Subsample_1_T32.xml";
+        String configFilePath = "configs/Subsample 1/Subsample_1_T32_CNP.xml";
         HashMap<String, String> configMap = xmlConfigParser(configFilePath);
 
-//        AntColonyScheduler sim = new AntColonyScheduler(configMap);
-//        GeneticAlgorithmScheduler sim = new GeneticAlgorithmScheduler(configMap);
-//        BruteForceScheduler sim = new BruteForceScheduler(configMap);
-        GreedyScheduler sim = new GreedyScheduler(configMap);
-//        GreedyRebalancing sim = new GreedyRebalancing(configMap);
-//        GreedyGreedyRescheduling sim = new GreedyGreedyRescheduling(configMap);
-//        GreedyBruteForceRescheduling sim = new GreedyBruteForceRescheduling(configMap);
-//        GreedyGARescheduling sim = new GreedyGARescheduling(configMap);
-//        CreateSupportingMatrices sim = new CreateSupportingMatrices(configMap);
-
+        AbstractScheduler sim = getScheduler(configMap);
 
         //initializes the simulation by reading in the graph, vehicles, requests and population from the config
         sim.init();
@@ -37,6 +30,17 @@ public class Main {
         sim.saveVehicleTrips();
         sim.saveBestVehicleMapping();
     }
+
+    public static AbstractScheduler getScheduler(HashMap<String, String> configMap) {
+        switch (configMap.get("SCHEDULER")) {
+            case "GreedyScheduler":
+                return new GreedyScheduler(configMap);
+            case "GAScheduler":
+                return new GAScheduler(configMap);
+            case "ACOScheduler":
+                return new ACOScheduler(configMap);
+            default:
+                throw new RuntimeException("Unknown scheduler: " + configMap.get("SCHEDULER"));
+        }
+    }
 }
-
-

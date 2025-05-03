@@ -1,0 +1,46 @@
+2025-02-12 08:55:52 [ees] INFO  Run.%PARSER_ERROR[M] - Reading BDI agents from MATSim population file
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Found option: randomSeed=12345
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Found option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] WARN  Run.%PARSER_ERROR[M] - Ignoring option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Found option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] WARN  Run.%PARSER_ERROR[M] - Ignoring option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Found option: startHHMM=00:00
+2025-02-12 08:55:54 [ees] WARN  Run.%PARSER_ERROR[M] - Ignoring option: startHHMM=00:00
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Starting the data server
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Creating MATSim model
+2025-02-12 08:55:54 [ees] INFO  Utils.%PARSER_ERROR[M] - setting matsim output directory to ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/matsim
+2025-02-12 08:55:54 [ees] INFO  Utils.%PARSER_ERROR[M] - setting matsim start time to 00:00
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: randomSeed=12345
+2025-02-12 08:55:54 [ees] WARN  MATSimModel.%PARSER_ERROR[M] - Ignoring option: randomSeed=12345
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: outputDir=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/matsim
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: congestionToleranceThreshold=0.33
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] WARN  MATSimModel.%PARSER_ERROR[M] - Ignoring option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] WARN  MATSimModel.%PARSER_ERROR[M] - Ignoring option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: configXml=ees/scenarios/matsim-boston/matsim_config.xml
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: startHHMM=00:00
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: congestionEvaluationInterval=180
+2025-02-12 08:55:54 [ees] INFO  MATSimModel.%PARSER_ERROR[M] - Found option: congestionReactionProbability=0.0
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: randomSeed=12345
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: randomSeed=12345
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: outputDir=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/matsim
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: outputDir=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/matsim
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: congestionToleranceThreshold=0.33
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: congestionToleranceThreshold=0.33
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: crs=EPSG:25832
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: deckGlOutFile=ees/test/output/io/github/agentsoz/ees/agents/archetype/BostonExample/test/trips.deckgl.json
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: configXml=ees/scenarios/matsim-boston/matsim_config.xml
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: configXml=ees/scenarios/matsim-boston/matsim_config.xml
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: startHHMM=00:00
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: startHHMM=00:00
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: congestionEvaluationInterval=180
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: congestionEvaluationInterval=180
+2025-02-12 08:55:54 [ees] INFO  MATSimEvacModel.%PARSER_ERROR[M] - Found option: congestionReactionProbability=0.0
+2025-02-12 08:55:54 [ees] WARN  MATSimEvacModel.%PARSER_ERROR[M] - Ignoring option: congestionReactionProbability=0.0
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Starting information diffusion model
+2025-02-12 08:55:54 [ees] INFO  Run.%PARSER_ERROR[M] - Starting Jadex BDI model
+2025-02-12 08:56:06 [ees] INFO  Run.%PARSER_ERROR[M] - Starting MATSim model
+2025-02-12 08:56:11 [ees] INFO  Run.%PARSER_ERROR[M] - Starting the simulation loop

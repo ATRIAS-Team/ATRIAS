@@ -4,40 +4,33 @@ import io.github.agentsoz.ees.centralplanner.Simulation.AbstractScheduler;
 import io.github.agentsoz.ees.centralplanner.Simulation.Trip;
 import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 
-import java.time.Duration;
 import java.util.*;
 
-import static io.github.agentsoz.ees.centralplanner.util.Util.showProgress;
-
-public class GeneticAlgorithmScheduler extends AbstractScheduler {
-
-    private static final int POPULATION_SIZE = 100;
-    private static final int KEEP_BEST_INDIVIDUALS = 40;
+public class GAScheduler extends AbstractScheduler {
+    private static final int POPULATION_SIZE = 40;
+    private static final int KEEP_BEST_INDIVIDUALS = 4;
     private static final int MAX_GENERATIONS = 200;
-    private static final double MUTATION_RATE = 0.005;
+    private static final double MUTATION_RATE = 0.05;
     private static final long SEED = 815274;
     private static final Random random = new Random(SEED);
-    PriorityQueue<Individual> bestIndividuals = new PriorityQueue<>(Comparator.comparingDouble(Individual::getFitness));
 
-    public GeneticAlgorithmScheduler(HashMap<String, String> configMap) {
+    private ArrayList<Trip> requestedTrips = new ArrayList<>();
+
+    public GAScheduler(HashMap<String, String> configMap) {
         super(configMap);
     }
 
-    public void run() {
-        if (progressionLogging){
-            System.out.println("\nScheduling requests using Genetic Algorithm");
-        }
+    public void generateAssignment(ArrayList<Trip> requestedTrips) {
+        //make it easier to access trips for methods by not passing it through every call
+        this.requestedTrips = requestedTrips;
+
         // randomly generate a population, meaning a number of individuals with random trip assignments
         ArrayList<Individual> population = initializePopulation();
 
+        //start the evolution for given generations
         for (int generation = 0; generation < MAX_GENERATIONS; generation++) {
+            //sorts all individuals inside the population
             Collections.sort(population);
-            bestIndividuals.add(population.get(0));
-
-            double fitness = population.get(0).getFitness();
-            if (progressionLogging){
-                showProgress(generation, MAX_GENERATIONS-1, "  Fitness " + fitness);
-            }
 
             ArrayList<Individual> newPopulation = new ArrayList<>();
 
@@ -50,29 +43,27 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
                 Individual parent1 = selectParent(population);
                 Individual parent2 = selectParent(population);
 
+                //generate offspring through crossover with parent1 and parent2
                 Individual offspring = crossover(parent1, parent2);
-                offspring.assignTrips(copyAllVehicles());
+
+                //apply random mutations to offspring
+                mutate(offspring);
+
+                offspring.assignTrips();
                 newPopulation.add(offspring);
             }
-            //apply random mutations
-            for (int i = 0; i < POPULATION_SIZE; i++) {
-                Individual individual = newPopulation.get(i);
-                mutate(individual);
-            }
-
             population = newPopulation;
         }
 
-        Individual bestIndividual = bestIndividuals.poll();
-        graph.pathfindingMethod = "fast_dijkstra";
-        bestIndividual.assignTrips(vehicles);
+        //assign solution
+        vehicles = population.get(0).copiedVehicles;
     }
 
     private ArrayList<Individual> initializePopulation() {
         ArrayList<Individual> population = new ArrayList<>();
         for (int i = 0; i < POPULATION_SIZE; i++) {
             Individual individual = new Individual();
-            individual.assignTrips(copyAllVehicles());
+            individual.assignTrips();
             population.add(individual);
         }
         return population;
@@ -97,20 +88,16 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
                 offspring.getGenes().set(i, parent2.getGenes().get(i));
             }
         }
-        offspring.assignTrips(copyAllVehicles());
         return offspring;
     }
 
     private void mutate(Individual individual) {
-        boolean mutated = false;
-        for (int i = 0; i < requestedTrips.size(); i++) {
+        //go through each gene
+        for (int i = 0; i < individual.genes.size(); i++) {
+            //randomly mutate the gene by assigning a new vehicle id to it
             if (random.nextDouble() < MUTATION_RATE) {
-                mutated = true;
                 individual.getGenes().set(i, random.nextInt(vehicles.size()));
             }
-        }
-        if (mutated) {
-            individual.assignTrips(copyAllVehicles());
         }
     }
 
@@ -121,27 +108,27 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
 
         public Individual() {
             //on init randomizes trip vehicle distribution
+
+            //generate genes consisting of a list of integers indicating which vehicle id is responsible for which trip
             genes = new ArrayList<>(Collections.nCopies(requestedTrips.size(), 0));
             for (int i = 0; i < requestedTrips.size(); i++) {
+                //go through each gene, changing the gene so that a random vehicle is chosen
                 genes.set(i, random.nextInt(vehicles.size()));
             }
+
+            copiedVehicles = copyAllVehicles();
         }
 
-        public void assignTrips(ArrayList<Vehicle> vehicles) {
-            copiedVehicles = vehicles;
+        public void assignTrips() {
             for (int i = 0; i < requestedTrips.size(); i++) {;
+                //copy trip to be not affected by calls by reference
                 Trip customerTrip = new Trip(requestedTrips.get(i));
-                Vehicle assignedVehicle = vehicles.get(genes.get(i));
-                assignedVehicle.refreshVehicle(customerTrip.bookingTime);
+                //retrieve assigned vehicle from gene pool/chromosome
+                Vehicle assignedVehicle = copiedVehicles.get(genes.get(i));
+
                 Trip approachTrip = assignedVehicle.evaluateApproach(customerTrip, graph);
                 assignedVehicle.queueTrip(approachTrip);
                 assignedVehicle.queueTrip(customerTrip);
-            }
-            //update rest of queued trips from vehicles, even after last booking came in
-            for (Vehicle vehicle : copiedVehicles) {
-                if (!vehicle.queuedTrips.isEmpty()) {
-                    vehicle.refreshVehicle(vehicle.busyUntil);
-                }
             }
             fitness = getFitness();
         }
@@ -155,8 +142,8 @@ public class GeneticAlgorithmScheduler extends AbstractScheduler {
             for (Vehicle vehicle : copiedVehicles){
                 //fitness value can be customer waiting time or missed Trips
 
-//                fitness += vehicle.customerWaitingTime;
-                fitness += vehicle.getMissedTrips();
+                fitness += vehicle.customerWaitingTime;
+//                fitness += vehicle.getMissedTrips();
             }
             return fitness;
         }
