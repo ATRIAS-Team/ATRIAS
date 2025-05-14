@@ -61,7 +61,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 2;
+    private double optTimestep = 5;
 
 
     public static void main(String[] args) {
@@ -147,39 +147,33 @@ public class Run implements DataClient {
         jadexmodel.useSequenceLock(sequenceLock);
         matsimEvacModel.useSequenceLock(sequenceLock);
 
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        while (true){
+        synchronized (sequenceLock) {
+            dataServer.stepTime();
+        }
 
-        executorService.scheduleAtFixedRate(()->{
-            synchronized (sequenceLock) {
-                dataServer.stepTime();
+        synchronized (sequenceLock) {
+            if (matsimEvacModel.isFinished()) {
+                break;
+
             }
+        }
 
-            synchronized (sequenceLock) {
-                if (matsimEvacModel.isFinished()) {
-                    // finish up
-                    log.info("Finishing up");
-                    matsimEvacModel.finish() ;
+        JadexModel.inBDIcycle = false;
+        // ABM to take control; the ABM thread should synchronize on adc_from_abm
+        dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
+        // BDI to take control; the BDI thread should synchronize on adc_from_bdi
+        JadexModel.inBDIcycle = true;
+        dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
+        JadexModel.inBDIcycle = false;
+        }
+        // finish up
+        log.info("Finishing up");
+        matsimEvacModel.finish() ;
 
-                    DataServer.cleanup() ;
-                    jadexmodel.finish();
-                    log.info("All done");
-                    executorService.shutdown();
-                }
-            }
-
-            JadexModel.inBDIcycle = false;
-            // ABM to take control; the ABM thread should synchronize on adc_from_abm
-            dataServer.publish(Constants.TAKE_CONTROL_ABM, adc_from_bdi);
-            // BDI to take control; the BDI thread should synchronize on adc_from_bdi
-            JadexModel.inBDIcycle = true;
-            dataServer.publish(Constants.TAKE_CONTROL_BDI, adc_from_abm);
-            JadexModel.inBDIcycle = false;
-        }, 0, 400, TimeUnit.MILLISECONDS);
-
-        //  Formel: (1000 / period) * 2 sind Sekunden in der Simulation pro 1 echte Sekunde.
-        //  400 -> 2.5 * 2 = 5 sim Sekunden pro 1 Sekunde
-        //  1000 -> 2 Sim Sekunden pro 1 echte Sekunde
-        //  200 -> 5 * 2 = 10 usw.
+        DataServer.cleanup() ;
+        jadexmodel.finish();
+        log.info("All done");
     }
 
 

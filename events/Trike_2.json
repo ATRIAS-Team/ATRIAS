@@ -1,0 +1,6811 @@
+[{
+  "updated": "2019-12-01T00:24:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 0,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10536",
+          "jobID": "AP536",
+          "bookingTime": "2019-12-01T00:24:00",
+          "vaTime": "2019-12-01T00:24:00",
+          "startPosition": {
+            "name": "",
+            "x": 329576.974,
+            "y": 4689773.251
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328897.606,
+            "y": 4690719.62
+          }
+        },
+        "timeStamp": 1575159845000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "4",
+        "UTScoreList": [],
+        "status": "CONFIRM_READY",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10536",
+          "jobID": "AP536",
+          "bookingTime": "2019-12-01T00:24:00",
+          "vaTime": "2019-12-01T00:24:00",
+          "startPosition": {
+            "name": "",
+            "x": 329576.974,
+            "y": 4689773.251
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328897.606,
+            "y": 4690719.62
+          }
+        },
+        "timeStamp": 1575159845000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "4",
+        "UTScoreList": [],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:24:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 1,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP536",
+          "decisionTask": {
+            "job": {
+              "customerID": "10536",
+              "jobID": "AP536",
+              "bookingTime": "2019-12-01T00:24:00",
+              "vaTime": "2019-12-01T00:24:00",
+              "startPosition": {
+                "name": "",
+                "x": 329576.974,
+                "y": 4689773.251
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328897.606,
+                "y": 4690719.62
+              }
+            },
+            "timeStamp": 1575159845000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "4",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:24:00",
+          "startPosition": {
+            "name": "",
+            "x": 329576.974,
+            "y": 4689773.251
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328897.606,
+            "y": 4690719.62
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:44:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:24:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 2,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10536",
+              "jobID": "AP536",
+              "bookingTime": "2019-12-01T00:24:00",
+              "vaTime": "2019-12-01T00:24:00",
+              "startPosition": {
+                "name": "",
+                "x": 329576.974,
+                "y": 4689773.251
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328897.606,
+                "y": 4690719.62
+              }
+            },
+            "timeStamp": 1575159845000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "4",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+          },
+          {
+            "job": {
+              "customerID": "10534",
+              "jobID": "AP534",
+              "bookingTime": "2019-12-01T00:24:00",
+              "vaTime": "2019-12-01T00:24:00",
+              "startPosition": {
+                "name": "",
+                "x": 322891.918,
+                "y": 4690760.092
+              },
+              "endPosition": {
+                "name": "",
+                "x": 323621.301,
+                "y": 4691587.516
+              }
+            },
+            "timeStamp": 1575159845000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "27",
+            "UTScoreList": [],
+            "status": "WAITING_MANAGER",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP536",
+          "decisionTask": {
+            "job": {
+              "customerID": "10536",
+              "jobID": "AP536",
+              "bookingTime": "2019-12-01T00:24:00",
+              "vaTime": "2019-12-01T00:24:00",
+              "startPosition": {
+                "name": "",
+                "x": 329576.974,
+                "y": 4689773.251
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328897.606,
+                "y": 4690719.62
+              }
+            },
+            "timeStamp": 1575159845000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "4",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:24:00",
+          "startPosition": {
+            "name": "",
+            "x": 329576.974,
+            "y": 4689773.251
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328897.606,
+            "y": 4690719.62
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:44:00"
+        },
+        "DecisionTask AP536 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:24:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 3,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.9,
+      "newValue": 0.8260324530742921
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:24:40",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 4,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP536",
+          "decisionTask": {
+            "job": {
+              "customerID": "10536",
+              "jobID": "AP536",
+              "bookingTime": "2019-12-01T00:24:00",
+              "vaTime": "2019-12-01T00:24:00",
+              "startPosition": {
+                "name": "",
+                "x": 329576.974,
+                "y": 4689773.251
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328897.606,
+                "y": 4690719.62
+              }
+            },
+            "timeStamp": 1.575159845E12,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "4",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "bce9eba3-5d05-482e-8717-5ef009068f4c"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:24:00",
+          "startPosition": {
+            "name": "",
+            "x": 329576.974,
+            "y": 4689773.251
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328897.606,
+            "y": 4690719.62
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:44:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:24:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 5,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8260324530742921,
+      "newValue": 0.8260324530742921
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 6,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10537",
+          "jobID": "AP537",
+          "bookingTime": "2019-12-01T00:25:00",
+          "vaTime": "2019-12-01T00:25:00",
+          "startPosition": {
+            "name": "",
+            "x": 330116.167,
+            "y": 4690965.577
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331312.951,
+            "y": 4691022.092
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 93.46583433807197
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10537",
+          "jobID": "AP537",
+          "bookingTime": "2019-12-01T00:25:00",
+          "vaTime": "2019-12-01T00:25:00",
+          "startPosition": {
+            "name": "",
+            "x": 330116.167,
+            "y": 4690965.577
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331312.951,
+            "y": 4691022.092
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 93.46583433807197
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 7,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP537",
+          "decisionTask": {
+            "job": {
+              "customerID": "10537",
+              "jobID": "AP537",
+              "bookingTime": "2019-12-01T00:25:00",
+              "vaTime": "2019-12-01T00:25:00",
+              "startPosition": {
+                "name": "",
+                "x": 330116.167,
+                "y": 4690965.577
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331312.951,
+                "y": 4691022.092
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.46583433807197
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:25:00",
+          "startPosition": {
+            "name": "",
+            "x": 330116.167,
+            "y": 4690965.577
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331312.951,
+            "y": 4691022.092
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:45:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 8,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10537",
+              "jobID": "AP537",
+              "bookingTime": "2019-12-01T00:25:00",
+              "vaTime": "2019-12-01T00:25:00",
+              "startPosition": {
+                "name": "",
+                "x": 330116.167,
+                "y": 4690965.577
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331312.951,
+                "y": 4691022.092
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.46583433807197
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP537 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP537",
+          "decisionTask": {
+            "job": {
+              "customerID": "10537",
+              "jobID": "AP537",
+              "bookingTime": "2019-12-01T00:25:00",
+              "vaTime": "2019-12-01T00:25:00",
+              "startPosition": {
+                "name": "",
+                "x": 330116.167,
+                "y": 4690965.577
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331312.951,
+                "y": 4691022.092
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.46583433807197
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:25:00",
+          "startPosition": {
+            "name": "",
+            "x": 330116.167,
+            "y": 4690965.577
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331312.951,
+            "y": 4691022.092
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:45:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 9,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8260324530742921,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 10,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:25:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 11,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:26:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 12,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:27:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 13,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:27:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 14,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:28:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 15,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:28:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 16,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:29:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 17,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:30:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 18,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:30:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 19,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.7527948601516927
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:31:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 20,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7527948601516927,
+      "newValue": 0.73173522127525
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:31:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 21,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.73173522127525,
+      "newValue": 0.73173522127525
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:32:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 22,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.73173522127525,
+      "newValue": 0.73173522127525
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:33:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 23,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.73173522127525,
+      "newValue": 0.73173522127525
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:33:50",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 24,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP537",
+          "decisionTask": {
+            "job": {
+              "customerID": "10537",
+              "jobID": "AP537",
+              "bookingTime": "2019-12-01T00:25:00",
+              "vaTime": "2019-12-01T00:25:00",
+              "startPosition": {
+                "name": "",
+                "x": 330116.167,
+                "y": 4690965.577
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331312.951,
+                "y": 4691022.092
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.46583433807197
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:25:00",
+          "startPosition": {
+            "name": "",
+            "x": 330116.167,
+            "y": 4690965.577
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331312.951,
+            "y": 4691022.092
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:45:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:33:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 25,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.73173522127525,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:33:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 26,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:33:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 27,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:34:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 28,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:34:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 29,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:35:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 30,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7524478705944586
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:36:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 31,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7524478705944586,
+      "newValue": 0.7771151776667552
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:36:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 32,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7771151776667552,
+      "newValue": 0.7771151776667552
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:37:00",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 33,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10572",
+          "jobID": "AP572",
+          "bookingTime": "2019-12-01T00:37:00",
+          "vaTime": "2019-12-01T00:37:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 93.02765932532041
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10572",
+          "jobID": "AP572",
+          "bookingTime": "2019-12-01T00:37:00",
+          "vaTime": "2019-12-01T00:37:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 93.02765932532041
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:37:00",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 34,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP572",
+          "decisionTask": {
+            "job": {
+              "customerID": "10572",
+              "jobID": "AP572",
+              "bookingTime": "2019-12-01T00:37:00",
+              "vaTime": "2019-12-01T00:37:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.02765932532041
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:37:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:57:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:37:00",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 35,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10572",
+              "jobID": "AP572",
+              "bookingTime": "2019-12-01T00:37:00",
+              "vaTime": "2019-12-01T00:37:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.02765932532041
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP572 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP572",
+          "decisionTask": {
+            "job": {
+              "customerID": "10572",
+              "jobID": "AP572",
+              "bookingTime": "2019-12-01T00:37:00",
+              "vaTime": "2019-12-01T00:37:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.02765932532041
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:37:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:57:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:37:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 36,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7771151776667552,
+      "newValue": 0.7138314562112008
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:37:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 37,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7138314562112008,
+      "newValue": 0.7138314562112008
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:38:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 38,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7138314562112008,
+      "newValue": 0.7138314562112008
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:38:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 39,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7138314562112008,
+      "newValue": 0.7138314562112008
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:39:20",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 40,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP572",
+          "decisionTask": {
+            "job": {
+              "customerID": "10572",
+              "jobID": "AP572",
+              "bookingTime": "2019-12-01T00:37:00",
+              "vaTime": "2019-12-01T00:37:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 93.02765932532041
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:37:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T00:57:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:39:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 41,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7138314562112008,
+      "newValue": 0.7318420529597736
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:39:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 42,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7318420529597736,
+      "newValue": 0.7318420529597736
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:39:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 43,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7318420529597736,
+      "newValue": 0.7318420529597736
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 44,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7318420529597736,
+      "newValue": 0.7318420529597736
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 45,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10589",
+          "jobID": "AP589",
+          "bookingTime": "2019-12-01T00:40:00",
+          "vaTime": "2019-12-01T00:40:00",
+          "startPosition": {
+            "name": "",
+            "x": 328641.368,
+            "y": 4690542.568
+          },
+          "endPosition": {
+            "name": "",
+            "x": 327797.241,
+            "y": 4692102.464
+          }
+        },
+        "timeStamp": 1575160805000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "7",
+        "UTScoreList": [],
+        "status": "CONFIRM_READY",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10589",
+          "jobID": "AP589",
+          "bookingTime": "2019-12-01T00:40:00",
+          "vaTime": "2019-12-01T00:40:00",
+          "startPosition": {
+            "name": "",
+            "x": 328641.368,
+            "y": 4690542.568
+          },
+          "endPosition": {
+            "name": "",
+            "x": 327797.241,
+            "y": 4692102.464
+          }
+        },
+        "timeStamp": 1575160805000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "7",
+        "UTScoreList": [],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 46,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP589",
+          "decisionTask": {
+            "job": {
+              "customerID": "10589",
+              "jobID": "AP589",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 328641.368,
+                "y": 4690542.568
+              },
+              "endPosition": {
+                "name": "",
+                "x": 327797.241,
+                "y": 4692102.464
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "7",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:40:00",
+          "startPosition": {
+            "name": "",
+            "x": 328641.368,
+            "y": 4690542.568
+          },
+          "endPosition": {
+            "name": "",
+            "x": 327797.241,
+            "y": 4692102.464
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:00:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 47,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10590",
+              "jobID": "AP590",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 325749.555,
+                "y": 4695196.852
+              },
+              "endPosition": {
+                "name": "",
+                "x": 326502.219,
+                "y": 4694498.203
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "14",
+            "UTScoreList": [],
+            "status": "WAITING_MANAGER",
+            "agentIds": [],
+            "isLocal": false
+          },
+          {
+            "job": {
+              "customerID": "10584",
+              "jobID": "AP584",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 324714.717,
+                "y": 4691972.589
+              },
+              "endPosition": {
+                "name": "",
+                "x": 326821.709,
+                "y": 4692453.062
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "12",
+            "UTScoreList": [],
+            "status": "WAITING_MANAGER",
+            "agentIds": [],
+            "isLocal": false
+          },
+          {
+            "job": {
+              "customerID": "10589",
+              "jobID": "AP589",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 328641.368,
+                "y": 4690542.568
+              },
+              "endPosition": {
+                "name": "",
+                "x": 327797.241,
+                "y": 4692102.464
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "7",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+          },
+          {
+            "job": {
+              "customerID": "10588",
+              "jobID": "AP588",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 326628.217,
+                "y": 4692608.52
+              },
+              "endPosition": {
+                "name": "",
+                "x": 327797.241,
+                "y": 4692102.464
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "31",
+            "UTScoreList": [],
+            "status": "NOT_ASSIGNED",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP589 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP589",
+          "decisionTask": {
+            "job": {
+              "customerID": "10589",
+              "jobID": "AP589",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 328641.368,
+                "y": 4690542.568
+              },
+              "endPosition": {
+                "name": "",
+                "x": 327797.241,
+                "y": 4692102.464
+              }
+            },
+            "timeStamp": 1575160805000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "7",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:40:00",
+          "startPosition": {
+            "name": "",
+            "x": 328641.368,
+            "y": 4690542.568
+          },
+          "endPosition": {
+            "name": "",
+            "x": 327797.241,
+            "y": 4692102.464
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:00:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 48,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.7318420529597736,
+      "newValue": 0.6480396827921509
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:40:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 49,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6480396827921509,
+      "newValue": 0.6480396827921509
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:41:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 50,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6480396827921509,
+      "newValue": 0.6480396827921509
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:41:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 51,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6480396827921509,
+      "newValue": 0.6480396827921509
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:42:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 52,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6480396827921509,
+      "newValue": 0.6669286079295226
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:42:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 53,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6669286079295226,
+      "newValue": 0.6669286079295226
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:43:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 54,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6669286079295226,
+      "newValue": 0.6669286079295226
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:44:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 55,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6669286079295226,
+      "newValue": 0.6669286079295226
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:44:45",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 56,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP589",
+          "decisionTask": {
+            "job": {
+              "customerID": "10589",
+              "jobID": "AP589",
+              "bookingTime": "2019-12-01T00:40:00",
+              "vaTime": "2019-12-01T00:40:00",
+              "startPosition": {
+                "name": "",
+                "x": 328641.368,
+                "y": 4690542.568
+              },
+              "endPosition": {
+                "name": "",
+                "x": 327797.241,
+                "y": 4692102.464
+              }
+            },
+            "timeStamp": 1.575160805E12,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "7",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "2e2e485f-1135-448d-b58d-a3eace3f4e2f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:40:00",
+          "startPosition": {
+            "name": "",
+            "x": 328641.368,
+            "y": 4690542.568
+          },
+          "endPosition": {
+            "name": "",
+            "x": 327797.241,
+            "y": 4692102.464
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:00:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:44:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 57,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6669286079295226,
+      "newValue": 0.6831192998051819
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:44:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 58,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6831192998051819,
+      "newValue": 0.6831192998051819
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:44:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 59,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6831192998051819,
+      "newValue": 0.6831192998051819
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 60,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10610",
+          "jobID": "AP610",
+          "bookingTime": "2019-12-01T00:45:00",
+          "vaTime": "2019-12-01T00:45:00",
+          "startPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "endPosition": {
+            "name": "",
+            "x": 325913.006,
+            "y": 4691603.215
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.9737191891263
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10610",
+          "jobID": "AP610",
+          "bookingTime": "2019-12-01T00:45:00",
+          "vaTime": "2019-12-01T00:45:00",
+          "startPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "endPosition": {
+            "name": "",
+            "x": 325913.006,
+            "y": 4691603.215
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.9737191891263
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 61,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP610",
+          "decisionTask": {
+            "job": {
+              "customerID": "10610",
+              "jobID": "AP610",
+              "bookingTime": "2019-12-01T00:45:00",
+              "vaTime": "2019-12-01T00:45:00",
+              "startPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              },
+              "endPosition": {
+                "name": "",
+                "x": 325913.006,
+                "y": 4691603.215
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.9737191891263
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:45:00",
+          "startPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "endPosition": {
+            "name": "",
+            "x": 325913.006,
+            "y": 4691603.215
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:05:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 62,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10610",
+              "jobID": "AP610",
+              "bookingTime": "2019-12-01T00:45:00",
+              "vaTime": "2019-12-01T00:45:00",
+              "startPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              },
+              "endPosition": {
+                "name": "",
+                "x": 325913.006,
+                "y": 4691603.215
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.9737191891263
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP610 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP610",
+          "decisionTask": {
+            "job": {
+              "customerID": "10610",
+              "jobID": "AP610",
+              "bookingTime": "2019-12-01T00:45:00",
+              "vaTime": "2019-12-01T00:45:00",
+              "startPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              },
+              "endPosition": {
+                "name": "",
+                "x": 325913.006,
+                "y": 4691603.215
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.9737191891263
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:45:00",
+          "startPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "endPosition": {
+            "name": "",
+            "x": 325913.006,
+            "y": 4691603.215
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:05:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 63,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6831192998051819,
+      "newValue": 0.5313695223154628
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 64,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5313695223154628,
+      "newValue": 0.5313695223154628
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:45:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 65,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5313695223154628,
+      "newValue": 0.5313695223154628
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:46:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 66,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5313695223154628,
+      "newValue": 0.5313695223154628
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:47:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 67,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5313695223154628,
+      "newValue": 0.5313695223154628
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:47:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 68,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5313695223154628,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:48:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 69,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:49:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 70,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:49:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 71,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:50:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 72,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:50:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 73,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:51:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 74,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:52:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 75,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:52:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 76,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:53:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 77,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:53:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 78,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:54:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 79,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:55:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 80,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5453412205103205
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:55:45",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 81,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP610",
+          "decisionTask": {
+            "job": {
+              "customerID": "10610",
+              "jobID": "AP610",
+              "bookingTime": "2019-12-01T00:45:00",
+              "vaTime": "2019-12-01T00:45:00",
+              "startPosition": {
+                "name": "",
+                "x": 329285.369,
+                "y": 4691333.253
+              },
+              "endPosition": {
+                "name": "",
+                "x": 325913.006,
+                "y": 4691603.215
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.9737191891263
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T00:45:00",
+          "startPosition": {
+            "name": "",
+            "x": 329285.369,
+            "y": 4691333.253
+          },
+          "endPosition": {
+            "name": "",
+            "x": 325913.006,
+            "y": 4691603.215
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:05:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:55:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 82,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5453412205103205,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:55:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 83,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:55:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 84,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:56:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 85,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:57:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 86,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:57:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 87,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:58:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 88,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:58:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 89,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:59:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 90,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T00:59:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 91,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.5215351009106314
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:00:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 92,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5215351009106314,
+      "newValue": 0.6478622672290281
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:00:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 93,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6478622672290281,
+      "newValue": 0.6478622672290281
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:10",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 94,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10671",
+          "jobID": "AP671",
+          "bookingTime": "2019-12-01T01:02:00",
+          "vaTime": "2019-12-01T01:02:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          }
+        },
+        "timeStamp": 1575162125000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "11",
+        "UTScoreList": [],
+        "status": "CONFIRM_READY",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10671",
+          "jobID": "AP671",
+          "bookingTime": "2019-12-01T01:02:00",
+          "vaTime": "2019-12-01T01:02:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          }
+        },
+        "timeStamp": 1575162125000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "11",
+        "UTScoreList": [],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:10",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 95,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP671",
+          "decisionTask": {
+            "job": {
+              "customerID": "10671",
+              "jobID": "AP671",
+              "bookingTime": "2019-12-01T01:02:00",
+              "vaTime": "2019-12-01T01:02:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162125000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "11",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:02:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:22:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:10",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 96,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10671",
+              "jobID": "AP671",
+              "bookingTime": "2019-12-01T01:02:00",
+              "vaTime": "2019-12-01T01:02:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162125000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "11",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP671",
+          "decisionTask": {
+            "job": {
+              "customerID": "10671",
+              "jobID": "AP671",
+              "bookingTime": "2019-12-01T01:02:00",
+              "vaTime": "2019-12-01T01:02:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162125000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "11",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:02:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:22:00"
+        },
+        "DecisionTask AP671 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 97,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.6478622672290281,
+      "newValue": 0.5593766795919379
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:35",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 98,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP671",
+          "decisionTask": {
+            "job": {
+              "customerID": "10671",
+              "jobID": "AP671",
+              "bookingTime": "2019-12-01T01:02:00",
+              "vaTime": "2019-12-01T01:02:00",
+              "startPosition": {
+                "name": "",
+                "x": 330211.075,
+                "y": 4691438.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1.575162125E12,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "11",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "06e0fef5-9319-4725-8cdf-f93f8e20d234"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:02:00",
+          "startPosition": {
+            "name": "",
+            "x": 330211.075,
+            "y": 4691438.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:22:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:02:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 99,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5593766795919379,
+      "newValue": 0.5593766795919379
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:03:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 100,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5593766795919379,
+      "newValue": 0.5593766795919379
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:03:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 101,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5593766795919379,
+      "newValue": 0.5593766795919379
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:04:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 102,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5593766795919379,
+      "newValue": 0.5593766795919379
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:05:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 103,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5593766795919379,
+      "newValue": 0.5717765824245595
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:05:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 104,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5717765824245595,
+      "newValue": 0.5717765824245595
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:06:10",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 105,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10687",
+          "jobID": "AP687",
+          "bookingTime": "2019-12-01T01:06:00",
+          "vaTime": "2019-12-01T01:06:00",
+          "startPosition": {
+            "name": "",
+            "x": 330549.607,
+            "y": 4691678.495
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329923.53,
+            "y": 4691948.3
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.62279750334008
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10687",
+          "jobID": "AP687",
+          "bookingTime": "2019-12-01T01:06:00",
+          "vaTime": "2019-12-01T01:06:00",
+          "startPosition": {
+            "name": "",
+            "x": 330549.607,
+            "y": 4691678.495
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329923.53,
+            "y": 4691948.3
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.62279750334008
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:06:10",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 106,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP687",
+          "decisionTask": {
+            "job": {
+              "customerID": "10687",
+              "jobID": "AP687",
+              "bookingTime": "2019-12-01T01:06:00",
+              "vaTime": "2019-12-01T01:06:00",
+              "startPosition": {
+                "name": "",
+                "x": 330549.607,
+                "y": 4691678.495
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329923.53,
+                "y": 4691948.3
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.62279750334008
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:06:00",
+          "startPosition": {
+            "name": "",
+            "x": 330549.607,
+            "y": 4691678.495
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329923.53,
+            "y": 4691948.3
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:26:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:06:10",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 107,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10687",
+              "jobID": "AP687",
+              "bookingTime": "2019-12-01T01:06:00",
+              "vaTime": "2019-12-01T01:06:00",
+              "startPosition": {
+                "name": "",
+                "x": 330549.607,
+                "y": 4691678.495
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329923.53,
+                "y": 4691948.3
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.62279750334008
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP687",
+          "decisionTask": {
+            "job": {
+              "customerID": "10687",
+              "jobID": "AP687",
+              "bookingTime": "2019-12-01T01:06:00",
+              "vaTime": "2019-12-01T01:06:00",
+              "startPosition": {
+                "name": "",
+                "x": 330549.607,
+                "y": 4691678.495
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329923.53,
+                "y": 4691948.3
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.62279750334008
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:06:00",
+          "startPosition": {
+            "name": "",
+            "x": 330549.607,
+            "y": 4691678.495
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329923.53,
+            "y": 4691948.3
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:26:00"
+        },
+        "DecisionTask AP687 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:06:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 108,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5717765824245595,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:06:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 109,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:07:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 110,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:07:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 111,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:08:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 112,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:08:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 113,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:09:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 114,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:10:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 115,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5001830475931137
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:10:40",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 116,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP687",
+          "decisionTask": {
+            "job": {
+              "customerID": "10687",
+              "jobID": "AP687",
+              "bookingTime": "2019-12-01T01:06:00",
+              "vaTime": "2019-12-01T01:06:00",
+              "startPosition": {
+                "name": "",
+                "x": 330549.607,
+                "y": 4691678.495
+              },
+              "endPosition": {
+                "name": "",
+                "x": 329923.53,
+                "y": 4691948.3
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.62279750334008
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:06:00",
+          "startPosition": {
+            "name": "",
+            "x": 330549.607,
+            "y": 4691678.495
+          },
+          "endPosition": {
+            "name": "",
+            "x": 329923.53,
+            "y": 4691948.3
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:26:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:10:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 117,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5001830475931137,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:10:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 118,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:10:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 119,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:11:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 120,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:11:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 121,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:12:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 122,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:12:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 123,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:13:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 124,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:13:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 125,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:14:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 126,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5303447844800842
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:15:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 127,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5303447844800842,
+      "newValue": 0.5559857262202051
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:15:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 128,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5559857262202051,
+      "newValue": 0.5559857262202051
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:16:00",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 129,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10722",
+          "jobID": "AP722",
+          "bookingTime": "2019-12-01T01:16:00",
+          "vaTime": "2019-12-01T01:16:00",
+          "startPosition": {
+            "name": "",
+            "x": 330021.472,
+            "y": 4692441.613
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          }
+        },
+        "timeStamp": 1575162960000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "21",
+        "UTScoreList": [],
+        "status": "CONFIRM_READY",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10722",
+          "jobID": "AP722",
+          "bookingTime": "2019-12-01T01:16:00",
+          "vaTime": "2019-12-01T01:16:00",
+          "startPosition": {
+            "name": "",
+            "x": 330021.472,
+            "y": 4692441.613
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          }
+        },
+        "timeStamp": 1575162960000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "21",
+        "UTScoreList": [],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:16:00",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 130,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP722",
+          "decisionTask": {
+            "job": {
+              "customerID": "10722",
+              "jobID": "AP722",
+              "bookingTime": "2019-12-01T01:16:00",
+              "vaTime": "2019-12-01T01:16:00",
+              "startPosition": {
+                "name": "",
+                "x": 330021.472,
+                "y": 4692441.613
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162960000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "21",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:16:00",
+          "startPosition": {
+            "name": "",
+            "x": 330021.472,
+            "y": 4692441.613
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:36:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:16:00",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 131,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10722",
+              "jobID": "AP722",
+              "bookingTime": "2019-12-01T01:16:00",
+              "vaTime": "2019-12-01T01:16:00",
+              "startPosition": {
+                "name": "",
+                "x": 330021.472,
+                "y": 4692441.613
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162960000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "21",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP722 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP722",
+          "decisionTask": {
+            "job": {
+              "customerID": "10722",
+              "jobID": "AP722",
+              "bookingTime": "2019-12-01T01:16:00",
+              "vaTime": "2019-12-01T01:16:00",
+              "startPosition": {
+                "name": "",
+                "x": 330021.472,
+                "y": 4692441.613
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1575162960000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "21",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:16:00",
+          "startPosition": {
+            "name": "",
+            "x": 330021.472,
+            "y": 4692441.613
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:36:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:16:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 132,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5559857262202051,
+      "newValue": 0.5043118760733852
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:16:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 133,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5043118760733852,
+      "newValue": 0.5043118760733852
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:17:00",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 134,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP722",
+          "decisionTask": {
+            "job": {
+              "customerID": "10722",
+              "jobID": "AP722",
+              "bookingTime": "2019-12-01T01:16:00",
+              "vaTime": "2019-12-01T01:16:00",
+              "startPosition": {
+                "name": "",
+                "x": 330021.472,
+                "y": 4692441.613
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330822.423,
+                "y": 4693361.236
+              }
+            },
+            "timeStamp": 1.57516296E12,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "21",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "dad08ad4-de21-4d36-b791-cec30b33223f"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:16:00",
+          "startPosition": {
+            "name": "",
+            "x": 330021.472,
+            "y": 4692441.613
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330822.423,
+            "y": 4693361.236
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:36:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:17:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 135,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5043118760733852,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:17:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 136,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:17:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 137,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:17:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 138,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:18:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 139,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:18:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 140,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5172435018142149
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:19:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 141,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5172435018142149,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:20:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 142,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:20:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 143,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:21:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 144,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:22:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 145,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:22:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 146,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:23:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 147,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5201910792160904
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:23:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 148,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5201910792160904,
+      "newValue": 0.5281541232101497
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:23:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 149,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5281541232101497,
+      "newValue": 0.5281541232101497
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:00",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 150,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10784",
+          "jobID": "AP784",
+          "bookingTime": "2019-12-01T01:32:00",
+          "vaTime": "2019-12-01T01:32:00",
+          "startPosition": {
+            "name": "",
+            "x": 330019.851,
+            "y": 4693544.958
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.47684594598776
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10784",
+          "jobID": "AP784",
+          "bookingTime": "2019-12-01T01:32:00",
+          "vaTime": "2019-12-01T01:32:00",
+          "startPosition": {
+            "name": "",
+            "x": 330019.851,
+            "y": 4693544.958
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 90.47684594598776
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:00",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 151,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP784",
+          "decisionTask": {
+            "job": {
+              "customerID": "10784",
+              "jobID": "AP784",
+              "bookingTime": "2019-12-01T01:32:00",
+              "vaTime": "2019-12-01T01:32:00",
+              "startPosition": {
+                "name": "",
+                "x": 330019.851,
+                "y": 4693544.958
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.47684594598776
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:32:00",
+          "startPosition": {
+            "name": "",
+            "x": 330019.851,
+            "y": 4693544.958
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:52:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:00",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 152,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10784",
+              "jobID": "AP784",
+              "bookingTime": "2019-12-01T01:32:00",
+              "vaTime": "2019-12-01T01:32:00",
+              "startPosition": {
+                "name": "",
+                "x": 330019.851,
+                "y": 4693544.958
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.47684594598776
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "DecisionTask AP784 status": "committed",
+        "Create new CustomerTrip": {
+          "tripID": "AP784",
+          "decisionTask": {
+            "job": {
+              "customerID": "10784",
+              "jobID": "AP784",
+              "bookingTime": "2019-12-01T01:32:00",
+              "vaTime": "2019-12-01T01:32:00",
+              "startPosition": {
+                "name": "",
+                "x": 330019.851,
+                "y": 4693544.958
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.47684594598776
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:32:00",
+          "startPosition": {
+            "name": "",
+            "x": 330019.851,
+            "y": 4693544.958
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:52:00"
+        }
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 153,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.5281541232101497,
+      "newValue": 0.48701371342197697
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:15",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 154,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP784",
+          "decisionTask": {
+            "job": {
+              "customerID": "10784",
+              "jobID": "AP784",
+              "bookingTime": "2019-12-01T01:32:00",
+              "vaTime": "2019-12-01T01:32:00",
+              "startPosition": {
+                "name": "",
+                "x": 330019.851,
+                "y": 4693544.958
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 90.47684594598776
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:32:00",
+          "startPosition": {
+            "name": "",
+            "x": 330019.851,
+            "y": 4693544.958
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T01:52:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 155,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.48701371342197697,
+      "newValue": 0.48701371342197697
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:32:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 156,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.48701371342197697,
+      "newValue": 0.48701371342197697
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:33:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 157,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.48701371342197697,
+      "newValue": 0.48701371342197697
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:34:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 158,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.48701371342197697,
+      "newValue": 0.48701371342197697
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:34:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 159,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.48701371342197697,
+      "newValue": 0.4998685468583264
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:35:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 160,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4998685468583264,
+      "newValue": 0.4998685468583264
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:35:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 161,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4998685468583264,
+      "newValue": 0.509760957416278
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:35:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 162,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.509760957416278,
+      "newValue": 0.509760957416278
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 163,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10856",
+          "jobID": "AP856",
+          "bookingTime": "2019-12-01T01:55:00",
+          "vaTime": "2019-12-01T01:55:00",
+          "startPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331610.204,
+            "y": 4691038.538
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 89.9164064482494
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10856",
+          "jobID": "AP856",
+          "bookingTime": "2019-12-01T01:55:00",
+          "vaTime": "2019-12-01T01:55:00",
+          "startPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331610.204,
+            "y": 4691038.538
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 89.9164064482494
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 164,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP856",
+          "decisionTask": {
+            "job": {
+              "customerID": "10856",
+              "jobID": "AP856",
+              "bookingTime": "2019-12-01T01:55:00",
+              "vaTime": "2019-12-01T01:55:00",
+              "startPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331610.204,
+                "y": 4691038.538
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.9164064482494
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:55:00",
+          "startPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331610.204,
+            "y": 4691038.538
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:15:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 165,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10856",
+              "jobID": "AP856",
+              "bookingTime": "2019-12-01T01:55:00",
+              "vaTime": "2019-12-01T01:55:00",
+              "startPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331610.204,
+                "y": 4691038.538
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.9164064482494
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP856",
+          "decisionTask": {
+            "job": {
+              "customerID": "10856",
+              "jobID": "AP856",
+              "bookingTime": "2019-12-01T01:55:00",
+              "vaTime": "2019-12-01T01:55:00",
+              "startPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331610.204,
+                "y": 4691038.538
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.9164064482494
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:55:00",
+          "startPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331610.204,
+            "y": 4691038.538
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:15:00"
+        },
+        "DecisionTask AP856 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 166,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.509760957416278,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:20",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 167,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP856",
+          "decisionTask": {
+            "job": {
+              "customerID": "10856",
+              "jobID": "AP856",
+              "bookingTime": "2019-12-01T01:55:00",
+              "vaTime": "2019-12-01T01:55:00",
+              "startPosition": {
+                "name": "",
+                "x": 330365.094,
+                "y": 4693119.367
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331610.204,
+                "y": 4691038.538
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.9164064482494
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T01:55:00",
+          "startPosition": {
+            "name": "",
+            "x": 330365.094,
+            "y": 4693119.367
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331610.204,
+            "y": 4691038.538
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:15:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 168,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:55:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 169,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:56:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 170,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:57:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 171,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:57:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 172,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:58:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 173,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:59:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 174,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T01:59:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 175,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:00:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 176,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:00:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 177,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.43701390651105804
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:01:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 178,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.43701390651105804,
+      "newValue": 0.4771581747604518
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:01:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 179,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4771581747604518,
+      "newValue": 0.4771581747604518
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:10",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 180,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10961",
+          "jobID": "AP961",
+          "bookingTime": "2019-12-01T02:27:00",
+          "vaTime": "2019-12-01T02:27:00",
+          "startPosition": {
+            "name": "",
+            "x": 331530.222,
+            "y": 4690415.259
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331427.096,
+            "y": 4689106.187
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 89.7111962955946
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10961",
+          "jobID": "AP961",
+          "bookingTime": "2019-12-01T02:27:00",
+          "vaTime": "2019-12-01T02:27:00",
+          "startPosition": {
+            "name": "",
+            "x": 331530.222,
+            "y": 4690415.259
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331427.096,
+            "y": 4689106.187
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 89.7111962955946
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:10",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 181,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP961",
+          "decisionTask": {
+            "job": {
+              "customerID": "10961",
+              "jobID": "AP961",
+              "bookingTime": "2019-12-01T02:27:00",
+              "vaTime": "2019-12-01T02:27:00",
+              "startPosition": {
+                "name": "",
+                "x": 331530.222,
+                "y": 4690415.259
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331427.096,
+                "y": 4689106.187
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.7111962955946
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:27:00",
+          "startPosition": {
+            "name": "",
+            "x": 331530.222,
+            "y": 4690415.259
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331427.096,
+            "y": 4689106.187
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:47:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:10",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 182,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10961",
+              "jobID": "AP961",
+              "bookingTime": "2019-12-01T02:27:00",
+              "vaTime": "2019-12-01T02:27:00",
+              "startPosition": {
+                "name": "",
+                "x": 331530.222,
+                "y": 4690415.259
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331427.096,
+                "y": 4689106.187
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.7111962955946
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP961",
+          "decisionTask": {
+            "job": {
+              "customerID": "10961",
+              "jobID": "AP961",
+              "bookingTime": "2019-12-01T02:27:00",
+              "vaTime": "2019-12-01T02:27:00",
+              "startPosition": {
+                "name": "",
+                "x": 331530.222,
+                "y": 4690415.259
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331427.096,
+                "y": 4689106.187
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.7111962955946
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:27:00",
+          "startPosition": {
+            "name": "",
+            "x": 331530.222,
+            "y": 4690415.259
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331427.096,
+            "y": 4689106.187
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:47:00"
+        },
+        "DecisionTask AP961 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 183,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4771581747604518,
+      "newValue": 0.4189126462467968
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:20",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 184,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP961",
+          "decisionTask": {
+            "job": {
+              "customerID": "10961",
+              "jobID": "AP961",
+              "bookingTime": "2019-12-01T02:27:00",
+              "vaTime": "2019-12-01T02:27:00",
+              "startPosition": {
+                "name": "",
+                "x": 331530.222,
+                "y": 4690415.259
+              },
+              "endPosition": {
+                "name": "",
+                "x": 331427.096,
+                "y": 4689106.187
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 89.7111962955946
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:27:00",
+          "startPosition": {
+            "name": "",
+            "x": 331530.222,
+            "y": 4690415.259
+          },
+          "endPosition": {
+            "name": "",
+            "x": 331427.096,
+            "y": 4689106.187
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:47:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 185,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4189126462467968,
+      "newValue": 0.4189126462467968
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:27:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 186,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4189126462467968,
+      "newValue": 0.4189126462467968
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:28:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 187,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4189126462467968,
+      "newValue": 0.4189126462467968
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:00",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 188,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "10968",
+          "jobID": "AP968",
+          "bookingTime": "2019-12-01T02:29:00",
+          "vaTime": "2019-12-01T02:29:00",
+          "startPosition": {
+            "name": "",
+            "x": 331622.449,
+            "y": 4690826.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330001.126,
+            "y": 4690169.128
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 88.53378309506151
+          }
+        ],
+        "status": "NEW",
+        "agentIds": [],
+        "isLocal": false
+      },
+      "newValue": {
+        "job": {
+          "customerID": "10968",
+          "jobID": "AP968",
+          "bookingTime": "2019-12-01T02:29:00",
+          "vaTime": "2019-12-01T02:29:00",
+          "startPosition": {
+            "name": "",
+            "x": 331622.449,
+            "y": 4690826.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330001.126,
+            "y": 4690169.128
+          }
+        },
+        "timeStamp": 0,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "area: 0",
+        "UTScoreList": [
+          {
+            "bidderID": "2",
+            "score": 88.53378309506151
+          }
+        ],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:00",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 189,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP968",
+          "decisionTask": {
+            "job": {
+              "customerID": "10968",
+              "jobID": "AP968",
+              "bookingTime": "2019-12-01T02:29:00",
+              "vaTime": "2019-12-01T02:29:00",
+              "startPosition": {
+                "name": "",
+                "x": 331622.449,
+                "y": 4690826.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330001.126,
+                "y": 4690169.128
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 88.53378309506151
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:29:00",
+          "startPosition": {
+            "name": "",
+            "x": 331622.449,
+            "y": 4690826.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330001.126,
+            "y": 4690169.128
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:00",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 190,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "10968",
+              "jobID": "AP968",
+              "bookingTime": "2019-12-01T02:29:00",
+              "vaTime": "2019-12-01T02:29:00",
+              "startPosition": {
+                "name": "",
+                "x": 331622.449,
+                "y": 4690826.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330001.126,
+                "y": 4690169.128
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 88.53378309506151
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP968",
+          "decisionTask": {
+            "job": {
+              "customerID": "10968",
+              "jobID": "AP968",
+              "bookingTime": "2019-12-01T02:29:00",
+              "vaTime": "2019-12-01T02:29:00",
+              "startPosition": {
+                "name": "",
+                "x": 331622.449,
+                "y": 4690826.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330001.126,
+                "y": 4690169.128
+              }
+            },
+            "timeStamp": 0,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 88.53378309506151
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:29:00",
+          "startPosition": {
+            "name": "",
+            "x": 331622.449,
+            "y": 4690826.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330001.126,
+            "y": 4690169.128
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        },
+        "DecisionTask AP968 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 191,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4189126462467968,
+      "newValue": 0.31449873273459644
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:00",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 192,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "chargingTripCreation",
+      "trigger": "estimateBatteryAfterTIP_BeliefUpdated",
+      "queries": {
+        "1": "estimateBatteryAfterTIP_BeliefUpdated",
+        "3": "chargingTripAvailable",
+        "CHARGING_THRESHHOLD": 0.4
+      },
+      "criteria": "IF((estimateBatteryAfterTIP \u003c CHARGING_THRESHOLD) \u0026 (chargingTripAvailable \u003d\u003d 0))",
+      "actions": {
+        "Create new ChargingTrip": {
+          "tripID": "CH1",
+          "tripType": "ChargingTrip",
+          "startPosition": {
+            "name": "",
+            "x": 330225.55006005947,
+            "y": 4690092.84661864
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        },
+        "chargingTripAvailable": "chargingTripAvailable + 1"
+      },
+      "notification": [
+        "TripList_BeliefUpdated",
+        "chargingTripAvailable_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 193,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.31449873273459644,
+      "newValue": 0.3073877196500845
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:29:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 194,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3073877196500845,
+      "newValue": 0.3073877196500845
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:30:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 195,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3073877196500845,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:31:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 196,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:31:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 197,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:32:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 198,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:33:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 199,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:33:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 200,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.3080391816028003
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:34:30",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 201,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP968",
+          "decisionTask": {
+            "job": {
+              "customerID": "10968",
+              "jobID": "AP968",
+              "bookingTime": "2019-12-01T02:29:00",
+              "vaTime": "2019-12-01T02:29:00",
+              "startPosition": {
+                "name": "",
+                "x": 331622.449,
+                "y": 4690826.188
+              },
+              "endPosition": {
+                "name": "",
+                "x": 330001.126,
+                "y": 4690169.128
+              }
+            },
+            "timeStamp": 0.0,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "area: 0",
+            "UTScoreList": [
+              {
+                "bidderID": "2",
+                "score": 88.53378309506151
+              }
+            ],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:29:00",
+          "startPosition": {
+            "name": "",
+            "x": 331622.449,
+            "y": 4690826.188
+          },
+          "endPosition": {
+            "name": "",
+            "x": 330001.126,
+            "y": 4690169.128
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        }
+      ],
+      "newValue": [
+        {
+          "tripID": "CH1",
+          "tripType": "ChargingTrip",
+          "startPosition": {
+            "name": "",
+            "x": 330225.55006005947,
+            "y": 4690092.84661864
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:34:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 202,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3080391816028003,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:34:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 203,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:34:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 204,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:35:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 205,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:35:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 206,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:36:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 207,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:36:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 208,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:37:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 209,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:38:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 210,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4376975574384112
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:38:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 211,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4376975574384112,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:39:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 212,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:40:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 213,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:40:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 214,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:41:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 215,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:41:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 216,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.4139845048130355
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:25",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 217,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "CH1",
+          "tripType": "ChargingTrip",
+          "startPosition": {
+            "name": "",
+            "x": 330225.55006005947,
+            "y": 4690092.84661864
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T02:49:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 218,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.4139845048130355,
+      "newValue": 0.3865443587205246
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 219,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3865443587205246,
+      "newValue": 0.3865443587205246
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 220,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3865443587205246,
+      "newValue": 0.3865443587205246
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 221,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.3865443587205246,
+      "newValue": 1.0
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:42:55",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 222,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 1.0,
+      "newValue": 1.0
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:05",
+  "summary": "DecisionTaskCommit",
+  "content": {
+    "eventNumber": 223,
+    "eventType": "DecisionTaskCommit",
+    "data": {
+      "trace": "trace",
+      "belief": "decisionTask",
+      "oldValue": {
+        "job": {
+          "customerID": "11016",
+          "jobID": "AP1016",
+          "bookingTime": "2019-12-01T02:43:00",
+          "vaTime": "2019-12-01T02:43:00",
+          "startPosition": {
+            "name": "",
+            "x": 326955.277,
+            "y": 4691839.005
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328973.35,
+            "y": 4692476.591
+          }
+        },
+        "timeStamp": 1575168185000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "9",
+        "UTScoreList": [],
+        "status": "CONFIRM_READY",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+      },
+      "newValue": {
+        "job": {
+          "customerID": "11016",
+          "jobID": "AP1016",
+          "bookingTime": "2019-12-01T02:43:00",
+          "vaTime": "2019-12-01T02:43:00",
+          "startPosition": {
+            "name": "",
+            "x": 326955.277,
+            "y": 4691839.005
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328973.35,
+            "y": 4692476.591
+          }
+        },
+        "timeStamp": 1575168185000,
+        "numRequests": 0,
+        "numResponses": 0,
+        "origin": "9",
+        "UTScoreList": [],
+        "status": "COMMIT",
+        "agentIds": [],
+        "isLocal": false,
+        "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+      }
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:05",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 224,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [],
+      "newValue": [
+        {
+          "tripID": "AP1016",
+          "decisionTask": {
+            "job": {
+              "customerID": "11016",
+              "jobID": "AP1016",
+              "bookingTime": "2019-12-01T02:43:00",
+              "vaTime": "2019-12-01T02:43:00",
+              "startPosition": {
+                "name": "",
+                "x": 326955.277,
+                "y": 4691839.005
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328973.35,
+                "y": 4692476.591
+              }
+            },
+            "timeStamp": 1575168185000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "9",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:43:00",
+          "startPosition": {
+            "name": "",
+            "x": 326955.277,
+            "y": 4691839.005
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328973.35,
+            "y": 4692476.591
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T03:03:00"
+        }
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:05",
+  "summary": "XAgentProcess",
+  "content": {
+    "eventNumber": 225,
+    "eventType": "XAgentProcess",
+    "data": {
+      "name": "customerTripCreation",
+      "trigger": "DecisionTaskCommit",
+      "queries": {
+        "DecisionTaskList": [
+          {
+            "job": {
+              "customerID": "11016",
+              "jobID": "AP1016",
+              "bookingTime": "2019-12-01T02:43:00",
+              "vaTime": "2019-12-01T02:43:00",
+              "startPosition": {
+                "name": "",
+                "x": 326955.277,
+                "y": 4691839.005
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328973.35,
+                "y": 4692476.591
+              }
+            },
+            "timeStamp": 1575168185000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "9",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+          }
+        ]
+      },
+      "criteria": "A DecisionTask which status equals commit will caue the creation of a customerTrip",
+      "actions": {
+        "Create new CustomerTrip": {
+          "tripID": "AP1016",
+          "decisionTask": {
+            "job": {
+              "customerID": "11016",
+              "jobID": "AP1016",
+              "bookingTime": "2019-12-01T02:43:00",
+              "vaTime": "2019-12-01T02:43:00",
+              "startPosition": {
+                "name": "",
+                "x": 326955.277,
+                "y": 4691839.005
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328973.35,
+                "y": 4692476.591
+              }
+            },
+            "timeStamp": 1575168185000,
+            "numRequests": 0,
+            "numResponses": 0,
+            "origin": "9",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:43:00",
+          "startPosition": {
+            "name": "",
+            "x": 326955.277,
+            "y": 4691839.005
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328973.35,
+            "y": 4692476.591
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T03:03:00"
+        },
+        "DecisionTask AP1016 status": "committed"
+      },
+      "notification": [
+        "DecisionTaskCommited",
+        "TripList_BeliefUpdated"
+      ]
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 226,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 1.0,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:40",
+  "summary": "Triplist_BeliefUpdated",
+  "content": {
+    "eventNumber": 227,
+    "eventType": "Triplist_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "tripList",
+      "oldValue": [
+        {
+          "tripID": "AP1016",
+          "decisionTask": {
+            "job": {
+              "customerID": "11016",
+              "jobID": "AP1016",
+              "bookingTime": "2019-12-01T02:43:00",
+              "vaTime": "2019-12-01T02:43:00",
+              "startPosition": {
+                "name": "",
+                "x": 326955.277,
+                "y": 4691839.005
+              },
+              "endPosition": {
+                "name": "",
+                "x": 328973.35,
+                "y": 4692476.591
+              }
+            },
+            "timeStamp": 1.575168185E12,
+            "numRequests": 0.0,
+            "numResponses": 0.0,
+            "origin": "9",
+            "UTScoreList": [],
+            "status": "COMMIT",
+            "agentIds": [],
+            "isLocal": false,
+            "extra": "c220ca85-3dca-458d-b23e-4e31ee39bbcb"
+          },
+          "tripType": "CustomerTrip",
+          "vaTime": "2019-12-01T02:43:00",
+          "startPosition": {
+            "name": "",
+            "x": 326955.277,
+            "y": 4691839.005
+          },
+          "endPosition": {
+            "name": "",
+            "x": 328973.35,
+            "y": 4692476.591
+          },
+          "progress": "NotStarted",
+          "endTime": "2019-12-01T03:03:00"
+        }
+      ],
+      "newValue": []
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:43:40",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 228,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:44:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 229,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:44:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 230,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:45:15",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 231,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:45:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 232,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:46:20",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 233,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:47:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 234,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:47:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 235,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:48:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 236,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:48:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 237,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:49:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 238,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:50:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 239,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:50:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 240,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:51:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 241,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:52:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 242,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:52:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 243,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:53:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 244,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:54:05",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 245,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:54:45",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 246,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:55:25",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 247,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:56:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 248,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:56:35",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 249,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:57:10",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 250,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:57:50",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 251,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:58:30",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 252,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8252903901086173
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:59:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 253,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8252903901086173,
+      "newValue": 0.8504119513688705
+    }
+  }
+},
+{
+  "updated": "2019-12-01T02:59:00",
+  "summary": "estimateBatteryAfterTIP_BeliefUpdated",
+  "content": {
+    "eventNumber": 254,
+    "eventType": "estimateBatteryAfterTIP_BeliefUpdated",
+    "data": {
+      "trace": "trace",
+      "belief": "estimateBatteryAfterTIP",
+      "oldValue": 0.8504119513688705,
+      "newValue": 0.8504119513688705
+    }
+  }
+}]

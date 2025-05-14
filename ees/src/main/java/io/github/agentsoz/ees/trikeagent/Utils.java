@@ -10,12 +10,12 @@ package io.github.agentsoz.ees.trikeagent;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -32,7 +32,6 @@ import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
-import io.github.agentsoz.ees.util.Event;
 import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.ees.util.csvLogger;
 import io.github.agentsoz.util.Location;
@@ -51,7 +50,7 @@ import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeSer
 
 public class Utils {
     private final TrikeAgent trikeAgent;
-    
+
     public Utils(TrikeAgent trikeAgent){
         this.trikeAgent = trikeAgent;
     }
@@ -152,6 +151,8 @@ public class Utils {
             batteryChargeAfterTIP = batteryChargeAfterTIP - estEnergyConsumption_TIP;
 
             trikeAgent.estimateBatteryAfterTIP.set(0, batteryChargeAfterTIP);
+
+            eventTracker.estimateBatteryAfterTIP_BeliefUpdated(trikeAgent, batteryChargeAfterTIP);
         }
 
 
@@ -160,13 +161,14 @@ public class Utils {
 
     //////////////////////////////////////////////////
     //  JSON LOGGER
-    EventTracker eventTracker = new EventTracker();
+    public EventTracker eventTracker = new EventTracker();
 
     //////////////////////////////////////////////////
 
     public void selectNextAction(Iterator<DecisionTask> iterator){
-        boolean hasChanged = false;
+        boolean hasChanged;
         DecisionTask currentDecisionTask = iterator.next();
+        int iterations = 0;
         do{
             switch (currentDecisionTask.getStatus()) {
                 case NEW: {
@@ -178,8 +180,12 @@ public class Utils {
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
                         Location jobLocation = currentDecisionTask.getJob().getStartPosition();
                         currentDecisionTask.cell = Cells.locationToCellAddress(jobLocation, Cells.getCellResolution(trikeAgent.cell));
+
+                        //  isLocal true, if the trip starts in the cell of the current area
                         currentDecisionTask.isLocal = trikeAgent.cell.equals(currentDecisionTask.cell);
                     } else {
+                        eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                         System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() + " TimeStamp: " + timeStampBooked);
@@ -196,42 +202,16 @@ public class Utils {
                     Trip newTrip = new Trip(currentDecisionTask, currentDecisionTask.getJobID(), "CustomerTrip",
                             currentDecisionTask.getVATimeFromJob(), currentDecisionTask.getStartPositionFromJob(),
                             currentDecisionTask.getEndPositionFromJob(), "NotStarted");
-
+                    newTrip.setEndTime(newTrip.getVATime().plusMinutes(20));
                     synchronized (trikeAgent.tripList){
                         trikeAgent.tripList.removeIf(trip -> trip.getTripID().startsWith("area"));
                         trikeAgent.tripList.add(newTrip);
                     }
+                    eventTracker.TripList_BeliefUpdated(trikeAgent);
+                    eventTracker.CustomerTripCreation(trikeAgent, newTrip);
 
 
-                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(newTrip.getVATime())) / 1000;
 
-                    System.out.println(trikeAgent.getAgentID() + " COMMIT " + newTrip.getTripID() + ": " + currentDecisionTask.getOrigin() + " " +
-                            delta + " sec delay!");
-
-                    /*
-
-                    //////////////////////////////////////////////////
-                    // JSON LOGGER
-
-
-                    try {
-                        Event<List<Trip>> event = new Event<>();
-                        event.content.eventType = "eventType";
-                        event.content.data.location = "location";
-                        event.content.data.trace = "trace";
-                        event.summary = "summary";
-
-                        eventTracker.addEvent(event, trikeAgent.tripList,
-                                "trike_events/Trike " + trikeAgent.agentID + ".json");
-
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        throw new RuntimeException(e);
-                    }
-
-                    //////////////////////////////////////////////////
-
-                     */
 
                     Location destination = currentDecisionTask.getEndPositionFromJob();
                     String destinationCell = Cells.findKey(destination);
@@ -240,8 +220,8 @@ public class Utils {
                     if(!isInArea && destinationCell != null){
                         String originArea = Cells.cellAgentMap.get(trikeAgent.cell);
                         String newArea = Cells.cellAgentMap.get(destinationCell);
-                        changeArea(originArea, newArea);
                         trikeAgent.cell = destinationCell;
+                        changeArea(originArea, newArea);
                     }
 
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMITTED);
@@ -339,7 +319,8 @@ public class Utils {
                     ArrayList<String> values = new ArrayList<>();
                     values.add(currentDecisionTask.getJobID());
 
-                    if(currentDecisionTask.isLocal){
+                    // if local trip or a rebalancing trip, do not broadcast cnp
+                    if(currentDecisionTask.isLocal || currentDecisionTask.getJob().getID().startsWith("area")){
                         String areaAgentTag = Cells.cellAgentMap.get(trikeAgent.cell);
                         currentDecisionTask.initRequestCount(1);
 
@@ -350,9 +331,11 @@ public class Utils {
                         trikeAgent.requests.add(requestMessage);
 
                         SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
-                    }else{
+                    }
+                    else{
                         //  need to broadcast cnp
                         List<String> areaNeighbourIds = Cells.getNeighbours(currentDecisionTask.cell);
+
                         currentDecisionTask.initRequestCount(areaNeighbourIds.size());
 
                         for (String id: areaNeighbourIds) {
@@ -394,6 +377,7 @@ public class Utils {
                     break;
                 }
                 case CFP_READY: {
+                    //  if not enough trikes for cnp, broadcast it
                     if(currentDecisionTask.getAgentIds().size() < MIN_CNP_TRIKES && currentDecisionTask.isLocal){
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
                         currentDecisionTask.isLocal = false;
@@ -406,6 +390,9 @@ public class Utils {
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("CFP READY NEIGHBORS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
                                 delta);
+
+                        eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         hasChanged = true;
                         break;
@@ -481,6 +468,9 @@ public class Utils {
                                     break;
                                 }
                                 case "AcceptSelf": {
+
+                                    eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+
                                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms")
                                             .format(new java.util.Date());
@@ -563,15 +553,18 @@ public class Utils {
                 }
                 case CONFIRM_READY: {
                     long currentTime = SharedUtils.getSimTime();
-                    if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
-                        currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
-                        System.out.println("CANCELLED");
-                        long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
-                        System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
-                                delta);
-                        hasChanged = true;
-                        break;
-                    }
+                    //if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
+                    //    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
+                    //    System.out.println("CANCELLED");
+                    //    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
+                    //    System.out.println("CANCELLED " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
+                    //            delta);
+                    //    hasChanged = true;
+                    //    break;
+                    //}
+
+                    eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
                     System.out.println("FINISHED Negotiation - JobID: " + currentDecisionTask.getJobID() +
@@ -594,7 +587,7 @@ public class Utils {
                     hasChanged = false;
                     break;
             }
-        }while(hasChanged);
+        }while(hasChanged && ++iterations <= 10);
     }
 
     /** Utillity Function
@@ -917,13 +910,14 @@ public class Utils {
         MessageContent messageContent = new MessageContent(action, values);
         Message testMessage = new Message( trikeAgent.agentID, areaAgentTag, Message.ComAct.INFORM, JadexModel.simulationtime,  messageContent);
 
-        //query assigning
-        IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
-        //calls updateAreaAgent of AreaAgentService class
-        service.sendMessage(testMessage.serialize());
-
-        //System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
-
+        if(action.equals("register")){
+            //query assigning
+            IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
+            service.sendMessage(testMessage.serialize());
+            System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
+        }else{
+            SharedUtils.sendMessage(testMessage.getReceiverId(), testMessage.serialize());
+        }
     }
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location
@@ -1172,6 +1166,7 @@ public class Utils {
             synchronized (trikeAgent.tripList){
                 if(trikeAgent.currentTrip.isEmpty() && !trikeAgent.tripList.isEmpty()){
                     trikeAgent.currentTrip.add(trikeAgent.tripList.remove(0));
+                    eventTracker.TripList_BeliefUpdated(trikeAgent);
                 }
             }
         }

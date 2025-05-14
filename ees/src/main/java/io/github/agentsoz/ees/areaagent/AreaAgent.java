@@ -105,10 +105,23 @@ public class AreaAgent {
     public Utils utils;
     public Plans plans;
 
-    public volatile double load = NO_TRIKES_NO_TRIPS_LOAD;
+    private double load = NO_TRIKES_NO_TRIPS_LOAD;
+
+    public void setLoad(double value) {
+        this.load = value;
+    }
+
+    public double getLoad() {
+        return this.load;
+    }
+
+    public Object loadLock = new Object();
+
     public long lastDelegateRequestTS = -1;
 
-    public long rebalanceInitTS = getSimTime() + 300000;
+    public long lastMinTrikesUpdateTS = -1;
+
+    public long rebalanceInitTS = getSimTime() + 720000;
     public long lastLoadUpdateTS = -1;
 
     /** The agent body. */
@@ -135,7 +148,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 800)
+    @Goal(recur = true, recurdelay = 500)
     private class CheckDelegateInfo{
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -148,7 +161,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 800)
+    @Goal(recur = true, recurdelay = 500)
     private class DelegateJobs{
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -172,7 +185,7 @@ public class AreaAgent {
             System.out.println("Simulation Time: " + getCurrentDateTime().format(dateTimeFormatter));
         }
         System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
-        System.out.println(areaAgentId + ": " + load + " Load");
+        System.out.println(areaAgentId + ": " + getLoad() + " Load");
         System.out.println(areaAgentId + ": " + MIN_TRIKES + " mintrike");
     }
 
@@ -206,7 +219,7 @@ public class AreaAgent {
     }
 
 
-    @Goal(recur = true, recurdelay = 500)
+    @Goal(recur = true, recurdelay = 300)
     private class MaintainDistributeCSVJobs
     {
         @GoalMaintainCondition

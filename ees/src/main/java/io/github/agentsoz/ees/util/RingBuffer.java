@@ -36,6 +36,9 @@ public class RingBuffer<E> {
 
     public E[] data;
 
+    private final Object writeLock = new Object();
+    private final Object readLock = new Object();
+
     public RingBuffer(int capacity) {
         this.capacity = (capacity < 1) ? DEFAULT_CAPACITY : capacity;
         this.data = (E[]) new Object[this.capacity];
@@ -49,22 +52,25 @@ public class RingBuffer<E> {
     public boolean isEmpty(){return writeSequence.get() == readSequence.get();}
 
     public boolean write(E element) {
-        if (!isFull()) {
-            data[writeSequence.incrementAndGet() % capacity] = element;
-            pcs.firePropertyChange("data", null, data);
-            return true;
+        synchronized (writeLock) {
+            if (!isFull()) {
+                data[writeSequence.getAndIncrement() % capacity] = element;
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     public E read() {
-        if (!isEmpty()) {
-            int index = readSequence.incrementAndGet() % capacity;
-            E result = data[index];
-            data[index] = null;
-            return result;
+        synchronized (readLock) {
+            if (!isEmpty()) {
+                int index = readSequence.getAndIncrement() % capacity;
+                E result = data[index];
+                data[index] = null;
+                return result;
+            }
+            return null;
         }
-        return null;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener){

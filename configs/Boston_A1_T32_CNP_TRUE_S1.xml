@@ -6,9 +6,6 @@
         <population>ees\scenarios\matsim-boston\boston-population.xml</population>
     </scenario>
 
-    <file target_file="ees/scenarios/matsim-drt-frankfurt-campus-westend-example/campus-population.xml">
-    </file>
-
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
         <component target_path="component->type=TrikeAgent" config_mode="modify" number="32" />
         <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
@@ -16,7 +13,7 @@
 
     <class class_name="TrikeAgent.java">
         <field field_name="commitThreshold">50.0</field>
-        <field field_name="DRIVING_SPEED">30.0</field>
+        <field field_name="DRIVING_SPEED">25.0</field>
         <field field_name="CNP_ACTIVE">true</field>
         <field field_name="THETA">900.0</field>
         <field field_name="ALLOW_CUSTOMER_MISS">true</field>
@@ -27,13 +24,14 @@
         <field field_name="CONFIRM_WAIT_TIME">10000</field>
         <field field_name="PROPOSALS_WAIT_TIME">10000</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
-        <field field_name="MIN_CNP_TRIKES">0</field>
+        <field field_name="MIN_CNP_TRIKES">16</field>
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="CSV_SOURCE">ees/subsample_1.csv</field>
         <field field_name="REQUEST_WAIT_TIME">8000</field>
-        <field field_name="MIN_TRIKES">4</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
+        <field field_name="LOAD_DECAY_FACTOR">0.8</field>
+        <field field_name="LOAD_TRIGGER">1.6</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>

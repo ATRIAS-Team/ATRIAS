@@ -147,4 +147,23 @@ public class DecisionTask {
     public boolean responseReady(){
         return numRequests == numResponses.get();
     }
+
+    // shallow copy
+    public DecisionTask(DecisionTask original, Status newStatus) {
+        this.job = original.job;
+        this.origin = original.origin;
+        this.status = newStatus;
+        this.timeStamp = original.timeStamp;
+        this.numRequests = original.numRequests;
+        this.numResponses = new AtomicLong(original.numResponses.get());
+        this.isLocal = original.isLocal;
+        this.cell = original.cell;
+        this.associatedTrip = original.associatedTrip;
+        this.extra = original.extra;
+
+        this.UTScoreList = Collections.synchronizedList(new ArrayList<>(original.UTScoreList));
+        this.agentIds = ConcurrentHashMap.newKeySet();
+        this.agentIds.addAll(original.agentIds);
+    }
+
 }

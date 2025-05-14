@@ -126,7 +126,7 @@ public class Utils {
 
 
     public void sendJobToAgent(List<Job> jobList){
-        while (true){
+        while (!jobList.isEmpty()){
             //  current job
             Job job = jobList.get(0);
             if(job == null) break;
@@ -135,10 +135,17 @@ public class Utils {
             if(jobTimeStamp > simTimeStamp) break;
 
             if(Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)){
-                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
-                    areaAgent.load += 1.0;
-                }else{
-                    areaAgent.load += 1.0 / areaAgent.locatedAgentList.size();
+                long size = areaAgent.locatedAgentList.size();
+                synchronized (areaAgent.loadLock){
+                    if(areaAgent.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size == 0){
+                        areaAgent.lastDelegateRequestTS = SharedUtils.getSimTime();
+
+                        double newLoad = areaAgent.getLoad() + 1.0;
+                        areaAgent.setLoad(newLoad);
+                    }else{
+                        double newLoad = areaAgent.getLoad() + (1.0 / size);
+                        areaAgent.setLoad(newLoad);
+                    }
                 }
             }
 

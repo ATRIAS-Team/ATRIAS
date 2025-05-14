@@ -112,8 +112,13 @@ public class Plans {
                 String tripID = "CH";
                 tripID = tripID.concat(Integer.toString(trikeAgent.chargingTripCounter));
                 Trip chargingTrip = new Trip(tripID, "ChargingTrip", utils.getNextChargingStation(), "NotStarted");
+
+
+                chargingTrip.setEndTime(SharedUtils.getCurrentDateTime().plusMinutes(20));
+
                 trikeAgent.tripList.add(chargingTrip);
                 trikeAgent.chargingTripAvailable = "1";
+                utils.eventTracker.ChargingTripCreation(trikeAgent, chargingTrip);
             }
         }
     }
