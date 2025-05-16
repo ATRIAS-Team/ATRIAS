@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <scenario>
+        <config>ees\scenarios\matsim-boston\ees_ffm.xml</config>
+        <population>ees\scenarios\matsim-boston\boston-population.xml</population>
+    </scenario>
+
+    <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="16" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
+    </file>
+
+    <class class_name="TrikeAgent.java">
+        <field field_name="commitThreshold">50.0</field>
+        <field field_name="DRIVING_SPEED">28.0</field>
+        <field field_name="CNP_ACTIVE">false</field>
+        <field field_name="THETA">900.0</field>
+        <field field_name="ALLOW_CUSTOMER_MISS">false</field>
+        <field field_name="DISTANCE_FACTOR">3.0</field>
+        <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">20000</field>
+        <field field_name="MANAGER_WAIT_TIME">20000</field>
+        <field field_name="CONFIRM_WAIT_TIME">20000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">20000</field>
+        <field field_name="REQUEST_WAIT_TIME">5000</field>
+        <field field_name="MIN_CNP_TRIKES">4</field>
+    </class>
+    <class class_name="AreaAgent.java">
+        <field field_name="CSV_SOURCE">output/GAScheduler/results.csv</field>
+        <field field_name="REQUEST_WAIT_TIME">5000</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
+    </class>
+    <class class_name="SharedConstants.java">
+        <field field_name="FIREBASE_ENABLED">false</field>
+        <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
+        <field field_name="CLEANUP_TIMER">600000</field>
+    </class>
+    <class class_name="CentralPlanner">
+        <!--        <field field_name="SCHEDULER">GreedyScheduler</field>-->
+        <field field_name="SCHEDULER">GAScheduler</field>
+        <!--        <field field_name="SCHEDULER">ACOScheduler</field>-->
+
+        <field field_name="PATHFINDING_METHOD">euclidean</field>
+
+        <!--        ____only recommended for greedy/fast schedulers____-->
+        <!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
+        <!--        <field field_name="PATHFINDING_METHOD">dijkstra</field>-->
+        <!--        _______________________________________________________-->
+
+        <field field_name="TIMEINTERVAL">60</field>
+        <field field_name="TRAVELTIME_DELAY">60</field>
+        <field field_name="PROGRESSION_LOGGING">true</field>
+        <field field_name="RESCHEDULING">false</field>
+        <field field_name="OUTPUT_PATH">output</field>
+    </class>
+
+    <cells resolutions="2">
+        <areaagent>
+            <cell>822a37fffffffff</cell>
+        </areaagent>
+        <zone>19 T</zone>
+        <radius>0</radius>
+    </cells>
+</configuration>
+

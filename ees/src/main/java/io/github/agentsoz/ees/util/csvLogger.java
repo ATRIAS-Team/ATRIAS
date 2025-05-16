@@ -38,8 +38,10 @@ public class csvLogger {
 
     private static String getLogDirectory() {
         // Read directory from environment variable
-        String configFile = System.getenv("ConfigFile").split("/")[1];
-        String logDir = configFile.substring(0, configFile.length() - 4);
+        // was buggy before with configs inside folders #Sebastian
+        String[] configPaths = System.getenv("ConfigFile").split("/");
+        String configFile = configPaths[configPaths.length - 1];
+        String logDir = configFile.replace(".xml", "");
 
         // Ensure directory exists
         File dir = new File("output/" + logDir);

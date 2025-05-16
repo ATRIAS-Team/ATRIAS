@@ -26,16 +26,13 @@
 
 	<module name="global">
 		<param name="randomSeed" value="482564" />
-<!--		<param name="coordinateSystem" value="EPSG:25832" />-->
 		<param name="coordinateSystem" value="EPSG:32619" />
 		<param name="numberOfThreads" value="1" />
 	</module>
 
 	<module name="network">
 		<param name="inputNetworkFile" value="boston_matsim-JOSM-UTM-medium.xml" />
-		<!--<param name="inputNetworkFile" value="campus-layer.xml" />-->
 		<param name= "timeVariantNetwork" value= "false" />
-		<!--<param name= "inputChangeEventsFile" value= "scenario_matsim_network_change_events.xml.gz" />-->
 	</module>
 
 	<module name="plans">
@@ -52,15 +49,13 @@
 
 	<module name="controler">
 		<param name= "routingAlgorithmType" value="Dijkstra" />
-<!--		<param name= "routingAlgorithmType" value="FastAStarLandmarks" />-->
 	</module>
 
 	<module name="qsim">
 		<!-- "start/endTime" of MobSim  (00:00:00 == take earliest activity time/ run as long as active vehicles exist) -->
 <!--		<param name="startTime" value="05:30:00" />-->
-<!--		<param name="endTime" value="10:30:00" />-->
 		<param name="startTime" value="00:00:00" />
-		<param name="endTime" value="00:40:00" />
+		<param name="endTime" value="11:00:00" />
 <!--		<param name="endTime" value="23:59:59" />-->
 
 		<param name = "snapshotperiod"	value = "00:00:20"/> <!-- 00:00:00 means NO snapshot writing, 00:00:30 means every 30 secs -->

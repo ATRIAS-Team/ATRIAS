@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Greedy S1 T16" type="Application" factoryName="Application" folderName="S1">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="ConfigFile" value="configs/S1/Subsample_1_T16_Greedy.xml" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
+    <module name="eeslib" />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

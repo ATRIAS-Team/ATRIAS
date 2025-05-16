@@ -7,9 +7,9 @@ import io.github.agentsoz.ees.centralplanner.Simulation.Vehicle;
 import java.util.*;
 
 public class GAScheduler extends AbstractScheduler {
-    private static final int POPULATION_SIZE = 40;
-    private static final int KEEP_BEST_INDIVIDUALS = 4;
-    private static final int MAX_GENERATIONS = 200;
+    private static final int POPULATION_SIZE = 100;
+    private static final int KEEP_BEST_INDIVIDUALS = 10;
+    private static final int MAX_GENERATIONS = 500;
     private static final double MUTATION_RATE = 0.05;
     private static final long SEED = 815274;
     private static final Random random = new Random(SEED);

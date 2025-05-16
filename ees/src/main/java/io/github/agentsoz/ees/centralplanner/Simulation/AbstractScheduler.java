@@ -35,6 +35,9 @@ public abstract class AbstractScheduler implements Simulation {
     }
 
     public void run(){
+        //keep track of the execution time
+        long runTimeStart = System.currentTimeMillis();
+
         //print which scheduler is being used
         if (progressionLogging) {
             System.out.println("\nScheduling using " + this.getClass().getSimpleName());
@@ -74,6 +77,9 @@ public abstract class AbstractScheduler implements Simulation {
             //generate the assignment using the current group of requests
             generateAssignment(currentTrips);
         }
+
+        long runTimeEnd = System.currentTimeMillis();
+        System.out.println("\nTotal Runtime: " + (runTimeEnd - runTimeStart) + " ms");
     }
 
     public abstract void generateAssignment(ArrayList<Trip> requestedTrips);

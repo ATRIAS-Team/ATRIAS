@@ -60,7 +60,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 10;
+    private double optTimestep = 1;
 
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");

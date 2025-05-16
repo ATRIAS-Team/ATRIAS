@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,8 +53,10 @@ public class RequestReader {
 
     private void groupRequests(){
         // groups all requests into Arrays of specific time intervals
-        LocalDateTime startTime = timeParser(configMap.get("SIMULATION_START_TIME"));
-        LocalDateTime endTime = timeParser(configMap.get("SIMULATION_START_TIME")).plusHours(24);
+
+        LocalDateTime startTime = allRequestedTrips.get(0).bookingTime.truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime endTime = allRequestedTrips.get(allRequestedTrips.size()-1).bookingTime.plusHours(1).truncatedTo(ChronoUnit.HOURS);
+        System.out.println("\nLoaded " + allRequestedTrips.size() + " requests, between " + startTime + " and " + endTime );
 
         LocalDateTime intervalStartTime = startTime;
         LocalDateTime intervalEndTime = startTime.plusSeconds(Long.parseLong(configMap.get("TIMEINTERVAL")));

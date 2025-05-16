@@ -11,7 +11,7 @@ import static io.github.agentsoz.ees.centralplanner.util.Util.xmlConfigParser;
 
 public class Main {
     public static void main(String[] args) {
-        String configFilePath = "configs/Subsample 1/Subsample_1_T32_CNP.xml";
+        String configFilePath = "configs/S5/Subsample_5_T32_CNP.xml";
         HashMap<String, String> configMap = xmlConfigParser(configFilePath);
 
         AbstractScheduler sim = getScheduler(configMap);

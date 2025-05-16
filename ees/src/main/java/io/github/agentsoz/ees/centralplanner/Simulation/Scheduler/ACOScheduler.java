@@ -27,7 +27,7 @@ public class ACOScheduler extends AbstractScheduler {
         this.alpha = 1.0;          // Pheromone power
         this.beta = 2.0;           // Heuristic power
         this.evaporationRate = 0.1; // Pheromone decay
-        this.maxIterations = 20;   // Iterations limit
+        this.maxIterations = 100;   // Iterations limit
         this.pheromones = new HashMap<>();
     }
 
