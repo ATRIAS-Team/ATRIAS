@@ -45,6 +45,7 @@ public class RequestReader {
             Trip trip = new Trip(customerID, tripID, 2, "CustomerTrip", bookingTime, vaTime, startX, startY, endX, endY, graph.getNearestNodeID(startX, startY), graph.getNearestNodeID(endX, endY));
             trip.calculateTrip(graph);
 
+            //add fixed delay to mitigate Jadex-MATSim inaccuracies during contract-net-protocol negotiation and customers entering/leaving vehicles
             trip.calculatedPath.travelTime += Double.parseDouble(configMap.get("TRAVELTIME_DELAY"));
 
             allRequestedTrips.add(trip);

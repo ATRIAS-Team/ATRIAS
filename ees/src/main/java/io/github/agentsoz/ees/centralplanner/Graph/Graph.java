@@ -74,7 +74,7 @@ public class Graph {
         String nearestStation = null;
         double travelTime = Double.MAX_VALUE;
         for (String chargingStation : chargingStations) {
-            Path path = fast_dijkstra(currentNode, chargingStation);
+            Path path = dijkstra(currentNode, chargingStation);
             if (path.travelTime < travelTime) {
                 nearestStation = chargingStation;
                 travelTime = path.travelTime;
@@ -160,7 +160,7 @@ public class Graph {
         return path;
     }
 
-    public Path fast_dijkstra(String startId, String endId) {
+    public Path dijkstra(String startId, String endId) {
         Node startNode = nodes.get(startId);
         Node endNode = nodes.get(endId);
 
@@ -190,71 +190,13 @@ public class Graph {
                 if (visited.contains(neighbor)) continue;
 
                 //metric for the optimization (length/traveltime), shortest length does not mean fastest route
-//                double newDist = distances.get(currentNode) + edge.length;
+                //double newDist = distances.get(currentNode) + edge.length;
                 double newDist = distances.get(currentNode) + edge.travelTime;
 
                 if (newDist < distances.getOrDefault(neighbor, Double.MAX_VALUE)) {
                     distances.put(neighbor, newDist);
                     crossedEdges.put(neighbor, edge);
                     pq.add(neighbor);
-                }
-            }
-        }
-
-        Path path = new Path();
-        for (Edge bestEdge = crossedEdges.get(endNode); bestEdge != null; bestEdge = crossedEdges.get(bestEdge.from)) {
-            path.addEdge(bestEdge);
-        }
-
-        // If the start node is not in the path, no path was found
-        if (!path.path.isEmpty() && !path.path.get(0).from.id.equals(startId)) {
-            throw new RuntimeException("No path found from " + startId + " to " + endId);
-        }
-
-        return path;
-    }
-
-    public Path dijkstra(String startId, String endId) {
-        Node startNode = nodes.get(startId);
-        Node endNode = nodes.get(endId);
-
-        // Data structures
-        Map<Node, Double> distances = new HashMap<>(); // Store shortest distances
-        Map<Node, Edge> crossedEdges = new HashMap<>();   // Store the shortest path tree
-        PriorityQueue<NodeDistance> pq = new PriorityQueue<>(Comparator.comparingDouble(NodeDistance::getDistance));
-        Set<Node> visited = new HashSet<>();
-
-        // Initialize distances
-        for (Node node : nodes.values()) {
-            distances.put(node, Double.MAX_VALUE);
-        }
-
-        distances.put(startNode, 0.0);
-        pq.add(new NodeDistance(startNode, 0.0));
-
-        // Dijkstra's algorithm
-        while (!pq.isEmpty()) {
-            NodeDistance currentNodeDist = pq.poll();
-            Node currentNode = currentNodeDist.getNode();
-
-            // Skip if already visited
-            if (visited.contains(currentNode)) continue;
-            visited.add(currentNode);
-
-            // If reached the destination node, stop
-            if (currentNode.equals(endNode)) break;
-
-            // Relaxation step
-            for (Edge edge : adjacencyList.get(currentNode)) {
-                Node neighbor = edge.to;
-                if (visited.contains(neighbor)) continue;
-
-                double newDist = distances.get(currentNode) + edge.travelTime;
-
-                if (newDist < distances.get(neighbor)) {
-                    distances.put(neighbor, newDist);
-                    crossedEdges.put(neighbor, edge);
-                    pq.add(new NodeDistance(neighbor, newDist));
                 }
             }
         }
@@ -310,7 +252,7 @@ public class Graph {
                 Node neighbor = edge.to;
 
                 //metric for the optimization (length/traveltime), shortest length does not mean fastest route
-//                double tentative_gScore = gScore.get(currentNode) + edge.length;
+                //double tentative_gScore = gScore.get(currentNode) + edge.length;
                 double tentative_gScore = gScore.get(currentNode) + edge.travelTime;
 
                 if (tentative_gScore < gScore.get(neighbor)) {

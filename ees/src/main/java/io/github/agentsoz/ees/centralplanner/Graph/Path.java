@@ -21,15 +21,4 @@ public class Path {
         nodes.add(path.get(path.size()-1).to);
         return nodes;
     }
-
-    public ArrayList<Edge> getEdges(){
-        return path;
-    }
-
-    public String travelTimeString(){
-        long hours = (long) travelTime / 3600;
-        long minutes = (long) (travelTime % 3600) / 60;
-        long remainingSeconds = (long) travelTime % 60;
-        return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds);
-    }
 }

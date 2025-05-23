@@ -17,9 +17,9 @@ public class Vehicle {
     public String currentPosition; //position vehicle has at a given timestep
     public String futurePosition; //the position vehicle has when finished with its jobs
     public LocalDateTime busyUntil;
-    public ArrayList<Trip> queuedTrips = new ArrayList<>();
     public ArrayList<Trip> takenTrips = new ArrayList<>();
-    public ArrayList<Trip> missedTrips = new ArrayList<>();
+    public ArrayList<Trip> queuedTrips = new ArrayList<>();
+    public ArrayList<Trip> missedTrips = new ArrayList<>(); //only used for the vehicle summary at the moment
     public double customerWaitingTime;
     public HashMap<String, String> configMap;
 
@@ -28,7 +28,6 @@ public class Vehicle {
         this.id = id;
         this.currentPosition = home;
         this.futurePosition = home;
-
         this.busyUntil = timeParser(configMap.get("SIMULATION_START_TIME"));
         this.configMap = configMap;
     }
@@ -39,7 +38,6 @@ public class Vehicle {
         this.id = other.id;
         this.futurePosition = other.futurePosition;
         this.currentPosition = other.currentPosition;
-
         this.busyUntil = other.busyUntil;
         this.takenTrips = new ArrayList<>(other.takenTrips);
         this.queuedTrips = new ArrayList<>(other.queuedTrips);
@@ -151,7 +149,6 @@ public class Vehicle {
         );
         //calculate the path of the trip
         vehicleApproachTrip.calculateTrip(graph);
-        //add fixed delay to mitigate Jadex-MATSim inaccuracies during contract-net-protocol negotiation and customers entering/leaving vehicles
 
         return vehicleApproachTrip;
     }

@@ -24,10 +24,10 @@ public class ACOScheduler extends AbstractScheduler {
     public ACOScheduler(HashMap<String, String> configMap) {
         super(configMap);
         this.numAnts = 100;
-        this.alpha = 1.0;          // Pheromone power
-        this.beta = 2.0;           // Heuristic power
-        this.evaporationRate = 0.1; // Pheromone decay
-        this.maxIterations = 100;   // Iterations limit
+        this.alpha = 1.0;
+        this.beta = 2.0;
+        this.evaporationRate = 0.1;
+        this.maxIterations = 100;
         this.pheromones = new HashMap<>();
     }
 
@@ -39,14 +39,12 @@ public class ACOScheduler extends AbstractScheduler {
 
         for (int iteration = 0; iteration < maxIterations; iteration++) {
             ArrayList<ArrayList<Vehicle>> antSolutions = new ArrayList<>(); // One solution per ant
-            ArrayList<Double> antWaitTimes = new ArrayList<>();
 
             // Each ant builds a solution
             for (int ant = 0; ant < numAnts; ant++) {
                 ArrayList<Vehicle> solution = constructSolution(requestedTrips);
                 double totalWaitTime = evaluateSolution(solution);
                 antSolutions.add(solution);
-                antWaitTimes.add(totalWaitTime);
 
                 if (totalWaitTime < bestTotalWaitTime) {
                     bestTotalWaitTime = totalWaitTime;
@@ -55,7 +53,7 @@ public class ACOScheduler extends AbstractScheduler {
             }
 
             // Update pheromones based on ant solutions
-            updatePheromones(antSolutions, antWaitTimes);
+            updatePheromones(antSolutions);
         }
 
         // Apply the best solution found
@@ -79,6 +77,7 @@ public class ACOScheduler extends AbstractScheduler {
         for (Trip trip : requestedTrips) {
             //copy trip, otherwise call by reference errors
             Trip copiedTrip = new Trip(trip);
+            //select vehicle based on pheromones/heuristic
             Vehicle selectedVehicle = selectVehicle(copiedTrip, copiedVehicles);
 
             Trip approach = selectedVehicle.evaluateApproach(copiedTrip, graph);
@@ -127,7 +126,7 @@ public class ACOScheduler extends AbstractScheduler {
         return totalWaitTime;
     }
 
-    private void updatePheromones(ArrayList<ArrayList<Vehicle>> solutions, ArrayList<Double> waitTimes) {
+    private void updatePheromones(ArrayList<ArrayList<Vehicle>> solutions) {
         // Evaporate pheromones
         for (Map<Integer, Double> vehiclePheromones : pheromones.values()) {
             for (Integer vehicleId : vehiclePheromones.keySet()) {
@@ -135,16 +134,20 @@ public class ACOScheduler extends AbstractScheduler {
             }
         }
 
+        // get waiting times (quality) for the solutions
+        ArrayList<Double> waitTimes = new ArrayList<>();
+        for (ArrayList<Vehicle> solution : solutions) {
+            waitTimes.add(evaluateSolution(solution));
+        }
+
         // Deposit pheromones based on solution quality
         for (int i = 0; i < solutions.size(); i++) {
             double deposit = 1.0 / (waitTimes.get(i) + 1.0); // Higher deposit for lower wait times
-//            double deposit =  (double) 1 / vehicles.size();
-//            double deposit =  0.1;
             ArrayList<Vehicle> solution = solutions.get(i);
 
             for (Vehicle vehicle : solution) {
                 for (Trip trip: vehicle.queuedTrips){
-                    //calc new pheromone level, limited to 1
+                    //calculate new pheromone level, with ceiling at 1
                     if (pheromones.containsKey(trip.TripID)){
                         double newPheromone = Math.min(1, pheromones.get(trip.TripID).get(vehicle.id) + deposit);
                         pheromones.get(trip.TripID).put(vehicle.id, newPheromone);

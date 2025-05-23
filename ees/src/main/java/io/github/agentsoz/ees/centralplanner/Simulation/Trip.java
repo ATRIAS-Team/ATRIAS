@@ -60,7 +60,7 @@ public class Trip {
                 calculatedPath = graph.euclideanDistance(nearestStartNode, nearestEndNode);
                 break;
             case "dijkstra":
-                calculatedPath = graph.fast_dijkstra(nearestStartNode, nearestEndNode);
+                calculatedPath = graph.dijkstra(nearestStartNode, nearestEndNode);
                 break;
             case "aStar":
                 calculatedPath = graph.aStar(nearestStartNode, nearestEndNode);

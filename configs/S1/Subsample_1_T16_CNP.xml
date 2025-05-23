@@ -37,15 +37,15 @@
         <field field_name="CLEANUP_TIMER">600000</field>
     </class>
     <class class_name="CentralPlanner">
-<!--        <field field_name="SCHEDULER">GreedyScheduler</field>-->
+        <field field_name="SCHEDULER">GreedyScheduler</field>
 <!--        <field field_name="SCHEDULER">GAScheduler</field>-->
-        <field field_name="SCHEDULER">ACOScheduler</field>
+<!--        <field field_name="SCHEDULER">ACOScheduler</field>-->
 
         <field field_name="PATHFINDING_METHOD">euclidean</field>
 
 <!--        ____only recommended for greedy/fast schedulers____-->
-<!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
 <!--        <field field_name="PATHFINDING_METHOD">dijkstra</field>-->
+<!--        <field field_name="PATHFINDING_METHOD">aStar</field>-->
 <!--        _______________________________________________________-->
 
         <field field_name="TIMEINTERVAL">60</field>

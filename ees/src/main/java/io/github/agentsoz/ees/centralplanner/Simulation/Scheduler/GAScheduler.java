@@ -10,6 +10,7 @@ public class GAScheduler extends AbstractScheduler {
     private static final int POPULATION_SIZE = 100;
     private static final int KEEP_BEST_INDIVIDUALS = 10;
     private static final int MAX_GENERATIONS = 500;
+    private static final int TOURNAMENT_SIZE = 20;
     private static final double MUTATION_RATE = 0.05;
     private static final long SEED = 815274;
     private static final Random random = new Random(SEED);
@@ -54,7 +55,7 @@ public class GAScheduler extends AbstractScheduler {
             }
             population = newPopulation;
         }
-
+        Collections.sort(population);
         //assign solution
         vehicles = population.get(0).copiedVehicles;
     }
@@ -70,9 +71,8 @@ public class GAScheduler extends AbstractScheduler {
     }
 
     private Individual selectParent(ArrayList<Individual> population) {
-        int tournamentSize = 20;
         ArrayList<Individual> tournament = new ArrayList<>();
-        for (int i = 0; i < tournamentSize; i++) {
+        for (int i = 0; i < TOURNAMENT_SIZE; i++) {
             tournament.add(population.get(random.nextInt(POPULATION_SIZE)));
         }
         Collections.sort(tournament);
@@ -141,7 +141,6 @@ public class GAScheduler extends AbstractScheduler {
             double fitness = 0.0;
             for (Vehicle vehicle : copiedVehicles){
                 //fitness value can be customer waiting time or missed Trips
-
                 fitness += vehicle.customerWaitingTime;
 //                fitness += vehicle.getMissedTrips();
             }

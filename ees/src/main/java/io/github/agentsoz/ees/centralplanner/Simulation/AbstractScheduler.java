@@ -59,6 +59,7 @@ public abstract class AbstractScheduler implements Simulation {
                 vehicle.refreshVehicle(lastRequestOfGroup.bookingTime);
             }
 
+            //rescheduling is the ability for trips that got queued to a vehicle but not yet done to be reevaluated
             //if rescheduling is active, append all open trips that have not yet started
             if (Boolean.parseBoolean(configMap.get("RESCHEDULING"))){
                 //remove the trips, that got done
