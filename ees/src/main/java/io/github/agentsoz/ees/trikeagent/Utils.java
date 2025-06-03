@@ -35,6 +35,7 @@ import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.ees.util.csvLogger;
 import io.github.agentsoz.util.Location;
+import io.github.agentsoz.util.PerceptList;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
@@ -202,15 +203,37 @@ public class Utils {
                     Trip newTrip = new Trip(currentDecisionTask, currentDecisionTask.getJobID(), "CustomerTrip",
                             currentDecisionTask.getVATimeFromJob(), currentDecisionTask.getStartPositionFromJob(),
                             currentDecisionTask.getEndPositionFromJob(), "NotStarted");
-                    newTrip.setEndTime(newTrip.getVATime().plusMinutes(20));
+
+                    LocalDateTime prevEndTime;
+                    double distToCustomer;
+                    double distToEnd;
+
+                    if(!trikeAgent.currentTrip.isEmpty()){
+                        Trip lastTrip = trikeAgent.currentTrip.get(0);
+                        distToCustomer = getDistanceBetween(lastTrip.getEndPosition(), newTrip.getStartPosition());
+                        distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
+                        prevEndTime = lastTrip.getEndTime();
+                    } else if (!trikeAgent.tripList.isEmpty()) {
+                        Trip lastTrip = trikeAgent.tripList.get(0);
+                        distToCustomer = getDistanceBetween(lastTrip.getEndPosition(), newTrip.getStartPosition());
+                        distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
+                        prevEndTime = lastTrip.getEndTime();
+                    }else{
+                        distToCustomer = getDrivingDistanceTo(newTrip.getStartPosition());
+                        distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
+                        prevEndTime = SharedUtils.getCurrentDateTime();
+                    }
+
+                    long drivingTimeInSec = (long) ((((distToCustomer + distToEnd) / 1000) / DRIVING_SPEED)*60*60);
+
+                    newTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec));
+
                     synchronized (trikeAgent.tripList){
                         trikeAgent.tripList.removeIf(trip -> trip.getTripID().startsWith("area"));
                         trikeAgent.tripList.add(newTrip);
                     }
                     eventTracker.TripList_BeliefUpdated(trikeAgent);
                     eventTracker.CustomerTripCreation(trikeAgent, newTrip);
-
-
 
 
                     Location destination = currentDecisionTask.getEndPositionFromJob();
@@ -1133,19 +1156,41 @@ public class Utils {
         trikeAgent.SimActuator.getEnvironmentActionInterface().packageAction(trikeAgent.agentID, "perceive", params, "");
     }
 
-    public double getDrivingDistanceTo(Location location) throws AgentNotFoundException { // EUclician Distanz
+    public double getDrivingDistanceTo(Location location) { // EUclician Distanz
         double dist =
-                (double)trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(
-                        String.valueOf(trikeAgent.agentID),
-                        Constants.REQUEST_DRIVING_DISTANCE_TO,
-                        location.getCoordinates());
+                0;
+        try {
+            dist = (double)trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(
+                    String.valueOf(trikeAgent.agentID),
+                    Constants.REQUEST_DRIVING_DISTANCE_TO,
+                    location.getCoordinates());
+        } catch (AgentNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         return dist;
     }
 
-    public  Location getCurrentLocation() throws AgentNotFoundException {
-        Location CurrentLocation = (Location) trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(String.valueOf(trikeAgent.agentID), Constants.REQUEST_LOCATION, null);
+    public  Location[] getCurrentLocation() throws AgentNotFoundException {
+        Object obj = trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(String.valueOf(trikeAgent.agentID), Constants.REQUEST_LOCATION, null);
+        Location[] location = (Location[]) obj;
+        return location;
+    }
 
-        return CurrentLocation;
+    public double getDistanceBetween(Location location1, Location location2){
+        double[][] args = new double[2][2];
+        args[0][0] = location1.getX();
+        args[0][1] = location1.getY();
+        args[1][0] = location2.getX();
+        args[1][1] = location2.getY();
+
+        try {
+            return (double)trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(
+                    String.valueOf(trikeAgent.agentID),
+                    PerceptList.REQUEST_DISTANCE_OF_LOCATIONS,
+                    args);
+        } catch (AgentNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     ///////////////////////////////////////////////////////

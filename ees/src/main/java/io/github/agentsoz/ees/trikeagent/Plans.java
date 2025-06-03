@@ -23,6 +23,7 @@ package io.github.agentsoz.ees.trikeagent;
  */
 
 import io.github.agentsoz.bdiabm.data.ActionContent;
+import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.shared.*;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
@@ -32,6 +33,7 @@ import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.Run.TrikeMain;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.util.csvLogger;
+import io.github.agentsoz.util.Location;
 import jadex.bridge.service.IService;
 import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
@@ -147,6 +149,19 @@ public class Plans {
                     utils.sendDriveTotoAdc();
                     utils.updateCurrentTripProgress("DriveToStart");
                     utils.currentTripStatus();
+                    try {
+                        Location[] locations = utils.getCurrentLocation();
+                        System.out.println("AgentID: " + trikeAgent.agentID + " location: " +
+                                Arrays.toString(locations));
+
+
+                        System.out.println("AgentID: " + trikeAgent.agentID + " vanilla distance to start: " + (Location.distanceBetween(locations[0], trikeAgent.currentTrip.get(0).startPosition)));
+
+                        System.out.println("AgentID: " + trikeAgent.agentID + " distance to start: " +
+                                utils.getDrivingDistanceTo(trikeAgent.currentTrip.get(0).startPosition));
+                    } catch (AgentNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                     break;
                 }
                 case "AtStartLocation": {
@@ -168,6 +183,20 @@ public class Plans {
                                 utils.sendDriveTotoAdc();
                                 utils.updateCurrentTripProgress("DriveToEnd");
                                 utils.currentTripStatus();
+                                try {
+                                    Location[] locations = utils.getCurrentLocation();
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " location: " +
+                                            Arrays.toString(locations));
+
+
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " vanilla distance to end: " + (Location.distanceBetween(locations[0], trikeAgent.currentTrip.get(0).endPosition)));
+
+
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " distance to end: " +
+                                            utils.getDrivingDistanceTo(trikeAgent.currentTrip.get(0).endPosition));
+                                } catch (AgentNotFoundException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                             break;
                         }
@@ -347,14 +376,11 @@ public class Plans {
                 Message message = iterator.next();
                 if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
                     if(message.getAttempts() < 1){
-                        iterator.remove();
-                        //IAreaTrikeService service = messageToService(trikeAgent.agent, message);
+                        //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                        message.reattempt();
                         message.setTimeStamp(currentTimeStamp);
-                        trikeAgent.requests.add(message.reattempt());
                         SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
-                        System.out.println(message + " was retried!");
                     }else{
-                        System.out.println(message + " was not delivered!");
                         iterator.remove();
                     }
                 }

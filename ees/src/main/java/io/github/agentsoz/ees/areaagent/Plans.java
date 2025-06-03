@@ -257,6 +257,7 @@ public class Plans {
     }
 
     public void checkRequestTimeouts(){
+        try {
         synchronized (areaAgent.requests){
             Iterator<Message> iterator = areaAgent.requests.iterator();
             long currentTimeStamp = SharedUtils.getSimTime();
@@ -265,16 +266,18 @@ public class Plans {
                 Message message = iterator.next();
                 if(currentTimeStamp >= message.getTimeStamp() + AreaConstants.REQUEST_WAIT_TIME){
                     if(message.getAttempts() < 1){
-                        iterator.remove();
                         //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                        message.reattempt();
                         message.setTimeStamp(currentTimeStamp);
-                        areaAgent.requests.add(message.reattempt());
                         SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                     }else{
                         iterator.remove();
                     }
                 }
             }
+        }
+        }catch (Exception e){
+            System.err.println("AreaAgent: " + areaAgent.areaAgentId + " checkRequestTimeouts" + e.getMessage());
         }
     }
 

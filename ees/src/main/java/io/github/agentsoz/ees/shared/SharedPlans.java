@@ -28,14 +28,19 @@ import java.util.UUID;
 
 public class SharedPlans {
     public static void cleanupReceivedMessages(Map<UUID, Long> messages){
-        Iterator<Long> iterator = messages.values().iterator();
-        long currentTimeStamp = SharedUtils.getSimTime();
+        try {
+            Iterator<Map.Entry<UUID, Long>> iterator = messages.entrySet().iterator();
 
-        while (iterator.hasNext()){
-            long timeStamp = iterator.next();
-            if(currentTimeStamp >= timeStamp + SharedConstants.CLEANUP_TIMER){
-                iterator.remove();
+            long currentTimeStamp = SharedUtils.getSimTime();
+
+            while (iterator.hasNext()) {
+                long timeStamp = iterator.next().getValue();
+                if (currentTimeStamp >= timeStamp + SharedConstants.CLEANUP_TIMER) {
+                    iterator.remove();
+                }
             }
+        }catch (Exception e){
+            System.err.println("cleanupReceivedMessages " + e.getMessage());
         }
     }
 }
