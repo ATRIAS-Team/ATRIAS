@@ -87,7 +87,9 @@ public class Main {
                         }
                     }
                     boolean isCause = isCustomerTripCause(tripIds.get(j), events, startIndex);
+                    boolean isCause2 = isCharginTripCause(tripIds.get(j), events, startIndex);
                     System.out.println(j + ") There is a customerTrip before your trip, that does not finish in time. :" + isCause);
+                    System.out.println(j + ") There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
                     break;
                 case 2:
                     break;
@@ -170,6 +172,109 @@ public class Main {
                 DecisionTask decisionTask = gson.fromJson(json, DecisionTask.class);
                 String tripID = decisionTask.getJob().getJobID();
 
+
+                index = i;
+                predecessorTripID = tripID;
+                eventTimeOfPredecessorTripCreation = event.getUpdated();
+                break;
+            }
+        }
+
+        if (predecessorTripID == null || eventTimeOfPredecessorTripCreation == null) {
+            System.out.println("No predecessor found");
+            return false;
+        }
+
+        // search for the most recent endtime of the predecessor trip
+        for (int i = startIndex; i < index; i++) {
+            Event<?> event = events.get(i);
+
+            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.getSummary())) {
+                Data<?> data = event.getContent().getData();
+
+                // Convert newValue to JsonElement, then deserialize to List<Trip>
+                JsonElement jsonElement = gson.toJsonTree(data.getOldValue());
+                Type tripListType = new TypeToken<List<Trip>>() {}.getType();
+                List<Trip> trips = gson.fromJson(jsonElement, tripListType);
+                boolean contains = false;
+
+                for (Trip trip: trips) {
+                    if(trip.getTripID().equals(predecessorTripID)){
+                        contains = true;
+                        predecessorTripEndTime = trip.getEndTime();
+                    }
+                }
+
+                if (contains) {
+                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
+                    if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
+                        causeOfDelay = true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return causeOfDelay;
+    }
+
+    public static boolean isCharginTripCause(String questionerTripID, List<Event<?>> events, int startIndex) {
+        boolean causeOfDelay = false;
+
+        int index = -1;
+
+        //  questioner
+        LocalDateTime eventTimeOfQuestionerTripCreation = null;
+        LocalDateTime questionerTripStartTime = null;
+
+
+        // predecessor
+        String predecessorTripID = null;
+        LocalDateTime eventTimeOfPredecessorTripCreation = null;
+        LocalDateTime predecessorTripEndTime = null;
+
+
+        //  search for of the trip of the customer
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.getContent().getData().getName();
+
+            if("CustomerTripCreation".equalsIgnoreCase(name)){
+                Map<String, Object> actions = event.getContent().getData().getActions();
+                Object actionObj = actions.get("Create new CustomerTrip");
+
+                // Gson can't directly cast nested Object to strongly typed object
+                String json = gson.toJson(((Map<?, ?>) actionObj).get("decisionTask"));
+                DecisionTask decisionTask = gson.fromJson(json, DecisionTask.class);
+                String tripID = decisionTask.getJob().getJobID();
+
+
+                if (tripID.equals(questionerTripID)) {
+                    eventTimeOfQuestionerTripCreation = event.getUpdated();
+                    questionerTripStartTime = decisionTask.getJob().getBookingTime();
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if (eventTimeOfQuestionerTripCreation == null) {
+            System.out.println("eventTimeOfQuestionerTripCreation is null");
+            return false;
+        }
+
+        // search for the predecessor trip
+        for (int i = index + 1; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.getContent().getData().getName();
+
+            if ("chargingTripCreation".equalsIgnoreCase(name)) {
+                Map<String, Object> actions = event.getContent().getData().getActions();
+                Object actionObj = actions.get("Create new ChargingTrip");
+
+
+                // Gson can't directly cast nested Object to strongly typed object
+                String tripID = gson.toJson(((Map<?, ?>) actionObj).get("tripID"));;
 
                 index = i;
                 predecessorTripID = tripID;

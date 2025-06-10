@@ -71,7 +71,7 @@ public class Utils {
         }
         double lowestDistance = Double.MAX_VALUE;
         for (Location location : CHARGING_STATION_LIST) {
-            double compareDistance = Location.distanceBetween(startPosition, location);
+            double compareDistance = getDistanceBetween(startPosition, location);
             if (compareDistance < lowestDistance) {
                 lowestDistance = compareDistance;
                 ChargingStation = location;
@@ -104,9 +104,9 @@ public class Utils {
         synchronized (trikeAgent.tripList){
             if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
                 //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
-                totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
+                totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
                 if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
+                    totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
                 }
                 if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
                     totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
@@ -116,16 +116,16 @@ public class Utils {
             if (trikeAgent.tripList.size() > 0) {
                 if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
                     if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
                     } else { // trips with only a start position
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
                     }
                 } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
+                    totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
                 }
                 // distance driven at trikeAgent.tripList.get(0)
                 if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
+                    totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
                 }
                 if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
                     totalDistance_TIP = 0.0;
@@ -138,12 +138,12 @@ public class Utils {
                 if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
                     for (int i = 1; i < trikeAgent.tripList.size(); i++) {
                         if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
                         } else { // Trips with only a startPosition
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
                         }
                         if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
                         }
                     }
                 }
@@ -208,17 +208,20 @@ public class Utils {
                     double distToCustomer;
                     double distToEnd;
 
-                    if(!trikeAgent.currentTrip.isEmpty()){
+                    if (!trikeAgent.tripList.isEmpty()) {
+                        int lastTripIndex = trikeAgent.tripList.size() - 1;
+                        Trip lastTrip = trikeAgent.tripList.get(lastTripIndex);
+
+                        distToCustomer = getDistanceBetween(lastTrip.getEndPosition(), newTrip.getStartPosition());
+                        distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
+                        prevEndTime = lastTrip.getEndTime();
+                    } else if(!trikeAgent.currentTrip.isEmpty()){
                         Trip lastTrip = trikeAgent.currentTrip.get(0);
+
                         distToCustomer = getDistanceBetween(lastTrip.getEndPosition(), newTrip.getStartPosition());
                         distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
                         prevEndTime = lastTrip.getEndTime();
-                    } else if (!trikeAgent.tripList.isEmpty()) {
-                        Trip lastTrip = trikeAgent.tripList.get(0);
-                        distToCustomer = getDistanceBetween(lastTrip.getEndPosition(), newTrip.getStartPosition());
-                        distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
-                        prevEndTime = lastTrip.getEndTime();
-                    }else{
+                    } else{
                         distToCustomer = getDrivingDistanceTo(newTrip.getStartPosition());
                         distToEnd = getDistanceBetween(newTrip.getStartPosition(), newTrip.getEndPosition());
                         prevEndTime = SharedUtils.getCurrentDateTime();
@@ -248,6 +251,11 @@ public class Utils {
                     }
 
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMITTED);
+                    long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(newTrip.getVATime())) / 1000;
+
+                    System.out.println(trikeAgent.getAgentID() + " COMMITTED " + newTrip.getTripID() + ": " + currentDecisionTask.getOrigin() + " " +
+                            delta + " sec delay!");
+
 
                     if(FIREBASE_ENABLED){
                         //  listen to the new child in firebase
@@ -640,7 +648,7 @@ public class Utils {
                 //when there is no Trip before calculate the delay when started at the Agent Location
                 if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0) {
                     //trikeAgent.agentLocation
-                    Double distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
+                    Double distanceToStart = getDistanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
                     //Double vATimeNewTask = timeInSeconds(newTask.getVATimeFromJob());
                     Double timeToNewTask = ((distanceToStart/1000) / DRIVING_SPEED)*60*60; //in this case equals the delay as vatiem is bookingtime
                     // transforms the delay in seconds into as score beween 0 and 100 based of the max allowed delay of 900s
@@ -660,27 +668,27 @@ public class Utils {
                     Double totalDistance_TIP = 0.0;
                     //todo: get va time of first job here or in an else case
                     if (trikeAgent.currentTrip.size() == 1) { //distances driven from the agent location to the start of the current trip and to its end
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
                         if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
                             vaTimeFirstTrip = timeInSeconds(trikeAgent.currentTrip.get(0).getVATime());
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
                         }
                     }
                     //  distance driven at trikeAgent.tripList
                     if (trikeAgent.tripList.size() > 0) {
                         if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
                             if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
                             } else { // trips with only a start position
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
                             }
                         } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
                             vaTimeFirstTrip = timeInSeconds(trikeAgent.tripList.get(0).getVATime()); //fist VATime when there was no trikeAgent.currentTrip
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
                         }
                         // distance driven at trikeAgent.tripList.get(0)
                         if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
                         }
                     } else {
                         // do nothing as all other Trips with only a startPosition will not contain any other movements;
@@ -690,21 +698,21 @@ public class Utils {
                     if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
                         for (int i = 1; i < trikeAgent.tripList.size(); i++) {
                             if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
                             } else { // Trips with only a startPosition
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
                             }
                             if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
                             }
                         }
                     }
                     //todo: drives to the start of the job that has to be evaluated
                     if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                        totalDistance_TIP += getDistanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
                     }
                     else {
-                        totalDistance_TIP += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                        totalDistance_TIP += getDistanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                     }
 
 
@@ -756,9 +764,9 @@ public class Utils {
 
                 if (trikeAgent.currentTrip.size() == 1) { //battery relavant distance driven at trikeAgent.currentTrip
                     //todo: fortschritt von trikeAgent.currentTrip berücksichtigen
-                    totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
+                    totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.currentTrip.get(0).getStartPosition());
                     if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) { //only drive to the end when it is a customerTrip
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.currentTrip.get(0).getEndPosition());
                     }
                     if (trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip")) {
                         totalDistance_TIP = 0.0; //reset the distance until now because only the distance after a chargingTrip influences the battery
@@ -768,16 +776,16 @@ public class Utils {
                 if (trikeAgent.tripList.size() > 0) {
                     if (trikeAgent.currentTrip.size() > 0) { //journey to the first entry in the trikeAgent.tripList from a trikeAgent.currentTrip
                         if (trikeAgent.currentTrip.get(0).getTripType().equals("CustomerTrip")) {
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getEndPosition(), trikeAgent.tripList.get(0).getStartPosition());
                         } else { // trips with only a start position
-                            totalDistance_TIP += Location.distanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
+                            totalDistance_TIP += getDistanceBetween(trikeAgent.currentTrip.get(0).getStartPosition(), trikeAgent.tripList.get(0).getStartPosition());
                         }
                     } else { //journey to the first entry in the trikeAgent.tripList from the trikeAgent.agentLocation
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.agentLocation, trikeAgent.tripList.get(0).getStartPosition());
                     }
                     // distance driven at trikeAgent.tripList.get(0)
                     if (trikeAgent.tripList.get(0).getTripType().equals("CustomerTrip")) {
-                        totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
+                        totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(0).getStartPosition(), trikeAgent.tripList.get(0).getEndPosition());
                     }
                     if (trikeAgent.tripList.get(0).getTripType().equals("ChargingTrip")) {
                         totalDistance_TIP = 0.0;
@@ -791,12 +799,12 @@ public class Utils {
                     if (trikeAgent.tripList.size() > 1){ //added to avoid crashes
                         for (int i = 1; i < trikeAgent.tripList.size(); i++) {
                             if (trikeAgent.tripList.get(i - 1).getTripType().equals("CustomerTrip")) {
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getEndPosition(), trikeAgent.tripList.get(i).getStartPosition()); //trikeAgent.tripList or trikeAgent.currentTrip
                             } else { // Trips with only a startPosition
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i - 1).getStartPosition(), trikeAgent.tripList.get(i).getStartPosition()); //corrected! was to EndPosition before!
                             }
                             if (trikeAgent.tripList.get(i).getTripType().equals("CustomerTrip")) { //trikeAgent.tripList or trikeAgent.currentTrip
-                                totalDistance_TIP += Location.distanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
+                                totalDistance_TIP += getDistanceBetween(trikeAgent.tripList.get(i).getStartPosition(), trikeAgent.tripList.get(i).getEndPosition());
                             }
                         }
                     }
@@ -810,18 +818,18 @@ public class Utils {
 
                 //Distance from the agent location
                 if (trikeAgent.currentTrip.size() == 0 && trikeAgent.tripList.size() == 0){
-                    estDistance += Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
+                    estDistance += getDistanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
                 }
                 //Distance from the Last Trip in Pipe
                 else{
                     if (getLastTripInPipeline().getTripType().equals("CustomerTrip")){
-                        estDistance += Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                        estDistance += getDistanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
                     }
                     else{
-                        estDistance += Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                        estDistance += getDistanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                     }
                 }
-                estDistance += Location.distanceBetween(newTask.getStartPositionFromJob(), newTask.getEndPositionFromJob());
+                estDistance += getDistanceBetween(newTask.getStartPositionFromJob(), newTask.getEndPositionFromJob());
 
                 estEnergyConsumption = trikeAgent.trikeBattery.SimulateDischarge(estDistance * DISTANCE_FACTOR);
 
@@ -850,12 +858,12 @@ public class Utils {
                 Double distanceToStart;
 
                 if (trikeAgent.tripList.size() == 0 && trikeAgent.currentTrip.size() == 0) {
-                    distanceToStart = Location.distanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
+                    distanceToStart = getDistanceBetween(trikeAgent.agentLocation, newTask.getStartPositionFromJob());
                 } else {
                     if (getLastTripInPipeline().getTripType().equals("CustomerTrip")) {
-                        distanceToStart = Location.distanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
+                        distanceToStart = getDistanceBetween(getLastTripInPipeline().getEndPosition(), newTask.getStartPositionFromJob());
                     } else {
-                        distanceToStart = Location.distanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
+                        distanceToStart = getDistanceBetween(getLastTripInPipeline().getStartPosition(), newTask.getStartPositionFromJob());
                     }
                 }
                 uDistance = Math.max(0, (100-distanceToStart / dmax));

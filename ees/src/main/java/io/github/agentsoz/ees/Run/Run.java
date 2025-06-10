@@ -61,7 +61,7 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 5;
+    private double optTimestep = 10;
 
 
     public static void main(String[] args) {

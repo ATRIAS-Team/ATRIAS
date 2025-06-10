@@ -39,6 +39,7 @@ import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
@@ -114,12 +115,37 @@ public class Plans {
                 String tripID = "CH";
                 tripID = tripID.concat(Integer.toString(trikeAgent.chargingTripCounter));
                 Trip chargingTrip = new Trip(tripID, "ChargingTrip", utils.getNextChargingStation(), "NotStarted");
+                chargingTrip.setVaTime(SharedUtils.getCurrentDateTime());
 
+                double distToStation;
+                LocalDateTime prevEndTime;
 
-                chargingTrip.setEndTime(SharedUtils.getCurrentDateTime().plusMinutes(20));
+                if(!trikeAgent.tripList.isEmpty()){
+                    int lastTripIndex = trikeAgent.tripList.size() - 1;
+                    Trip lastTrip = trikeAgent.tripList.get(lastTripIndex);
+
+                    distToStation = utils.getDistanceBetween(lastTrip.getEndPosition(), chargingTrip.getStartPosition());
+                    prevEndTime = lastTrip.getEndTime();
+
+                }else if(!trikeAgent.currentTrip.isEmpty()){
+                    Trip lastTrip = trikeAgent.currentTrip.get(0);
+
+                    distToStation = utils.getDistanceBetween(lastTrip.getEndPosition(), chargingTrip.getStartPosition());
+                    prevEndTime = lastTrip.getEndTime();
+                }else{
+                    distToStation = utils.getDrivingDistanceTo(chargingTrip.getStartPosition());
+                    prevEndTime = SharedUtils.getCurrentDateTime();
+                }
+
+                long drivingTimeInSec = (long) (((distToStation / 1000.0) / DRIVING_SPEED)*60*60);
+
+                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 3600));
+
 
                 trikeAgent.tripList.add(chargingTrip);
                 trikeAgent.chargingTripAvailable = "1";
+
+                utils.eventTracker.TripList_BeliefUpdated(trikeAgent);
                 utils.eventTracker.ChargingTripCreation(trikeAgent, chargingTrip);
             }
         }
@@ -168,6 +194,8 @@ public class Plans {
                     utils.currentTripStatus();
                     switch (current.getTripType()) {
                         case "ChargingTrip": {
+                            if(current.getEndTime().isAfter(SharedUtils.getCurrentDateTime())) return;
+
                             trikeAgent.trikeBattery.loadBattery();
                             utils.updateCurrentTripProgress("Finished");
                             trikeAgent.chargingTripAvailable = "0";
