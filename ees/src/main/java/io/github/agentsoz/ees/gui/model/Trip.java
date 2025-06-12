@@ -1,30 +1,22 @@
 package io.github.agentsoz.ees.gui.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
-@lombok.Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class Trip {
 
-    String tripID;
+    public String tripID;
 
-    Job job;
+    public Job job;
 
-    DecisionTask decisionTask;
+    public DecisionTask decisionTask;
 
-    String tripType; //charging trip, customer trip, ...
+    public String tripType; //charging trip, customer trip, ...
 
-    LocalDateTime vaTime; // vehicle arriving time
-    Location startPosition; // use this for trips with just one Geolocation
-    Location endPosition ; // End of the trip used for customer trips
-    String progress;
+    public LocalDateTime vaTime; // vehicle arriving time
+    public Location startPosition; // use this for trips with just one Geolocation
+    public Location endPosition ; // End of the trip used for customer trips
+    public String progress;
 
-    LocalDateTime endTime;
+    public LocalDateTime endTime;
 }

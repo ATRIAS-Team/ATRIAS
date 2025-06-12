@@ -182,12 +182,6 @@
       <artifactId>h3</artifactId>
       <version>4.1.1</version>
     </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.22</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
 

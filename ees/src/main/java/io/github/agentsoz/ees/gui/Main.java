@@ -81,7 +81,7 @@ public class Main {
                     for (int k = 0; k < events.size(); k++) {
                         Event<?> event = events.get(k);
 
-                        if(event.getUpdated().isBefore(timeInputs.get(j)) || event.getUpdated().isEqual(timeInputs.get(j))){
+                        if(event.updated.isBefore(timeInputs.get(j)) || event.updated.isEqual(timeInputs.get(j))){
                             startIndex = k;
                             break;
                         }
@@ -132,21 +132,21 @@ public class Main {
         //  search for of the trip of the customer
         for (int i = startIndex; i < events.size(); i++) {
             Event<?> event = events.get(i);
-            String name = event.getContent().getData().getName();
+            String name = event.content.data.name;
 
             if("CustomerTripCreation".equalsIgnoreCase(name)){
-                Map<String, Object> actions = event.getContent().getData().getActions();
+                Map<String, Object> actions = event.content.data.actions;
                 Object actionObj = actions.get("Create new CustomerTrip");
 
                 // Gson can't directly cast nested Object to strongly typed object
                 String json = gson.toJson(((Map<?, ?>) actionObj).get("decisionTask"));
                 DecisionTask decisionTask = gson.fromJson(json, DecisionTask.class);
-                String tripID = decisionTask.getJob().getJobID();
+                String tripID = decisionTask.job.jobID;
 
 
                 if (tripID.equals(questionerTripID)) {
-                    eventTimeOfQuestionerTripCreation = event.getUpdated();
-                    questionerTripStartTime = decisionTask.getJob().getBookingTime();
+                    eventTimeOfQuestionerTripCreation = event.updated;
+                    questionerTripStartTime = decisionTask.job.bookingTime;
                     index = i;
                     break;
                 }
@@ -161,21 +161,21 @@ public class Main {
         // search for the predecessor trip
         for (int i = index + 1; i < events.size(); i++) {
             Event<?> event = events.get(i);
-            String name = event.getContent().getData().getName();
+            String name = event.content.data.name;
 
             if ("CustomerTripCreation".equalsIgnoreCase(name)) {
-                Map<String, Object> actions = event.getContent().getData().getActions();
+                Map<String, Object> actions = event.content.data.actions;
                 Object actionObj = actions.get("Create new CustomerTrip");
 
 
                 String json = gson.toJson(((Map<?, ?>) actionObj).get("decisionTask"));
                 DecisionTask decisionTask = gson.fromJson(json, DecisionTask.class);
-                String tripID = decisionTask.getJob().getJobID();
+                String tripID = decisionTask.job.jobID;
 
 
                 index = i;
                 predecessorTripID = tripID;
-                eventTimeOfPredecessorTripCreation = event.getUpdated();
+                eventTimeOfPredecessorTripCreation = event.updated;
                 break;
             }
         }
@@ -189,19 +189,19 @@ public class Main {
         for (int i = startIndex; i < index; i++) {
             Event<?> event = events.get(i);
 
-            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.getSummary())) {
-                Data<?> data = event.getContent().getData();
+            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.summary)) {
+                Data<?> data = event.content.data;
 
                 // Convert newValue to JsonElement, then deserialize to List<Trip>
-                JsonElement jsonElement = gson.toJsonTree(data.getOldValue());
+                JsonElement jsonElement = gson.toJsonTree(data.oldValue);
                 Type tripListType = new TypeToken<List<Trip>>() {}.getType();
                 List<Trip> trips = gson.fromJson(jsonElement, tripListType);
                 boolean contains = false;
 
                 for (Trip trip: trips) {
-                    if(trip.getTripID().equals(predecessorTripID)){
+                    if(trip.tripID.equals(predecessorTripID)){
                         contains = true;
-                        predecessorTripEndTime = trip.getEndTime();
+                        predecessorTripEndTime = trip.endTime;
                     }
                 }
 
@@ -237,21 +237,21 @@ public class Main {
         //  search for of the trip of the customer
         for (int i = startIndex; i < events.size(); i++) {
             Event<?> event = events.get(i);
-            String name = event.getContent().getData().getName();
+            String name = event.content.data.name;
 
             if("CustomerTripCreation".equalsIgnoreCase(name)){
-                Map<String, Object> actions = event.getContent().getData().getActions();
+                Map<String, Object> actions = event.content.data.actions;
                 Object actionObj = actions.get("Create new CustomerTrip");
 
                 // Gson can't directly cast nested Object to strongly typed object
                 String json = gson.toJson(((Map<?, ?>) actionObj).get("decisionTask"));
                 DecisionTask decisionTask = gson.fromJson(json, DecisionTask.class);
-                String tripID = decisionTask.getJob().getJobID();
+                String tripID = decisionTask.job.jobID;
 
 
                 if (tripID.equals(questionerTripID)) {
-                    eventTimeOfQuestionerTripCreation = event.getUpdated();
-                    questionerTripStartTime = decisionTask.getJob().getBookingTime();
+                    eventTimeOfQuestionerTripCreation = event.updated;
+                    questionerTripStartTime = decisionTask.job.bookingTime;
                     index = i;
                     break;
                 }
@@ -266,10 +266,10 @@ public class Main {
         // search for the predecessor trip
         for (int i = index + 1; i < events.size(); i++) {
             Event<?> event = events.get(i);
-            String name = event.getContent().getData().getName();
+            String name = event.content.data.name;
 
             if ("chargingTripCreation".equalsIgnoreCase(name)) {
-                Map<String, Object> actions = event.getContent().getData().getActions();
+                Map<String, Object> actions = event.content.data.actions;
                 Object actionObj = actions.get("Create new ChargingTrip");
 
 
@@ -278,7 +278,7 @@ public class Main {
 
                 index = i;
                 predecessorTripID = tripID;
-                eventTimeOfPredecessorTripCreation = event.getUpdated();
+                eventTimeOfPredecessorTripCreation = event.updated;
                 break;
             }
         }
@@ -292,19 +292,19 @@ public class Main {
         for (int i = startIndex; i < index; i++) {
             Event<?> event = events.get(i);
 
-            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.getSummary())) {
-                Data<?> data = event.getContent().getData();
+            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.summary)) {
+                Data<?> data = event.content.data;
 
                 // Convert newValue to JsonElement, then deserialize to List<Trip>
-                JsonElement jsonElement = gson.toJsonTree(data.getOldValue());
+                JsonElement jsonElement = gson.toJsonTree(data.oldValue);
                 Type tripListType = new TypeToken<List<Trip>>() {}.getType();
                 List<Trip> trips = gson.fromJson(jsonElement, tripListType);
                 boolean contains = false;
 
                 for (Trip trip: trips) {
-                    if(trip.getTripID().equals(predecessorTripID)){
+                    if(trip.tripID.equals(predecessorTripID)){
                         contains = true;
-                        predecessorTripEndTime = trip.getEndTime();
+                        predecessorTripEndTime = trip.endTime;
                     }
                 }
 

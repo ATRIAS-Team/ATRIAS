@@ -1,10 +1,6 @@
 package io.github.agentsoz.ees.gui.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,30 +9,26 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class DecisionTask {
-    Job job;
+    public Job job;
 
-    long timeStamp;
+    public long timeStamp;
 
-    long numRequests = 0;
-    AtomicLong numResponses = new AtomicLong(0);
+    public long numRequests = 0;
+    public AtomicLong numResponses = new AtomicLong(0);
 
 
-     String origin;
+    public String origin;
 
-     List<UTScore> UTScoreList = Collections.synchronizedList(new ArrayList<>());
+    public List<UTScore> UTScoreList = Collections.synchronizedList(new ArrayList<>());
 
-     volatile Status status;
+    public volatile Status status;
 
-     Set<String> agentIds = ConcurrentHashMap.newKeySet();
+    public Set<String> agentIds = ConcurrentHashMap.newKeySet();
 
-    boolean isLocal;
-    String cell;
+    public boolean isLocal;
+    public String cell;
 
-     String associatedTrip;
+    public String associatedTrip;
 
 }
