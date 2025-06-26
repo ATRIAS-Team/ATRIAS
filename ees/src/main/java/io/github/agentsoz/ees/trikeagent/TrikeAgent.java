@@ -37,6 +37,7 @@ import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.Run.XMLConfig;
+import io.github.agentsoz.ees.util.Event;
 import io.github.agentsoz.util.Location;
 
 import jadex.bdiv3.BDIAgentFactory;
@@ -136,6 +137,10 @@ public class TrikeAgent{
 
     public volatile String cell = null;
 
+    public boolean isAssigned = false;
+
+    public List<Event<?>> events = new ArrayList<>();
+
 
     /**
      * The agent body.
@@ -161,10 +166,20 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new ReactToAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
         bdiFeature.dispatchTopLevelGoal(new Log());
+        bdiFeature.dispatchTopLevelGoal(new FirebaseMessages());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
+        bdiFeature.dispatchTopLevelGoal(new UpdateLocation());
 
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
         bdiFeature.dispatchTopLevelGoal(new Requests());
+    }
+
+    @Goal(recur=true, recurdelay=3000)
+    private class FirebaseMessages {}
+
+    @Plan(trigger=@Trigger(goals=FirebaseMessages.class))
+    private void readFirebaseMessages() {
+        plans.readFirebaseMessages();
     }
 
     /**
@@ -176,6 +191,23 @@ public class TrikeAgent{
     @Plan(trigger=@Trigger(goals=Log.class))
     private void log() {
     }
+
+    @Goal(recur=true, recurdelay = 10000)
+    private class UpdateLocation{}
+
+    @Plan(trigger=@Trigger(goals=UpdateLocation.class))
+    private void updateLocation(){
+
+        if(this.cell != null && !isAssigned){
+            isAssigned = true;
+            return;
+        }
+
+        if(isAssigned){
+            plans.updateLocation();
+        }
+    }
+
 
     @Goal(recur = true, recurdelay = 1000)
     private class MaintainBatteryLoaded {

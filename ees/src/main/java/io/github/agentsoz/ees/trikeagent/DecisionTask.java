@@ -131,6 +131,10 @@ public class DecisionTask {
         return job.getVATime();
     }
 
+    public LocalDateTime getBookingTime(){
+        return job.getbookingTime();
+    }
+
     public Location getStartPositionFromJob() {
         return job.getStartPosition();
     }

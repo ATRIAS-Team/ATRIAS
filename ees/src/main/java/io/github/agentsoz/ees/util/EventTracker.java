@@ -93,6 +93,8 @@ public class EventTracker {
             writeObjectToJsonFile(event, "events/Trike_" + agent.agentID + ".json");
             counter++;
 
+            agent.events.add(event);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
@@ -116,6 +118,8 @@ public class EventTracker {
 
             this.addEvent(event, agent.tripList,
                     "events/Trike_" + agent.agentID + ".json");
+
+            agent.events.add(event);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -141,6 +145,8 @@ public class EventTracker {
             this.addEvent(event, battery,
                     "events/Trike_" + agent.agentID + ".json");
 
+            agent.events.add(event);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
@@ -158,6 +164,8 @@ public class EventTracker {
 
             this.addEvent2(event,
                     "events/Trike_" + agent.agentID + ".json");
+
+            agent.events.add(event);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());

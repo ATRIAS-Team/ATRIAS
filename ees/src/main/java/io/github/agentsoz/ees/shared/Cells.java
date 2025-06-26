@@ -62,19 +62,28 @@ public class Cells {
     public static HashMap<String, Location> trikeRegisterLocations = new HashMap<>();
 
     public static String locationToCellAddress(Location location, int resolution) {
-        CoordinateConversion coordinateConversion = new CoordinateConversion();
-        String UTM = Cells.ZONE + " " + location.x + " " + location.y;
-        double[] latlng = coordinateConversion.utm2LatLon(UTM);
+        double[] latlng = locationToLatLng(location);
         double lat = latlng[0];
         double lng = latlng[1];
 
-        return h3Core.latLngToCellAddress(lat, lng, resolution);
+        return latLngToCellAddress(lat, lng, resolution);
+    }
+
+    public static double[] locationToLatLng(Location location){
+        CoordinateConversion coordinateConversion = new CoordinateConversion();
+        if(location.zone == null){
+            location.zone = Cells.ZONE;
+        }
+        String UTM = location.zone + " " + location.x + " " + location.y;
+        return coordinateConversion.utm2LatLon(UTM);
+    }
+
+    public static String latLngToCellAddress(double lat, double lng, int res){
+        return h3Core.latLngToCellAddress(lat, lng, res);
     }
 
     public static String findKey(Location location){
-        CoordinateConversion coordinateConversion = new CoordinateConversion();
-        String UTM = Cells.ZONE + " " + location.x + " " + location.y;
-        double[] latlng = coordinateConversion.utm2LatLon(UTM);
+        double[] latlng = locationToLatLng(location);
         double lat = latlng[0];
         double lng = latlng[1];
 
@@ -174,9 +183,13 @@ public class Cells {
     }
 
     public static Location getCellLocation(String cell){
-        CoordinateConversion coordinateConversion = new CoordinateConversion();
         LatLng latLng = h3Core.cellToLatLng(cell);
-        String[] utmArr = coordinateConversion.latLon2UTM(latLng.lat, latLng.lng).split(" ");
-        return new Location("", Integer.parseInt(utmArr[2]), Integer.parseInt(utmArr[3]));
+        return latLon2Location(latLng.lat, latLng.lng);
+    }
+
+    public static Location latLon2Location(double lat, double lng){
+        CoordinateConversion coordinateConversion = new CoordinateConversion();
+        String[] utmArr = coordinateConversion.latLon2UTM(lat, lng).split(" ");
+        return new Location("", Integer.parseInt(utmArr[2]), Integer.parseInt(utmArr[3]), utmArr[0] + " " + utmArr[1]);
     }
 }

@@ -7,7 +7,6 @@ import io.github.agentsoz.ees.gui.util.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +35,27 @@ public class Main {
     private static final List<String> trikesInputs = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
+        System.out.println("####################################################################################");
+        System.out.println("EXAMPLE:");
+        System.out.println("1. Enter trip id of interest: AP629\n" +
+                "1. Enter time of the question sent(HH:mm:ss): 14:32:53\n" +
+                "1. QUESTIONS:\n" +
+                "\t1) Why is my trike late?\n" +
+                "Enter choice: 1\n" +
+                "1. Which Trike to ask:21\n" +
+                "Enter 1 to add more requests: 1\n" +
+                "##########################################\n" +
+                "2. Enter trip id of interest: AP725\n" +
+                "2. Enter time of the question sent(HH:mm:ss): 23:00:15\n" +
+                "2. QUESTIONS:\n" +
+                "\t1) Why is my trike late?\n" +
+                "Enter choice: 1\n" +
+                "2. Which Trike to ask:3\n" +
+                "Enter 1 to add more requests:");
+
+        System.out.println("####################################################################################");
+        System.out.println("YOUR INPUT");
+
         //  INPUT
         Scanner scanner = new Scanner(System.in);
         int i = 0;
@@ -63,6 +83,13 @@ public class Main {
                 choices.remove(i);
                 break;
             }
+
+            System.out.print("Enter 1 to add more requests: ");
+            String input = scanner.nextLine();
+            if(!input.equals("1")){
+                break;
+            }
+
             System.out.println("##########################################");
             i++;
         }while (true);
@@ -100,7 +127,7 @@ public class Main {
     }
 
     private static boolean tripIdInput(Scanner scanner, int i){
-        System.out.print(i + ". Enter trip id: ");
+        System.out.print(i + 1 + ". Enter trip id of interest: ");
         String input = scanner.nextLine();
 
         if (input.matches("AP[0-9]+")) {
@@ -323,7 +350,7 @@ public class Main {
 
 
     private static boolean timeInput(Scanner scanner, int i){
-            System.out.print(i + ". Enter time(HH:mm:ss): ");
+            System.out.print(i + 1 + ". Enter time of the question sent(HH:mm:ss): ");
             String input = scanner.nextLine();
 
             // strict time regex
@@ -338,9 +365,9 @@ public class Main {
     }
 
     private static boolean questionInput(Scanner scanner, int i){
-        System.out.println(i + ". QUESTIONS:");
-        System.out.println("1) Why is my trike late?");
-        System.out.println("2) Why is this trike responsible for me?");
+        System.out.println(i + 1 + ". QUESTIONS:");
+        System.out.println("\t1) Why is my trike late?");
+        //System.out.println("\t2) Why is this trike responsible for me?");
         System.out.print("Enter choice: ");
         try{
             int choice = Integer.parseInt(scanner.nextLine());
@@ -352,7 +379,7 @@ public class Main {
     }
 
     private static boolean trikesInput(Scanner scanner, int i){
-        System.out.print(i + ". Which Trike:");
+        System.out.print(i + 1 + ". Which Trike to ask:");
         String trikeId = scanner.nextLine();
         if(trikeId.matches("[0-9]+")){
             trikesInputs.add(trikeId);
@@ -363,7 +390,7 @@ public class Main {
     }
 
 
-    private static void readJSON() throws IOException {
+    public static void readJSON() throws IOException {
         int counter = 0;
         while (true){
             File file = new File("events/Trike_" + counter + ".json");

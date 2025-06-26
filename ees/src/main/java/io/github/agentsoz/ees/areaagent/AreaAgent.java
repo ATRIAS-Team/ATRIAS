@@ -28,12 +28,9 @@ package io.github.agentsoz.ees.areaagent;
  */
 
 import io.github.agentsoz.ees.Run.JadexModel;
-import io.github.agentsoz.ees.shared.Job;
-import io.github.agentsoz.ees.shared.Message;
-import io.github.agentsoz.ees.shared.SharedPlans;
+import io.github.agentsoz.ees.shared.*;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.AreaAgentService;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
-import io.github.agentsoz.ees.shared.SharedUtils;
 import jadex.bdiv3.annotation.*;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bridge.IInternalAccess;
@@ -132,8 +129,9 @@ public class AreaAgent {
         utils.body();
 
         SharedUtils.areaAgentMap.put(areaAgentId, this);
-
-        //bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
+        if(SharedConstants.FIREBASE_ENABLED){
+            bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
+        }
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
         bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
 
@@ -204,7 +202,7 @@ public class AreaAgent {
         utils.sendJobToAgent(assignedJobs);
     }
 
-    @Goal(recur = true, recurdelay = 5000)
+    @Goal(recur = true, recurdelay = 300)
     private class MaintainDistributeFirebaseJobs
     {
         @GoalMaintainCondition

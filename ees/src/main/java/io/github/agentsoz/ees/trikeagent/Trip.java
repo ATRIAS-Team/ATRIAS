@@ -148,7 +148,7 @@ public class Trip {
 
     //@Marcel musste public machen
 
-    public DecisionTask getDecisionTaskD() {
+    public DecisionTask getDecisionTask() {
         return this.decisionTask;
     }
     public String getTripID() {

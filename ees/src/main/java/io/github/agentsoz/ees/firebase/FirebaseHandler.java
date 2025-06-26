@@ -27,6 +27,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.*;
 import com.google.firebase.internal.NonNull;
+import io.github.agentsoz.ees.shared.Cells;
 import io.github.agentsoz.util.Location;
 
 import java.io.FileInputStream;
@@ -109,11 +110,14 @@ public class FirebaseHandler<A, T> {
                     .getReference("agents")
                     .child(agentID);
 
-            // Set the latitude and longitude directly under the agent's node
-            agentRef.child("latitude").setValueAsync(location.getX());
-            agentRef.child("longitude").setValueAsync(location.getY());
+            double[] latlng = Cells.locationToLatLng(location);
+            double lat = latlng[0];
+            double lng = latlng[1];
 
-            System.out.println("Location updated for Agent ID: " + agentID);
+            // Set the latitude and longitude directly under the agent's node
+            agentRef.child("latitude").setValueAsync(lat);
+            agentRef.child("longitude").setValueAsync(lng);
+
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Error updating location in Firebase: " + e.getMessage());

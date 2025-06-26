@@ -23,22 +23,28 @@ package io.github.agentsoz.ees.trikeagent;
  */
 
 import com.google.api.core.ApiFuture;
+import com.google.common.collect.Lists;
 import com.google.firebase.database.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
+import io.github.agentsoz.ees.gui.util.DataDeserializer;
 import io.github.agentsoz.ees.shared.*;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.JadexService.NotifyService2.INotifyService2;
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
-import io.github.agentsoz.ees.util.EventTracker;
-import io.github.agentsoz.ees.util.csvLogger;
+import io.github.agentsoz.ees.util.*;
 import io.github.agentsoz.util.Location;
 import io.github.agentsoz.util.PerceptList;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -50,6 +56,14 @@ import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeSer
 
 
 public class Utils {
+
+    public static final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
+            .registerTypeAdapter(Data.class, new DataDeserializer())
+            .setPrettyPrinting()
+            .create();
+
     private final TrikeAgent trikeAgent;
 
     public Utils(TrikeAgent trikeAgent){
@@ -259,14 +273,17 @@ public class Utils {
 
                     if(FIREBASE_ENABLED){
                         //  listen to the new child in firebase
-                        ChildEventListener childEventListener = trikeAgent.firebaseHandler.childAddedListener("trips/"+newTrip.tripID, (dataSnapshot, previousChildName, list)->{
+                        ChildEventListener childEventListener = trikeAgent.firebaseHandler.childAddedListener("trips/"+newTrip.tripID+"/messages", (dataSnapshot, previousChildName, list)->{
                             System.out.println(dataSnapshot);
-                            // Iterate through messages under this trip
-                            for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-                                String message = (String) messageSnapshot.child("message").getValue();
+                            String sender = (String) dataSnapshot.child("sender").getValue();
+                            if(sender.equals("agent")) return;
 
-                                // Check if the message is the specific question
-                                if ("How many trips are scheduled before mine?".equals(message)) {
+                            // Iterate through messages under this trip
+                            String message = (String) dataSnapshot.child("message").getValue();
+
+                            // Check if the message is the specific question
+                            switch (message){
+                                case "How many trips are scheduled before mine?": {
                                     DatabaseReference parent = dataSnapshot.getRef().getParent();
                                     String tripId = parent.getKey();
                                     int numberOfTrips = 0;
@@ -278,18 +295,14 @@ public class Utils {
                                         }
                                     }
 
-
                                     // Push a new message node under the 'messages' node
-                                    DatabaseReference newMessageRef = dataSnapshot.getRef().push();
-
+                                    DatabaseReference newMessageRef = dataSnapshot.getRef().getParent().push();
                                     // Set the message content
                                     newMessageRef.child("message").setValueAsync("Number of trips before yours: " + numberOfTrips);
-
                                     // Add other necessary fields, e.g., sender and timestamp if needed
                                     newMessageRef.child("sender").setValueAsync("agent");
-
-
                                     // Remove the question message from Firebase
+                                    /*
                                     messageSnapshot.getRef().removeValue(new DatabaseReference.CompletionListener() {
                                         @Override
                                         public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
@@ -299,6 +312,26 @@ public class Utils {
                                             }
                                         }
                                     });
+
+                                     */
+                                    break;
+                                }
+                                case "Why are you late?":{
+                                    DatabaseReference parent = dataSnapshot.getRef().getParent().getParent();
+                                    String tripId = parent.getKey();
+                                    boolean isCause = isCustomerTripCause(tripId, trikeAgent.events);
+                                    boolean isCause2 = isCharginTripCause(tripId, trikeAgent.events);
+                                    System.out.println("There is a customerTrip before your trip, that does not finish in time. :" + isCause);
+                                    System.out.println("There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
+                                    // Push a new message node under the 'messages' node
+                                    DatabaseReference newMessageRef = dataSnapshot.getRef().getParent().push();
+                                    // Set the message content
+                                    newMessageRef.child("message")
+                                            .setValueAsync("There is a customerTrip before your trip, that does not finish in time. :" + isCause +
+                                                    "\n" + "There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
+                                    // Add other necessary fields, e.g., sender and timestamp if needed
+                                    newMessageRef.child("sender").setValueAsync("agent");
+                                    break;
                                 }
                             }
                         });
@@ -1011,14 +1044,7 @@ public class Utils {
             /**
              * TODO: @Mariam update firebase after every MATSim action: location of the agent
              */
-
-
-            System.out.println("Neue Position:" + trikeAgent.agentLocation);
-            FirebaseHandler.updateAgentLocation(trikeAgent.agentID, trikeAgent.agentLocation);
         }
-
-        //System.out.println("Neue Position: " + trikeAgent.agentLocation);
-        sendAreaAgentUpdate("update");
 
 
         //todo: action und perceive trennen! aktuell beides in beiden listen! löschen so nicht konsistent!
@@ -1060,7 +1086,7 @@ public class Utils {
         String arrivalTime = "0.0"; //when it was not a CustomerTrip
         if (trip.getTripType().equals("CustomerTrip")){
             arrivalTime = Double.toString(ArrivalTime(trip.getVATime()));
-            origin = "trike:" + trip.getDecisionTaskD().getOrigin();
+            origin = "trike:" + trip.getDecisionTask().getOrigin();
         }
         csvLogger.addLog(trikeAgent.agentID, CNP_ACTIVE, THETA, ALLOW_CUSTOMER_MISS, CHARGING_THRESHOLD, commitThreshold, DISTANCE_FACTOR, "trike:" + trikeAgent.agentID, tripID, driveOperationNumber, tripType, batteryBefore, batteryAfter, arrivedAtLocation, distance, arrivalTime, origin);
     }
@@ -1194,7 +1220,7 @@ public class Utils {
         try {
             return (double)trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(
                     String.valueOf(trikeAgent.agentID),
-                    PerceptList.REQUEST_DISTANCE_OF_LOCATIONS,
+                    "request_distance_of_locations",
                     args);
         } catch (AgentNotFoundException e) {
             throw new RuntimeException(e);
@@ -1240,4 +1266,201 @@ public class Utils {
         }
     }
 
+    public static boolean isCustomerTripCause(String questionerTripID, List<Event<?>> trikeEvents) {
+        List<Event<?>> events = Lists.reverse(trikeEvents);
+
+        boolean causeOfDelay = false;
+
+        int index = -1;
+
+        //  questioner
+        LocalDateTime eventTimeOfQuestionerTripCreation = null;
+        LocalDateTime questionerTripStartTime = null;
+
+
+        // predecessor
+        String predecessorTripID = null;
+        LocalDateTime eventTimeOfPredecessorTripCreation = null;
+        LocalDateTime predecessorTripEndTime = null;
+
+
+        //  search for of the trip of the customer
+        for (int i = 0; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.content.data.name;
+
+            if("CustomerTripCreation".equalsIgnoreCase(name)){
+                Map<String, Object> actions = event.content.data.actions;
+                Trip trip = (Trip) actions.get("Create new CustomerTrip");
+                String tripID = trip.getTripID();
+
+
+
+                if (tripID.equals(questionerTripID)) {
+                    eventTimeOfQuestionerTripCreation = event.updated;
+                    questionerTripStartTime = trip.getDecisionTask().getVATimeFromJob();
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if (eventTimeOfQuestionerTripCreation == null) {
+            System.out.println("eventTimeOfQuestionerTripCreation is null");
+            return false;
+        }
+
+        // search for the predecessor trip
+        for (int i = index + 1; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.content.data.name;
+
+            if ("CustomerTripCreation".equalsIgnoreCase(name)) {
+                Map<String, Object> actions = event.content.data.actions;
+                Trip trip = (Trip) actions.get("Create new CustomerTrip");
+                String tripID = trip.getTripID();
+
+
+                index = i;
+                predecessorTripID = tripID;
+                eventTimeOfPredecessorTripCreation = event.updated;
+                break;
+            }
+        }
+
+        if (predecessorTripID == null || eventTimeOfPredecessorTripCreation == null) {
+            System.out.println("No predecessor found");
+            return false;
+        }
+
+        // search for the most recent endtime of the predecessor trip
+        for (int i = 0; i < index; i++) {
+            Event<?> event = events.get(i);
+
+            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.summary)) {
+                Data<?> data = event.content.data;
+
+                // Convert newValue to JsonElement, then deserialize to List<Trip>
+                JsonElement jsonElement = gson.toJsonTree(data.oldValue);
+                Type tripListType = new TypeToken<List<Trip>>() {}.getType();
+                List<Trip> trips = gson.fromJson(jsonElement, tripListType);
+                boolean contains = false;
+
+                for (Trip trip: trips) {
+                    if(trip.tripID.equals(predecessorTripID)){
+                        contains = true;
+                        predecessorTripEndTime = trip.endTime;
+                    }
+                }
+
+                if (contains) {
+                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
+                    if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
+                        causeOfDelay = true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return causeOfDelay;
+    }
+
+    public static boolean isCharginTripCause(String questionerTripID, List<Event<?>> trikeEvents) {
+        boolean causeOfDelay = false;
+
+        List<Event<?>> events = Lists.reverse(trikeEvents);
+
+        int index = -1;
+
+        //  questioner
+        LocalDateTime eventTimeOfQuestionerTripCreation = null;
+        LocalDateTime questionerTripStartTime = null;
+
+
+        // predecessor
+        String predecessorTripID = null;
+        LocalDateTime eventTimeOfPredecessorTripCreation = null;
+        LocalDateTime predecessorTripEndTime = null;
+
+
+        //  search for of the trip of the customer
+        for (int i = 0; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.content.data.name;
+
+            if("CustomerTripCreation".equalsIgnoreCase(name)){
+                Map<String, Object> actions = event.content.data.actions;
+                Trip trip = (Trip) actions.get("Create new CustomerTrip");
+                String tripID = trip.getTripID();
+
+
+                if (tripID.equals(questionerTripID)) {
+                    eventTimeOfQuestionerTripCreation = event.updated;
+                    questionerTripStartTime = trip.getDecisionTask().getVATimeFromJob();
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if (eventTimeOfQuestionerTripCreation == null) {
+            System.out.println("eventTimeOfQuestionerTripCreation is null");
+            return false;
+        }
+
+        // search for the predecessor trip
+        for (int i = index + 1; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.content.data.name;
+
+            if ("chargingTripCreation".equalsIgnoreCase(name)) {
+                Map<String, Object> actions = event.content.data.actions;
+                Trip trip = (Trip) actions.get("Create new ChargingTrip");
+                String tripID = trip.getTripID();
+
+                index = i;
+                predecessorTripID = tripID;
+                eventTimeOfPredecessorTripCreation = event.updated;
+                break;
+            }
+        }
+
+        if (predecessorTripID == null || eventTimeOfPredecessorTripCreation == null) {
+            System.out.println("No predecessor found");
+            return false;
+        }
+
+        // search for the most recent endtime of the predecessor trip
+        for (int i = 0; i < index; i++) {
+            Event<?> event = events.get(i);
+
+            if ("TripList_BeliefUpdated".equalsIgnoreCase(event.summary)) {
+                Data<?> data = event.content.data;
+
+                // Convert newValue to JsonElement, then deserialize to List<Trip>
+                JsonElement jsonElement = gson.toJsonTree(data.oldValue);
+                Type tripListType = new TypeToken<List<Trip>>() {}.getType();
+                List<Trip> trips = gson.fromJson(jsonElement, tripListType);
+                boolean contains = false;
+
+                for (Trip trip: trips) {
+                    if(trip.tripID.equals(predecessorTripID)){
+                        contains = true;
+                        predecessorTripEndTime = trip.endTime;
+                    }
+                }
+
+                if (contains) {
+                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
+                    if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
+                        causeOfDelay = true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return causeOfDelay;
+    }
 }

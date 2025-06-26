@@ -269,6 +269,20 @@ public class Plans {
         }
     }
 
+    public void updateLocation(){
+        try{
+            Location currentLocation = utils.getCurrentLocation()[0];
+            trikeAgent.agentLocation = currentLocation;
+
+            if(SharedConstants.FIREBASE_ENABLED){
+                FirebaseHandler.updateAgentLocation(trikeAgent.agentID, currentLocation);
+            }
+
+            utils.sendAreaAgentUpdate("update");
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+    }
     public void checkMessagesBuffer(Message message) {
         //  asking area for trikes
         ArrayList<String> neighborList = message.getContent().getValues();
@@ -414,5 +428,10 @@ public class Plans {
                 }
             }
         }
+    }
+
+    public void readFirebaseMessages(){
+        if(!SharedConstants.FIREBASE_ENABLED) return;
+
     }
 }
