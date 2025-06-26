@@ -139,7 +139,7 @@ public class Plans {
 
                 long drivingTimeInSec = (long) (((distToStation / 1000.0) / DRIVING_SPEED)*60*60);
 
-                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 3600));
+                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 1800));
 
 
                 trikeAgent.tripList.add(chargingTrip);
