@@ -10,3 +10,6 @@
 	path = libs/bdi-abm-integration
 	url = https://github.com/M4rc3l-M/bdi-abm-integration
 	branch = main
+[submodule "bdi-abm-integration"]
+	path = bdi-abm-integration
+	url = https://github.com/M4rc3l-M/bdi-abm-integration
