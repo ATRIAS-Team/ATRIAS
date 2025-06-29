@@ -224,7 +224,7 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay= 15)
+    @Goal(recur=true, recurdelay= 25)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         private boolean isEmpty(){
