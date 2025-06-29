@@ -8,5 +8,5 @@
 	branch = main
 [submodule "libs/bdi-abm-integration"]
 	path = libs/bdi-abm-integration
-	url = ../bdi-abm-integration.git
-	branch = emas24
+	url = https://github.com/M4rc3l-M/bdi-abm-integration
+	branch = main

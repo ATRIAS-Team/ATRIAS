@@ -51,10 +51,14 @@ public class SharedConstants {
         assignIfNotNull(classElement,"CLEANUP_TIMER", Integer::parseInt,
                 value -> SharedConstants.CLEANUP_TIMER = value);
 
-        SIMULATION_START_TIME_DT = LocalDateTime
-                .parse(SIMULATION_START_TIME, dateTimeFormatter);
-
+        if(!FIREBASE_ENABLED){
+            SIMULATION_START_TIME_DT = LocalDateTime
+                    .parse(SIMULATION_START_TIME, dateTimeFormatter);
+        }else{
+            SIMULATION_START_TIME_DT = LocalDateTime.now();
+        }
         initDateTS = SIMULATION_START_TIME_DT.toInstant(ZoneOffset.UTC).toEpochMilli();
+
     }
 
     public static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy'T'HH:mm");

@@ -27,6 +27,7 @@ import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
 import io.github.agentsoz.dataInterface.DataClient;
 import io.github.agentsoz.dataInterface.DataServer;
+import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.shared.Cells;
 import io.github.agentsoz.ees.shared.SharedConstants;
 import io.github.agentsoz.ees.matsim.*;
@@ -61,12 +62,12 @@ public class Run implements DataClient {
     DataServer dataServer = null;
 
     //  Defaults
-    private double optTimestep = 10;
+    private double optTimestep = 0.5;
 
 
     public static void main(String[] args) {
         Thread.currentThread().setName("ees");
-        //FirebaseHandler.init();
+        FirebaseHandler.init();
         XMLConfig xmlConfig = new XMLConfig();
         String configPath = System.getenv("ConfigFile");
         Element xmlConfigRoot = Parser.parseXML(configPath);

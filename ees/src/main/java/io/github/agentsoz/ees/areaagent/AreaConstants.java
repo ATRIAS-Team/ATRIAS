@@ -33,13 +33,18 @@ public class AreaConstants {
 
     public static int NEIGHBOURS_WAIT_TIME = 10000;
 
-    public static double LOAD_TRIGGER = 1.5;
+    public static double OVERLOAD_TRIGGER = 1.5;
+
+    public static double UNLOAD_TRIGGER = 0.25;
 
     public static double LOAD_DECAY_FACTOR = 0.8;
 
     public static String CSV_SOURCE = "ees/subsample_2.csv";
 
     public static final double NO_TRIKES_NO_TRIPS_LOAD = 100;
+
+    public static double UNLOAD_FACTOR = 0.75;
+    public static double OVERLOAD_FACTOR = 1.25;
 
     public static void configure(Element classElement) {
         assignIfNotNull(classElement,"CSV_SOURCE", String::toString,
@@ -50,9 +55,18 @@ public class AreaConstants {
                 value -> AreaConstants.MIN_TRIKES = value);
         assignIfNotNull(classElement,"NEIGHBOURS_WAIT_TIME", Integer::parseInt,
                 value -> AreaConstants.NEIGHBOURS_WAIT_TIME = value);
-        assignIfNotNull(classElement,"LOAD_TRIGGER", Double::parseDouble,
-                value -> AreaConstants.LOAD_TRIGGER = value);
+
+        assignIfNotNull(classElement,"OVERLOAD_TRIGGER", Double::parseDouble,
+                value -> AreaConstants.OVERLOAD_TRIGGER = value);
+        assignIfNotNull(classElement,"UNLOAD_TRIGGER", Double::parseDouble,
+                value -> AreaConstants.UNLOAD_TRIGGER = value);
+
         assignIfNotNull(classElement,"LOAD_DECAY_FACTOR", Double::parseDouble,
                 value -> AreaConstants.LOAD_DECAY_FACTOR = value);
+
+        assignIfNotNull(classElement,"UNLOAD_FACTOR", Double::parseDouble,
+                value -> AreaConstants.UNLOAD_FACTOR = value);
+        assignIfNotNull(classElement,"OVERLOAD_FACTOR", Double::parseDouble,
+                value -> AreaConstants.OVERLOAD_FACTOR = value);
     }
 }

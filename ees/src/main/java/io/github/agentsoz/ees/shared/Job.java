@@ -33,6 +33,7 @@ import java.util.List;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import io.github.agentsoz.ees.util.LocalDateTimeSerializer;
 import io.github.agentsoz.ees.util.Parser;
 import io.github.agentsoz.ees.util.LocalDateTimeDeserializer;
 import io.github.agentsoz.util.Location;
@@ -151,6 +152,7 @@ public class Job {
     public static List<Job> JSONToJobs(String json) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
                 .create();
 
         // used to capture and preserve the generic type information at runtime
@@ -163,6 +165,7 @@ public class Job {
     public static List<Job> JSONFileToJobs(String jsonPath) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
                 .create();
 
         // used to capture and preserve the generic type information at runtime

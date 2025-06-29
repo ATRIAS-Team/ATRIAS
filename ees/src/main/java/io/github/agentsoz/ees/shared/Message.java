@@ -124,9 +124,8 @@ public class Message {
         return message;
     }
 
-    public Message reattempt(){
+    public void reattempt(){
         this.attempts++;
-        return this;
     }
 
     public int getAttempts(){

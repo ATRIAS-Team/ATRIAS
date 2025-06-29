@@ -23,6 +23,7 @@ package io.github.agentsoz.ees.trikeagent;
  */
 
 import io.github.agentsoz.bdiabm.data.ActionContent;
+import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.shared.*;
 import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
@@ -32,11 +33,13 @@ import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.Run.TrikeMain;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.util.csvLogger;
+import io.github.agentsoz.util.Location;
 import jadex.bridge.service.IService;
 import jadex.bridge.service.IServiceIdentifier;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
@@ -112,8 +115,38 @@ public class Plans {
                 String tripID = "CH";
                 tripID = tripID.concat(Integer.toString(trikeAgent.chargingTripCounter));
                 Trip chargingTrip = new Trip(tripID, "ChargingTrip", utils.getNextChargingStation(), "NotStarted");
+                chargingTrip.setVaTime(SharedUtils.getCurrentDateTime());
+
+                double distToStation;
+                LocalDateTime prevEndTime;
+
+                if(!trikeAgent.tripList.isEmpty()){
+                    int lastTripIndex = trikeAgent.tripList.size() - 1;
+                    Trip lastTrip = trikeAgent.tripList.get(lastTripIndex);
+
+                    distToStation = utils.getDistanceBetween(lastTrip.getEndPosition(), chargingTrip.getStartPosition());
+                    prevEndTime = lastTrip.getEndTime();
+
+                }else if(!trikeAgent.currentTrip.isEmpty()){
+                    Trip lastTrip = trikeAgent.currentTrip.get(0);
+
+                    distToStation = utils.getDistanceBetween(lastTrip.getEndPosition(), chargingTrip.getStartPosition());
+                    prevEndTime = lastTrip.getEndTime();
+                }else{
+                    distToStation = utils.getDrivingDistanceTo(chargingTrip.getStartPosition());
+                    prevEndTime = SharedUtils.getCurrentDateTime();
+                }
+
+                long drivingTimeInSec = (long) (((distToStation / 1000.0) / DRIVING_SPEED)*60*60);
+
+                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 1800));
+
+
                 trikeAgent.tripList.add(chargingTrip);
                 trikeAgent.chargingTripAvailable = "1";
+
+                utils.eventTracker.TripList_BeliefUpdated(trikeAgent);
+                utils.eventTracker.ChargingTripCreation(trikeAgent, chargingTrip);
             }
         }
     }
@@ -142,12 +175,27 @@ public class Plans {
                     utils.sendDriveTotoAdc();
                     utils.updateCurrentTripProgress("DriveToStart");
                     utils.currentTripStatus();
+                    try {
+                        Location[] locations = utils.getCurrentLocation();
+                        System.out.println("AgentID: " + trikeAgent.agentID + " location: " +
+                                Arrays.toString(locations));
+
+
+                        System.out.println("AgentID: " + trikeAgent.agentID + " vanilla distance to start: " + (Location.distanceBetween(locations[0], trikeAgent.currentTrip.get(0).startPosition)));
+
+                        System.out.println("AgentID: " + trikeAgent.agentID + " distance to start: " +
+                                utils.getDrivingDistanceTo(trikeAgent.currentTrip.get(0).startPosition));
+                    } catch (AgentNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                     break;
                 }
                 case "AtStartLocation": {
                     utils.currentTripStatus();
                     switch (current.getTripType()) {
                         case "ChargingTrip": {
+                            if(current.getEndTime().isAfter(SharedUtils.getCurrentDateTime())) return;
+
                             trikeAgent.trikeBattery.loadBattery();
                             utils.updateCurrentTripProgress("Finished");
                             trikeAgent.chargingTripAvailable = "0";
@@ -163,6 +211,20 @@ public class Plans {
                                 utils.sendDriveTotoAdc();
                                 utils.updateCurrentTripProgress("DriveToEnd");
                                 utils.currentTripStatus();
+                                try {
+                                    Location[] locations = utils.getCurrentLocation();
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " location: " +
+                                            Arrays.toString(locations));
+
+
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " vanilla distance to end: " + (Location.distanceBetween(locations[0], trikeAgent.currentTrip.get(0).endPosition)));
+
+
+                                    System.out.println("AgentID: " + trikeAgent.agentID + " distance to end: " +
+                                            utils.getDrivingDistanceTo(trikeAgent.currentTrip.get(0).endPosition));
+                                } catch (AgentNotFoundException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                             break;
                         }
@@ -207,6 +269,20 @@ public class Plans {
         }
     }
 
+    public void updateLocation(){
+        try{
+            Location currentLocation = utils.getCurrentLocation()[0];
+            trikeAgent.agentLocation = currentLocation;
+
+            if(SharedConstants.FIREBASE_ENABLED){
+                FirebaseHandler.updateAgentLocation(trikeAgent.agentID, currentLocation);
+            }
+
+            utils.sendAreaAgentUpdate("update");
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+    }
     public void checkMessagesBuffer(Message message) {
         //  asking area for trikes
         ArrayList<String> neighborList = message.getContent().getValues();
@@ -342,18 +418,20 @@ public class Plans {
                 Message message = iterator.next();
                 if(currentTimeStamp >= message.getTimeStamp() + TrikeConstants.REQUEST_WAIT_TIME){
                     if(message.getAttempts() < 1){
-                        iterator.remove();
-                        //IAreaTrikeService service = messageToService(trikeAgent.agent, message);
+                        //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+                        message.reattempt();
                         message.setTimeStamp(currentTimeStamp);
-                        trikeAgent.requests.add(message.reattempt());
                         SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
-                        System.out.println(message + " was retried!");
                     }else{
-                        System.out.println(message + " was not delivered!");
                         iterator.remove();
                     }
                 }
             }
         }
+    }
+
+    public void readFirebaseMessages(){
+        if(!SharedConstants.FIREBASE_ENABLED) return;
+
     }
 }

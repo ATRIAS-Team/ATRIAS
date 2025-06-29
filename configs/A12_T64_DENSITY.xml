@@ -20,18 +20,24 @@
         <field field_name="DISTANCE_FACTOR">3.0</field>
         <field field_name="CHARGING_THRESHOLD">0.4</field>
         <field field_name="ASK_FOR_TRIKES_WAIT_TIME">12000</field>
-        <field field_name="MANAGER_WAIT_TIME">20000</field>
-        <field field_name="CONFIRM_WAIT_TIME">10000</field>
-        <field field_name="PROPOSALS_WAIT_TIME">10000</field>
-        <field field_name="REQUEST_WAIT_TIME">8000</field>
+        <field field_name="MANAGER_WAIT_TIME">24000</field>
+        <field field_name="CONFIRM_WAIT_TIME">12000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">12000</field>
+        <field field_name="REQUEST_WAIT_TIME">24000</field>
         <field field_name="MIN_CNP_TRIKES">32</field>
     </class>
     <class class_name="AreaAgent.java">
         <field field_name="CSV_SOURCE">ees/boston4.csv</field>
-        <field field_name="REQUEST_WAIT_TIME">8000</field>
-        <field field_name="NEIGHBOURS_WAIT_TIME">20000</field>
-        <field field_name="LOAD_DECAY_FACTOR">0.8</field>
-        <field field_name="LOAD_TRIGGER">1.6</field>
+        <field field_name="REQUEST_WAIT_TIME">24000</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">24000</field>
+
+        <field field_name="LOAD_DECAY_FACTOR">0.9</field>
+
+        <field field_name="OVERLOAD_TRIGGER">1.7</field>
+        <field field_name="UNLOAD_TRIGGER">0.1</field>
+
+        <field field_name="OVERLOAD_FACTOR">1.5</field>
+        <field field_name="UNLOAD_FACTOR">0.25</field>
     </class>
     <class class_name="SharedConstants.java">
         <field field_name="FIREBASE_ENABLED">false</field>

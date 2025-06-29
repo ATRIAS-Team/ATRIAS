@@ -22,8 +22,10 @@ package io.github.agentsoz.ees.util;
  * #L%
  */
 
+import java.time.LocalDateTime;
+
 public class Event<V> {
-    public String updated;
+    public LocalDateTime updated;
     public String summary;
 
     public Content<V> content = new Content<>();
@@ -32,16 +34,9 @@ public class Event<V> {
         public long eventNumber;
         public String eventType;
 
-        public Data<V> data = new Data<>();
+        public Data<V> data;
     }
 
-    public static class Data<V>{
-        public String location;
-        public String trace;
-
-        public V oldValue;
-        public V newValue;
-    }
 }
 
 

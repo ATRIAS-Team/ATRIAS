@@ -43,12 +43,17 @@ public class LocatedAgentList {
             case "register": {
                 LocatedAgentList.add(agent);
 
-                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size() == 0){
-                    areaAgent.load = areaAgent.load - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+                synchronized (areaAgent.loadLock){
+                    if(areaAgent.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                        double newLoad = areaAgent.getLoad() - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+                        areaAgent.setLoad(newLoad);
+                    }
+                    else{
+                        double newLoad = areaAgent.getLoad() * ((size() - 1.0) / size());
+                        areaAgent.setLoad(newLoad);
+                    }
                 }
-                else{
-                    areaAgent.load *= ((size() - 1.0) / size());
-                }
+
                 areaAgent.lastDelegateRequestTS = -1;
                 break;
             }
@@ -65,11 +70,14 @@ public class LocatedAgentList {
             case "deregister": {
                 synchronized (LocatedAgentList){
                     LocatedAgentList.removeIf(locatedAgent -> locatedAgent.getAgentID().equals(agent.getAgentID()));
-
-                    if(size() == 0){
-                        areaAgent.load += AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
-                    }else{
-                        areaAgent.load *= ((size() + 1.0) / size());
+                    synchronized (areaAgent.loadLock){
+                        if(size() == 0){
+                            double newLoad = areaAgent.getLoad() + AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+                            areaAgent.setLoad(newLoad);
+                        }else{
+                            double newLoad = areaAgent.getLoad() * ((size() + 1.0) / size());
+                            areaAgent.setLoad(newLoad);
+                        }
                     }
                     areaAgent.lastDelegateRequestTS = -1;
                 }

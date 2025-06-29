@@ -66,7 +66,6 @@ public class Utils {
         areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell);
 
         System.out.println("AreaAgent " + areaAgent.areaAgentId + " sucessfully started;");
-        initJobs();
 
         IServiceIdentifier sid = ((IService) areaAgent.agent.getProvidedService(IAreaTrikeService.class)).getServiceId();
         areaAgent.agent.setTags(sid, areaAgent.areaAgentId);
@@ -92,27 +91,33 @@ public class Utils {
                 System.out.println("Timestamp: " + timestampStr);
 
 
-                Location startPosition = new Location("", 0, 0);
-                startPosition.x = dataSnapshot.child("startLocation").child("longitude").getValue(Double.class);
-                startPosition.y = dataSnapshot.child("startLocation").child("latitude").getValue(Double.class);
+                Location startPosition = Cells.latLon2Location(
+                        dataSnapshot.child("startLocation").child("latitude").getValue(Double.class),
+                        dataSnapshot.child("startLocation").child("longitude").getValue(Double.class));
 
-                Location endPosition = new Location("", 0, 0);
-                endPosition.x = dataSnapshot.child("endLocation").child("longitude").getValue(Double.class);
-                endPosition.y = dataSnapshot.child("endLocation").child("latitude").getValue(Double.class);
+                Location endPosition = Cells.latLon2Location(
+                        dataSnapshot.child("endLocation").child("latitude").getValue(Double.class),
+                        dataSnapshot.child("endLocation").child("longitude").getValue(Double.class));
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS'Z'");
                 System.out.println(startTimeStr);
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
                 LocalTime localTime = LocalTime.parse(startTimeStr, dtf);
-                LocalDateTime startTime = LocalDateTime.of(LocalDate.now(), localTime);
-                LocalDateTime vaTime = LocalDateTime.parse(timestampStr, formatter);
-                Job job = new Job(customerId, tripRequestId, startTime, vaTime, startPosition, endPosition);
 
-                String jobCell = Cells.locationToCellAddress(job.getStartPosition(), Cells.getCellResolution(areaAgent.cell));
+                LocalDateTime vaTime = LocalDateTime.of(SharedConstants.SIMULATION_START_TIME_DT.toLocalDate(), localTime);
+                LocalDateTime bookingTime = LocalDateTime.parse(timestampStr, formatter);
+
+                Job job = new Job(customerId, tripRequestId, bookingTime, vaTime, startPosition, endPosition);
+
+                String jobCell = Cells.locationToCellAddress(job.getStartPosition(),
+                        Cells.getCellResolution(areaAgent.cell));
                 if (jobCell.equals(areaAgent.cell)) {
                     list.add(job);
                 }
             });
+        }
+        else{
+            initJobs();
         }
 
         while (TrikeMain.TrikeAgentNumber != JadexModel.TrikeAgentnumber) {
@@ -126,19 +131,25 @@ public class Utils {
 
 
     public void sendJobToAgent(List<Job> jobList){
-        while (!jobList.isEmpty()){
+        for (Job job: jobList){
             //  current job
-            Job job = jobList.get(0);
             if(job == null) break;
             long jobTimeStamp = SharedUtils.getTimeStamp(job.getVATime());
             long simTimeStamp = SharedUtils.getSimTime();
-            if(jobTimeStamp > simTimeStamp) break;
+            if(jobTimeStamp > simTimeStamp) continue;
 
             if(Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)){
-                if(areaAgent.load >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || areaAgent.locatedAgentList.size() == 0){
-                    areaAgent.load += 1.0;
-                }else{
-                    areaAgent.load += 1.0 / areaAgent.locatedAgentList.size();
+                long size = areaAgent.locatedAgentList.size();
+                synchronized (areaAgent.loadLock){
+                    if(areaAgent.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size == 0){
+                        areaAgent.lastDelegateRequestTS = SharedUtils.getSimTime();
+
+                        double newLoad = areaAgent.getLoad() + 1.0;
+                        areaAgent.setLoad(newLoad);
+                    }else{
+                        double newLoad = areaAgent.getLoad() + (1.0 / size);
+                        areaAgent.setLoad(newLoad);
+                    }
                 }
             }
 
@@ -148,7 +159,7 @@ public class Utils {
                     areaAgent.jobsToDelegate.add(new DelegateInfo(job));
                     System.out.println(job.getID() + " is delegated");
                 }
-                jobList.remove(0);
+                jobList.remove(job);
             }
             else{
                 //message creation
@@ -159,7 +170,7 @@ public class Utils {
                 areaAgent.requests.add(message);
                 SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
                 //remove job from list
-                jobList.remove(0);
+                jobList.remove(job);
                 System.out.println("AREA AGENT: JOB was SENT");
             }
         }

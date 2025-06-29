@@ -28,21 +28,23 @@ import io.github.agentsoz.ees.shared.Job;
 import io.github.agentsoz.util.Location;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class Trip {
 
     public String tripID;
 
-    private Job job;
+    public Job job;
 
     public DecisionTask decisionTask;
 
     public String tripType; //charging trip, customer trip, ...
+
     public LocalDateTime vaTime; // vehicle arriving time
     public Location startPosition; // use this for trips with just one Geolocation
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
+
+    public LocalDateTime endTime;
 
     //####################################################################################
     // Constructors
@@ -122,6 +124,21 @@ public class Trip {
         return messageTrip;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "tripID='" + tripID + '\'' +
+                ", job=" + job +
+                ", tripType='" + tripType + '\'' +
+                ", vaTime=" + vaTime +
+                ", startPosition=" + startPosition +
+                ", endPosition=" + endPosition +
+                ", progress='" + progress + '\'' +
+                ", endTime=" + endTime +
+                '}';
+    }
+
+
 
 
 
@@ -131,7 +148,7 @@ public class Trip {
 
     //@Marcel musste public machen
 
-    public DecisionTask getDecisionTaskD() {
+    public DecisionTask getDecisionTask() {
         return this.decisionTask;
     }
     public String getTripID() {
@@ -158,12 +175,9 @@ public class Trip {
         return this.progress;
     }
 
-    /**
-    public Job getJob(){
-        this.Job.getOrigin();
-
-        return this.Job; }
-    **/
+    public LocalDateTime getEndTime(){
+        return this.endTime;
+    }
 
 
     //####################################################################################
@@ -192,6 +206,10 @@ public class Trip {
 
     public void setProgress(String progress) {
         this.progress = progress;
+    }
+
+    public void setEndTime(LocalDateTime endTime){
+        this.endTime = endTime;
     }
 
 }
