@@ -224,7 +224,7 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay= 25)
+    @Goal(recur=true, recurdelay= 15)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -244,10 +244,6 @@ public class TrikeAgent{
      */
     @Goal(recur = true, recurdelay = 1000)
     private class MaintainTripService {
-        @GoalMaintainCondition
-        boolean sentToMATSIM() {
-            return !canExecute;
-        }
     }
 
     @Plan(trigger = @Trigger(goals = MaintainTripService.class))

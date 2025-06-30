@@ -1115,6 +1115,7 @@ public class Utils {
             System.out.println("AgentID: " + trikeAgent.agentID + " currentStartPosition: " + trikeAgent.currentTrip.get(0).getStartPosition());
             System.out.println("AgentID: " + trikeAgent.agentID + " currentEndPosition: " +trikeAgent.currentTrip.get(0).getEndPosition());
             System.out.println("AgentID: " + trikeAgent.agentID + " currentProgress: " + trikeAgent.currentTrip.get(0).getProgress());
+            System.out.println("AgentID: " + trikeAgent.agentID + " endTime: " + trikeAgent.currentTrip.get(0).getEndTime());
         }
 
     }

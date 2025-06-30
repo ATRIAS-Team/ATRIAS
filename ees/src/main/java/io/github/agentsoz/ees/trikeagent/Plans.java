@@ -160,6 +160,9 @@ public class Plans {
     }
 
     public void executeTrips() {
+        if(!trikeAgent.canExecute && !(!trikeAgent.currentTrip.isEmpty() &&
+                trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip"))) return;
+
         utils.newCurrentTrip();
 
         Trip current = null;

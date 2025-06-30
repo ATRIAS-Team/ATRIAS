@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
 
@@ -35,6 +37,7 @@ public class Main {
     private static final List<String> trikesInputs = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
+        readJSON();
         System.out.println("####################################################################################");
         System.out.println("EXAMPLE:");
         System.out.println("1. Enter trip id of interest: AP629\n" +
@@ -76,6 +79,7 @@ public class Main {
                 timeInputs.remove(i);
                 break;
             }
+
             isSuccess = trikesInput(scanner, i);
             if (!isSuccess){
                 tripIds.remove(i);
@@ -94,8 +98,6 @@ public class Main {
             i++;
         }while (true);
         scanner.close();
-
-        readJSON();
 
 
         for (int j = 0; j < trikesInputs.size(); j++) {
@@ -379,13 +381,13 @@ public class Main {
     }
 
     private static boolean trikesInput(Scanner scanner, int i){
-        System.out.print(i + 1 + ". Which Trike to ask:");
-        String trikeId = scanner.nextLine();
-        if(trikeId.matches("[0-9]+")){
+        String trikeId = findMatchTrike(tripIds.get(i));
+        if(trikeId == null){
+            System.err.println("There is no trikes responsible for " + tripIds.get(i));
+            return false;
+        }else{
             trikesInputs.add(trikeId);
             return true;
-        }else {
-            return false;
         }
     }
 
@@ -421,4 +423,32 @@ public class Main {
             counter ++;
         }
     }
+
+    public static String findMatchTrike(String tripID) {
+        Pattern pattern = Pattern.compile(tripID);
+        for (Map.Entry<String, List<Event<?>>> entry : eventsHM.entrySet()) {
+            String trikeId = entry.getKey();
+            List<Event<?>> events = entry.getValue();
+
+            for (Event<?> event : events) {
+                if ("DecisionTaskCommit".equalsIgnoreCase(event.summary)) {
+                    // Serialize oldValue to JSON string
+                    String json = gson.toJson(event.content.data.oldValue);
+                    Matcher matcher = pattern.matcher(json);
+                    if (matcher.find()) {
+                        return trikeId;
+                    }
+
+                    // Serialize newValue to JSON string (if present)
+                    json = gson.toJson(event.content.data.newValue);
+                    matcher = pattern.matcher(json);
+                    if (matcher.find()) {
+                        return trikeId;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 }
