@@ -218,7 +218,15 @@ public class EventTracker {
         addXAgProcess(agent, xAgProcess);
     }
 
-
+    public static void removeOldEvents() {
+        File dir = new File("events");
+        if (dir.exists() && dir.isDirectory()) {
+            for (File file : dir.listFiles()) {
+                file.delete();
+            }
+            dir.delete();
+        }
+    }
     public static <T> void writeObjectToJsonFile(T object, String path) throws IOException {
         String jsonString = gson.toJson(object);
 

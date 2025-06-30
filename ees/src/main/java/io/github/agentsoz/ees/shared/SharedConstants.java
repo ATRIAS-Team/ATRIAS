@@ -23,6 +23,7 @@ package io.github.agentsoz.ees.shared;
  */
 
 import io.github.agentsoz.ees.Run.XMLConfig;
+import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import org.w3c.dom.Element;
 
 import java.time.LocalDateTime;
@@ -56,6 +57,7 @@ public class SharedConstants {
                     .parse(SIMULATION_START_TIME, dateTimeFormatter);
         }else{
             SIMULATION_START_TIME_DT = LocalDateTime.now();
+            FirebaseHandler.init();
         }
         initDateTS = SIMULATION_START_TIME_DT.toInstant(ZoneOffset.UTC).toEpochMilli();
 

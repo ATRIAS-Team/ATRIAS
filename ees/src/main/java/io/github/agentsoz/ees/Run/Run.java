@@ -27,10 +27,10 @@ import io.github.agentsoz.bdiabm.v2.AgentDataContainer;
 import io.github.agentsoz.bdiabm.v3.QueryPerceptInterface;
 import io.github.agentsoz.dataInterface.DataClient;
 import io.github.agentsoz.dataInterface.DataServer;
-import io.github.agentsoz.ees.firebase.FirebaseHandler;
 import io.github.agentsoz.ees.shared.Cells;
 import io.github.agentsoz.ees.shared.SharedConstants;
 import io.github.agentsoz.ees.matsim.*;
+import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.ees.util.Parser;
 import io.github.agentsoz.ees.util.Utils;
 import io.github.agentsoz.util.Global;
@@ -41,10 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Emergency Evacuation Simulator (EES) main program.
  * @author Dhirendra Singh
@@ -66,8 +62,8 @@ public class Run implements DataClient {
 
 
     public static void main(String[] args) {
+        EventTracker.removeOldEvents();
         Thread.currentThread().setName("ees");
-        FirebaseHandler.init();
         XMLConfig xmlConfig = new XMLConfig();
         String configPath = System.getenv("ConfigFile");
         Element xmlConfigRoot = Parser.parseXML(configPath);

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <scenario>
+        <config>ees\scenarios\matsim-boston\ees_ffm.xml</config>
+        <population>ees\scenarios\matsim-boston\boston-population.xml</population>
+    </scenario>
+
+    <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="2" />
+        <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
+    </file>
+
+    <class class_name="TrikeAgent.java">
+        <field field_name="commitThreshold">50.0</field>
+        <field field_name="DRIVING_SPEED">25.0</field>
+        <field field_name="CNP_ACTIVE">true</field>
+        <field field_name="THETA">900.0</field>
+        <field field_name="ALLOW_CUSTOMER_MISS">true</field>
+        <field field_name="DISTANCE_FACTOR">3.0</field>
+        <field field_name="CHARGING_THRESHOLD">0.4</field>
+        <field field_name="ASK_FOR_TRIKES_WAIT_TIME">12000</field>
+        <field field_name="MANAGER_WAIT_TIME">24000</field>
+        <field field_name="CONFIRM_WAIT_TIME">12000</field>
+        <field field_name="PROPOSALS_WAIT_TIME">12000</field>
+        <field field_name="REQUEST_WAIT_TIME">24000</field>
+        <field field_name="MIN_CNP_TRIKES">32</field>
+    </class>
+    <class class_name="AreaAgent.java">
+        <field field_name="CSV_SOURCE">ees/boston.csv</field>
+        <field field_name="REQUEST_WAIT_TIME">24000</field>
+        <field field_name="NEIGHBOURS_WAIT_TIME">24000</field>
+
+        <field field_name="LOAD_DECAY_FACTOR">0.8</field>
+
+        <field field_name="OVERLOAD_TRIGGER">1.6</field>
+        <field field_name="UNLOAD_TRIGGER">0.25</field>
+
+        <field field_name="OVERLOAD_FACTOR">1.25</field>
+        <field field_name="UNLOAD_FACTOR">0.75</field>
+    </class>
+    <class class_name="SharedConstants.java">
+        <field field_name="FIREBASE_ENABLED">false</field>
+        <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
+        <field field_name="CLEANUP_TIMER">600000</field>
+    </class>
+
+    <cells resolutions="2">
+        <areaagent>
+            <cell>822a37fffffffff</cell>
+        </areaagent>
+        <trikeagent>
+            <spawn><cell>8f2a30661456949</cell><num>5</num></spawn>
+            <spawn><cell>8f2a306614d8a19</cell><num>5</num></spawn>
+            <spawn><cell>8f2a30663804695</cell><num>5</num></spawn>
+            <spawn><cell>8f2a30660a0bd4c</cell><num>4</num></spawn>
+            <spawn><cell>8f2a30644b58781</cell><num>4</num></spawn>
+            <spawn><cell>8f2a30644b754e1</cell><num>3</num></spawn>
+            <spawn><cell>8f2a3066ec90228</cell><num>3</num></spawn>
+            <spawn><cell>8f2a306614637b3</cell><num>3</num></spawn>
+            <spawn><cell>8f2a3066346c374</cell><num>3</num></spawn>
+            <spawn><cell>8f2a30645033069</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30675b9ecc6</cell><num>2</num></spawn>
+            <spawn><cell>8f2a306712c5c9b</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30644213540</cell><num>2</num></spawn>
+            <spawn><cell>8f2a30660764714</cell><num>2</num></spawn>
+            <spawn><cell>8f2a306464d1a91</cell><num>2</num></spawn>
+            <spawn><cell>8f2a3066bca2416</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30645033069</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30662cddaae</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306615a9d59</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30668433799</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3064d7a3799</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30660d64331</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3066c48e85a</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306410c26db</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3064e2e3173</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3066034aca9</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306650b244b</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3064b141293</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30660359da6</cell><num>1</num></spawn>
+            <spawn><cell>8f2a3065995e04b</cell><num>1</num></spawn>
+            <spawn><cell>8f2a30642623923</cell><num>1</num></spawn>
+            <spawn><cell>8f2a306517b4600</cell><num>1</num></spawn>
+        </trikeagent>
+        <zone>19 T</zone>
+        <radius>0</radius>
+    </cells>
+</configuration>
+
+        <!--
+           schema:
+            <file target_file=<path to target file>>
+               <<tag> target_path=<path to target element> config_mode=<"modify"|"replace"> ...attributes>
+                   ...children
+               </<tag>>
+            </file>
+
+            target_path:
+            tag names are separated by /
+
+            "<num>#<tag>" means get <num>-th element by tag name <tag>
+
+            "<tag>->attr1=val1;attr2=val2" means get first matched <tag> which satisfies attr1 and attr2
+
+            "<num>#<tag>->attr1=val1;attr2=val2" means get <num>-th matched <tag> which satisfies attr1 and attr2
+
+            <num># is optional and gets first match by default
+            ->attr=value;...;... is optional and matches every element by default
+            <tag> is always required
+
+            examples:
+            person/plan/1#activity->type=home;x=2;y=5553399.74
+            person/plan->selected=yes/activity
+            person->id=3/plan/leg
+
+
+            config_mode:
+            "replace" replaces the whole element by element from XMLConfig.xml including children and attributes
+            "modify" does the same thing as "replace", but keeps old attributes if they weren't modified
+           -->
+
