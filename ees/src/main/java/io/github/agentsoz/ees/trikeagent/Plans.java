@@ -160,9 +160,6 @@ public class Plans {
     }
 
     public void executeTrips() {
-        if(!trikeAgent.canExecute && !(!trikeAgent.currentTrip.isEmpty() &&
-                trikeAgent.currentTrip.get(0).getTripType().equals("ChargingTrip"))) return;
-
         utils.newCurrentTrip();
 
         Trip current = null;
@@ -197,11 +194,15 @@ public class Plans {
                     utils.currentTripStatus();
                     switch (current.getTripType()) {
                         case "ChargingTrip": {
+                            if(!trikeAgent.isCharging){
+                                trikeAgent.isCharging = true;
+                            }
                             if(current.getEndTime().isAfter(SharedUtils.getCurrentDateTime())) return;
 
                             trikeAgent.trikeBattery.loadBattery();
                             utils.updateCurrentTripProgress("Finished");
                             trikeAgent.chargingTripAvailable = "0";
+                            trikeAgent.isCharging = false;
                             executeTrips();
                             break;
                         }
@@ -431,10 +432,5 @@ public class Plans {
                 }
             }
         }
-    }
-
-    public void readFirebaseMessages(){
-        if(!SharedConstants.FIREBASE_ENABLED) return;
-
     }
 }

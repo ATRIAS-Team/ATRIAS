@@ -1355,7 +1355,6 @@ public class Utils {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }
@@ -1453,7 +1452,6 @@ public class Utils {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }

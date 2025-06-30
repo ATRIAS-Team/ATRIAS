@@ -3,7 +3,7 @@
     <option name="ALTERNATIVE_JRE_PATH" value="corretto-11" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
-      <env name="ConfigFile" value="configs/A1_T2_DENSITY_FB_OFF.xml" />
+      <env name="ConfigFile" value="configs/A1_T4_EMAS2025.xml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="io.github.agentsoz.ees.Run.Run" />
     <module name="eeslib" />
