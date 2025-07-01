@@ -40,26 +40,29 @@ public class Main {
         readJSON();
         System.out.println("****************************************************************************************************************************************************");
         System.out.println("EXAMPLE:");
-        System.out.println("1. Enter trip id of interest: AP61\n" +
-                "1. Enter time of the question sent(HH:mm:ss): 02:00:00\n" +
+        System.out.println("1. Enter trip id of interest: AP89\n" +
+                "1. Enter time of the question sent(HH:mm:ss): 08:02:14\n" +
                 "1. QUESTIONS:\n" +
                 "\t1) Why is my trike late?\n" +
                 "Enter choice: 1\n" +
                 "Enter 1 to add more requests: 1\n" +
                 "__________________________________________\n" +
                 "2. Enter trip id of interest: AP8\n" +
-                "2. Enter time of the question sent(HH:mm:ss): 00:54:32\n" +
+                "2. Enter time of the question sent(HH:mm:ss): 01:32:00\n" +
                 "2. QUESTIONS:\n" +
                 "\t1) Why is my trike late?\n" +
                 "Enter choice: 1\n" +
                 "Enter 1 to add more requests: (enter 0 to see results) \n" +
                 "__________________________________________\n" +
                 "ANSWER 1\n" +
-                "There is a customerTrip before your trip, that does not finish in time. :true\n" +
+                "Responsible trike id: 2\n" +
+                "There is a customerTrip before your trip, that does not finish in time. :false\n" +
                 "There is a chargingTrip before your trip, that does not finish in time. :false\n" +
                 "__________________________________________\n" +
                 "ANSWER 2\n" +
-                "There is a customerTrip before your trip, that does not finish in time. :false\n" +
+                "Responsible trike id: 3\n" +
+                "There is a customerTrip before your trip, that does not finish in time. :true\n" +
+                "No predecessor charging trip found\n" +
                 "There is a chargingTrip before your trip, that does not finish in time. :false");
 
         System.out.println("****************************************************************************************************************************************************");
@@ -124,6 +127,7 @@ public class Main {
 
                     System.out.println("__________________________________________");
                     System.out.println("ANSWER " + (j + 1));
+                    System.out.println("Responsible trike id: " + trikesInputs.get(j));
                     boolean isCause = isCustomerTripCause(tripIds.get(j), events, startIndex);
 
                     System.out.println("There is a customerTrip before your trip, that does not finish in time. :" + isCause);
@@ -392,7 +396,7 @@ public class Main {
     private static boolean trikesInput(Scanner scanner, int i){
         String trikeId = findMatchTrike(tripIds.get(i));
         if(trikeId == null){
-            System.err.println("There is no trikes responsible for " + tripIds.get(i));
+            System.err.println("There is no trikes responsible for trip " + tripIds.get(i));
             return false;
         }else{
             trikesInputs.add(trikeId);
@@ -423,7 +427,6 @@ public class Main {
                     Event<?> event = gson.fromJson(obj, new TypeToken<Event<?>>() {}.getType());
                     parsedEvents.add(event);
                 }
-
                 eventsHM.put(String.valueOf(counter), parsedEvents);
             } catch (IOException e) {
                 e.printStackTrace();

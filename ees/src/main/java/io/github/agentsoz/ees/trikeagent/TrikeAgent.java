@@ -38,6 +38,7 @@ import io.github.agentsoz.ees.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.Run.XMLConfig;
 import io.github.agentsoz.ees.util.Event;
+import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.util.Location;
 
 import jadex.bdiv3.BDIAgentFactory;
@@ -129,7 +130,6 @@ public class TrikeAgent{
 
     @Belief
     public String chargingTripAvailable = "0"; //Battery -oemer
-
 
     //  FIREBASE
     public FirebaseHandler<TrikeAgent, Trip> firebaseHandler;

@@ -70,6 +70,12 @@ public class Utils {
         this.trikeAgent = trikeAgent;
     }
 
+    //////////////////////////////////////////////////
+    //  JSON LOGGER
+    public EventTracker eventTracker = new EventTracker();
+
+    //////////////////////////////////////////////////
+
     public Location getNextChargingStation(){
         //CHARGING_STATION_LIST
         Location ChargingStation = CHARGING_STATION_LIST.get(0); //= new Location("", 476530.26535798033, 5552438.979076344);
@@ -174,11 +180,6 @@ public class Utils {
         return batteryChargeAfterTIP;
     }
 
-    //////////////////////////////////////////////////
-    //  JSON LOGGER
-    public EventTracker eventTracker = new EventTracker();
-
-    //////////////////////////////////////////////////
 
     public void selectNextAction(Iterator<DecisionTask> iterator){
         boolean hasChanged;

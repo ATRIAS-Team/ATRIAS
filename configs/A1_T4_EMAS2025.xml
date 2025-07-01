@@ -27,7 +27,7 @@
         <field field_name="MIN_CNP_TRIKES">32</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/subsample_1.csv</field>
+        <field field_name="CSV_SOURCE">ees/subsample_1_fixed.csv</field>
         <field field_name="REQUEST_WAIT_TIME">24000</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">24000</field>
 
