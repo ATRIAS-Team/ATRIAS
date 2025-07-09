@@ -70,6 +70,12 @@ public class Utils {
         this.trikeAgent = trikeAgent;
     }
 
+    //////////////////////////////////////////////////
+    //  JSON LOGGER
+    public EventTracker eventTracker = new EventTracker();
+
+    //////////////////////////////////////////////////
+
     public Location getNextChargingStation(){
         //CHARGING_STATION_LIST
         Location ChargingStation = CHARGING_STATION_LIST.get(0); //= new Location("", 476530.26535798033, 5552438.979076344);
@@ -174,11 +180,6 @@ public class Utils {
         return batteryChargeAfterTIP;
     }
 
-    //////////////////////////////////////////////////
-    //  JSON LOGGER
-    public EventTracker eventTracker = new EventTracker();
-
-    //////////////////////////////////////////////////
 
     public void selectNextAction(Iterator<DecisionTask> iterator){
         boolean hasChanged;
@@ -1115,6 +1116,7 @@ public class Utils {
             System.out.println("AgentID: " + trikeAgent.agentID + " currentStartPosition: " + trikeAgent.currentTrip.get(0).getStartPosition());
             System.out.println("AgentID: " + trikeAgent.agentID + " currentEndPosition: " +trikeAgent.currentTrip.get(0).getEndPosition());
             System.out.println("AgentID: " + trikeAgent.agentID + " currentProgress: " + trikeAgent.currentTrip.get(0).getProgress());
+            System.out.println("AgentID: " + trikeAgent.agentID + " endTime: " + trikeAgent.currentTrip.get(0).getEndTime());
         }
 
     }
@@ -1354,7 +1356,6 @@ public class Utils {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }
@@ -1452,7 +1453,6 @@ public class Utils {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }

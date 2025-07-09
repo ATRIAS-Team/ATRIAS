@@ -194,11 +194,15 @@ public class Plans {
                     utils.currentTripStatus();
                     switch (current.getTripType()) {
                         case "ChargingTrip": {
+                            if(!trikeAgent.isCharging){
+                                trikeAgent.isCharging = true;
+                            }
                             if(current.getEndTime().isAfter(SharedUtils.getCurrentDateTime())) return;
 
                             trikeAgent.trikeBattery.loadBattery();
                             utils.updateCurrentTripProgress("Finished");
                             trikeAgent.chargingTripAvailable = "0";
+                            trikeAgent.isCharging = false;
                             executeTrips();
                             break;
                         }
@@ -428,10 +432,5 @@ public class Plans {
                 }
             }
         }
-    }
-
-    public void readFirebaseMessages(){
-        if(!SharedConstants.FIREBASE_ENABLED) return;
-
     }
 }

@@ -52,7 +52,15 @@ public class EventTracker {
             .setPrettyPrinting()
             .create();
 
-    private <V> void addEvent(Event<V> event, V newValue, String path) throws IOException {
+    private static final Map<String, Object> fileLocks = new HashMap<>();
+
+    private static Object getFileLock(String path) {
+        synchronized (fileLocks) {
+            return fileLocks.computeIfAbsent(path, k -> new Object());
+        }
+    }
+
+    private synchronized <V> void addEvent(Event<V> event, V newValue, String path) throws IOException {
         event.content.eventNumber = this.counter;
         event.updated = SharedUtils.getCurrentDateTime();
         if(oldValuesMap.get(event.content.eventType) != null){
@@ -65,7 +73,7 @@ public class EventTracker {
         counter++;
     }
 
-    private void addEvent2(Event<XAgProcess> event, String path) throws IOException {
+    private synchronized void addEvent2(Event<XAgProcess> event, String path) throws IOException {
         event.content.eventNumber = this.counter;
 
         event.updated = SharedUtils.getCurrentDateTime();
@@ -227,7 +235,7 @@ public class EventTracker {
             dir.delete();
         }
     }
-    public static <T> void writeObjectToJsonFile(T object, String path) throws IOException {
+    public static <T> void writeObjectToJsonFile2(T object, String path) throws IOException {
         String jsonString = gson.toJson(object);
 
         File file = new File(path);
@@ -250,5 +258,30 @@ public class EventTracker {
             raf.close();
         }
     }
+    public synchronized static <T> void writeObjectToJsonFile(T object, String path) throws IOException {
+        String jsonString = gson.toJson(object);
+        Object lock = getFileLock(path); // get file-specific lock
 
+        synchronized (lock) {
+            File file = new File(path);
+            if (!file.exists()) {
+                Path filePath = Paths.get(path);
+                Files.createDirectories(filePath.getParent());
+
+                try (Writer writer = Files.newBufferedWriter(filePath)) {
+                    writer.write("[" + jsonString + "]");
+                }
+            } else {
+                RandomAccessFile raf = new RandomAccessFile(file, "rw");
+                long length = raf.length();
+                if (length > 1) {
+                    raf.seek(length - 1);
+                    raf.writeBytes(",\n" + jsonString + "]");
+                } else {
+                    raf.writeBytes("[" + jsonString + "]");
+                }
+                raf.close();
+            }
+        }
+    }
 }

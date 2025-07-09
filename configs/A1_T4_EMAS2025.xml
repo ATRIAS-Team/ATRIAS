@@ -7,7 +7,7 @@
     </scenario>
 
     <file target_file="ees/src/main/java/io/github/agentsoz/ees/Run/TrikeWorld.application.xml">
-        <component target_path="component->type=TrikeAgent" config_mode="modify" number="2" />
+        <component target_path="component->type=TrikeAgent" config_mode="modify" number="4" />
         <component target_path="component->type=AreaAgent" config_mode="modify" number="1" />
     </file>
 
@@ -27,7 +27,7 @@
         <field field_name="MIN_CNP_TRIKES">32</field>
     </class>
     <class class_name="AreaAgent.java">
-        <field field_name="CSV_SOURCE">ees/boston.csv</field>
+        <field field_name="CSV_SOURCE">ees/subsample_1_fixed.csv</field>
         <field field_name="REQUEST_WAIT_TIME">24000</field>
         <field field_name="NEIGHBOURS_WAIT_TIME">24000</field>
 
@@ -49,40 +49,6 @@
         <areaagent>
             <cell>822a37fffffffff</cell>
         </areaagent>
-        <trikeagent>
-            <spawn><cell>8f2a30661456949</cell><num>5</num></spawn>
-            <spawn><cell>8f2a306614d8a19</cell><num>5</num></spawn>
-            <spawn><cell>8f2a30663804695</cell><num>5</num></spawn>
-            <spawn><cell>8f2a30660a0bd4c</cell><num>4</num></spawn>
-            <spawn><cell>8f2a30644b58781</cell><num>4</num></spawn>
-            <spawn><cell>8f2a30644b754e1</cell><num>3</num></spawn>
-            <spawn><cell>8f2a3066ec90228</cell><num>3</num></spawn>
-            <spawn><cell>8f2a306614637b3</cell><num>3</num></spawn>
-            <spawn><cell>8f2a3066346c374</cell><num>3</num></spawn>
-            <spawn><cell>8f2a30645033069</cell><num>2</num></spawn>
-            <spawn><cell>8f2a30675b9ecc6</cell><num>2</num></spawn>
-            <spawn><cell>8f2a306712c5c9b</cell><num>2</num></spawn>
-            <spawn><cell>8f2a30644213540</cell><num>2</num></spawn>
-            <spawn><cell>8f2a30660764714</cell><num>2</num></spawn>
-            <spawn><cell>8f2a306464d1a91</cell><num>2</num></spawn>
-            <spawn><cell>8f2a3066bca2416</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30645033069</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30662cddaae</cell><num>1</num></spawn>
-            <spawn><cell>8f2a306615a9d59</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30668433799</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3064d7a3799</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30660d64331</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3066c48e85a</cell><num>1</num></spawn>
-            <spawn><cell>8f2a306410c26db</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3064e2e3173</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3066034aca9</cell><num>1</num></spawn>
-            <spawn><cell>8f2a306650b244b</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3064b141293</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30660359da6</cell><num>1</num></spawn>
-            <spawn><cell>8f2a3065995e04b</cell><num>1</num></spawn>
-            <spawn><cell>8f2a30642623923</cell><num>1</num></spawn>
-            <spawn><cell>8f2a306517b4600</cell><num>1</num></spawn>
-        </trikeagent>
         <zone>19 T</zone>
         <radius>0</radius>
     </cells>

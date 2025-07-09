@@ -38,6 +38,7 @@ import io.github.agentsoz.ees.JadexService.NotifyService2.TrikeAgentSendService;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.Run.XMLConfig;
 import io.github.agentsoz.ees.util.Event;
+import io.github.agentsoz.ees.util.EventTracker;
 import io.github.agentsoz.util.Location;
 
 import jadex.bdiv3.BDIAgentFactory;
@@ -86,6 +87,9 @@ public class TrikeAgent{
     @Belief
     public boolean canExecute = true;
 
+    @Belief
+    public boolean isCharging = false;
+
     public Location agentLocation;
 
     @Belief
@@ -127,7 +131,6 @@ public class TrikeAgent{
     @Belief
     public String chargingTripAvailable = "0"; //Battery -oemer
 
-
     //  FIREBASE
     public FirebaseHandler<TrikeAgent, Trip> firebaseHandler;
     public HashMap<String, ChildEventListener> listenerHashMap;
@@ -166,20 +169,11 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new ReactToAgentIDAdded());
         bdiFeature.dispatchTopLevelGoal(new MaintainManageJobs());
         bdiFeature.dispatchTopLevelGoal(new Log());
-        bdiFeature.dispatchTopLevelGoal(new FirebaseMessages());
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
         bdiFeature.dispatchTopLevelGoal(new UpdateLocation());
 
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
         bdiFeature.dispatchTopLevelGoal(new Requests());
-    }
-
-    @Goal(recur=true, recurdelay=3000)
-    private class FirebaseMessages {}
-
-    @Plan(trigger=@Trigger(goals=FirebaseMessages.class))
-    private void readFirebaseMessages() {
-        plans.readFirebaseMessages();
     }
 
     /**
@@ -224,7 +218,7 @@ public class TrikeAgent{
     /**
      * Will generate Trips from the Jobs sent by the Area Agent
      */
-    @Goal(recur=true, recurdelay= 25)
+    @Goal(recur=true, recurdelay= 50)
     private class MaintainManageJobs {
         @GoalMaintainCondition
         private boolean isEmpty(){
@@ -245,8 +239,8 @@ public class TrikeAgent{
     @Goal(recur = true, recurdelay = 1000)
     private class MaintainTripService {
         @GoalMaintainCondition
-        boolean sentToMATSIM() {
-            return !canExecute;
+        private boolean check(){
+            return !(canExecute || isCharging);
         }
     }
 

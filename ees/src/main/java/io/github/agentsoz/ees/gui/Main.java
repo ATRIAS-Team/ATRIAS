@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
 
@@ -35,25 +37,35 @@ public class Main {
     private static final List<String> trikesInputs = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
-        System.out.println("####################################################################################");
+        readJSON();
+        System.out.println("****************************************************************************************************************************************************");
         System.out.println("EXAMPLE:");
-        System.out.println("1. Enter trip id of interest: AP629\n" +
-                "1. Enter time of the question sent(HH:mm:ss): 14:32:53\n" +
+        System.out.println("1. Enter trip id of interest: AP89\n" +
+                "1. Enter time of the question sent(HH:mm:ss): 08:02:14\n" +
                 "1. QUESTIONS:\n" +
                 "\t1) Why is my trike late?\n" +
                 "Enter choice: 1\n" +
-                "1. Which Trike to ask:21\n" +
                 "Enter 1 to add more requests: 1\n" +
-                "##########################################\n" +
-                "2. Enter trip id of interest: AP725\n" +
-                "2. Enter time of the question sent(HH:mm:ss): 23:00:15\n" +
+                "__________________________________________\n" +
+                "2. Enter trip id of interest: AP8\n" +
+                "2. Enter time of the question sent(HH:mm:ss): 01:32:00\n" +
                 "2. QUESTIONS:\n" +
                 "\t1) Why is my trike late?\n" +
                 "Enter choice: 1\n" +
-                "2. Which Trike to ask:3\n" +
-                "Enter 1 to add more requests:");
+                "Enter 1 to add more requests: (enter 0 to see results) \n" +
+                "__________________________________________\n" +
+                "ANSWER 1\n" +
+                "Responsible trike id: 2\n" +
+                "There is a customerTrip before your trip, that does not finish in time. :false\n" +
+                "There is a chargingTrip before your trip, that does not finish in time. :false\n" +
+                "__________________________________________\n" +
+                "ANSWER 2\n" +
+                "Responsible trike id: 3\n" +
+                "There is a customerTrip before your trip, that does not finish in time. :true\n" +
+                "No predecessor charging trip found\n" +
+                "There is a chargingTrip before your trip, that does not finish in time. :false");
 
-        System.out.println("####################################################################################");
+        System.out.println("****************************************************************************************************************************************************");
         System.out.println("YOUR INPUT");
 
         //  INPUT
@@ -76,6 +88,7 @@ public class Main {
                 timeInputs.remove(i);
                 break;
             }
+
             isSuccess = trikesInput(scanner, i);
             if (!isSuccess){
                 tripIds.remove(i);
@@ -90,12 +103,10 @@ public class Main {
                 break;
             }
 
-            System.out.println("##########################################");
+            System.out.println("__________________________________________");
             i++;
         }while (true);
         scanner.close();
-
-        readJSON();
 
 
         for (int j = 0; j < trikesInputs.size(); j++) {
@@ -113,10 +124,16 @@ public class Main {
                             break;
                         }
                     }
+
+                    System.out.println("__________________________________________");
+                    System.out.println("ANSWER " + (j + 1));
+                    System.out.println("Responsible trike id: " + trikesInputs.get(j));
                     boolean isCause = isCustomerTripCause(tripIds.get(j), events, startIndex);
+
+                    System.out.println("There is a customerTrip before your trip, that does not finish in time. :" + isCause);
+
                     boolean isCause2 = isCharginTripCause(tripIds.get(j), events, startIndex);
-                    System.out.println(j + ") There is a customerTrip before your trip, that does not finish in time. :" + isCause);
-                    System.out.println(j + ") There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
+                    System.out.println("There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
                     break;
                 case 2:
                     break;
@@ -173,7 +190,7 @@ public class Main {
 
                 if (tripID.equals(questionerTripID)) {
                     eventTimeOfQuestionerTripCreation = event.updated;
-                    questionerTripStartTime = decisionTask.job.bookingTime;
+                    questionerTripStartTime = decisionTask.job.bookingTime.withSecond(0);
                     index = i;
                     break;
                 }
@@ -181,7 +198,7 @@ public class Main {
         }
 
         if (eventTimeOfQuestionerTripCreation == null) {
-            System.out.println("eventTimeOfQuestionerTripCreation is null");
+            System.err.println("eventTimeOfQuestionerTripCreation is null(question asked too early)");
             return false;
         }
 
@@ -208,7 +225,7 @@ public class Main {
         }
 
         if (predecessorTripID == null || eventTimeOfPredecessorTripCreation == null) {
-            System.out.println("No predecessor found");
+            System.out.println("No predecessor customer trip found");
             return false;
         }
 
@@ -233,7 +250,6 @@ public class Main {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }
@@ -278,7 +294,7 @@ public class Main {
 
                 if (tripID.equals(questionerTripID)) {
                     eventTimeOfQuestionerTripCreation = event.updated;
-                    questionerTripStartTime = decisionTask.job.bookingTime;
+                    questionerTripStartTime = decisionTask.job.bookingTime.withSecond(0);
                     index = i;
                     break;
                 }
@@ -286,7 +302,7 @@ public class Main {
         }
 
         if (eventTimeOfQuestionerTripCreation == null) {
-            System.out.println("eventTimeOfQuestionerTripCreation is null");
+            System.err.println("eventTimeOfQuestionerTripCreation is null(question asked too early)");
             return false;
         }
 
@@ -311,7 +327,7 @@ public class Main {
         }
 
         if (predecessorTripID == null || eventTimeOfPredecessorTripCreation == null) {
-            System.out.println("No predecessor found");
+            System.out.println("No predecessor charging trip found");
             return false;
         }
 
@@ -336,7 +352,6 @@ public class Main {
                 }
 
                 if (contains) {
-                    predecessorTripEndTime = predecessorTripEndTime.plusHours(1);
                     if (predecessorTripEndTime.isAfter(questionerTripStartTime)) {
                         causeOfDelay = true;
                     }
@@ -379,13 +394,13 @@ public class Main {
     }
 
     private static boolean trikesInput(Scanner scanner, int i){
-        System.out.print(i + 1 + ". Which Trike to ask:");
-        String trikeId = scanner.nextLine();
-        if(trikeId.matches("[0-9]+")){
+        String trikeId = findMatchTrike(tripIds.get(i));
+        if(trikeId == null){
+            System.err.println("There is no trikes responsible for trip " + tripIds.get(i));
+            return false;
+        }else{
             trikesInputs.add(trikeId);
             return true;
-        }else {
-            return false;
         }
     }
 
@@ -412,7 +427,6 @@ public class Main {
                     Event<?> event = gson.fromJson(obj, new TypeToken<Event<?>>() {}.getType());
                     parsedEvents.add(event);
                 }
-
                 eventsHM.put(String.valueOf(counter), parsedEvents);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -421,4 +435,32 @@ public class Main {
             counter ++;
         }
     }
+
+    public static String findMatchTrike(String tripID) {
+        Pattern pattern = Pattern.compile("\"" + tripID + "\"");
+        for (Map.Entry<String, List<Event<?>>> entry : eventsHM.entrySet()) {
+            String trikeId = entry.getKey();
+            List<Event<?>> events = entry.getValue();
+
+            for (Event<?> event : events) {
+                if ("DecisionTaskCommit".equalsIgnoreCase(event.summary)) {
+                    // Serialize oldValue to JSON string
+                    String json = gson.toJson(event.content.data.oldValue);
+                    Matcher matcher = pattern.matcher(json);
+                    if (matcher.find()) {
+                        return trikeId;
+                    }
+
+                    // Serialize newValue to JSON string (if present)
+                    json = gson.toJson(event.content.data.newValue);
+                    matcher = pattern.matcher(json);
+                    if (matcher.find()) {
+                        return trikeId;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 }
