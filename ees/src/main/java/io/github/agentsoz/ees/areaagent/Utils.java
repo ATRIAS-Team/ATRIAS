@@ -102,7 +102,15 @@ public class Utils {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS'Z'");
                 System.out.println(startTimeStr);
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
-                LocalTime localTime = LocalTime.parse(startTimeStr, dtf);
+                DateTimeFormatter dtfa = DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
+
+                LocalTime localTime;
+
+                if(startTimeStr.contains("AM") || startTimeStr.contains("PM")){
+                    localTime = LocalTime.parse(startTimeStr, dtfa);
+                }else{
+                    localTime = LocalTime.parse(startTimeStr, dtf);
+                }
 
                 LocalDateTime vaTime = LocalDateTime.of(SharedConstants.SIMULATION_START_TIME_DT.toLocalDate(), localTime);
                 LocalDateTime bookingTime = LocalDateTime.parse(timestampStr, formatter);

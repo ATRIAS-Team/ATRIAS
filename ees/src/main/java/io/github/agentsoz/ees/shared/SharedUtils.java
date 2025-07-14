@@ -51,9 +51,9 @@ public class SharedUtils {
         int simTime = (int) JadexModel.simulationtime;
         Duration duration = Duration.ofSeconds(simTime);
        return SharedConstants.SIMULATION_START_TIME_DT
-               .withHour(duration.toHoursPart())
-               .withMinute(duration.toMinutesPart())
-               .withSecond(duration.toSecondsPart());
+               .plusHours(duration.toHoursPart())
+               .plusMinutes(duration.toMinutesPart())
+               .plusSeconds(duration.toSecondsPart());
     }
 
     public static Map<String, TrikeAgent> trikeAgentMap = new ConcurrentHashMap<>();
