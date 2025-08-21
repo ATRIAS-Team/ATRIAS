@@ -40,7 +40,6 @@ import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.simagent.SimIDMapper;
 import io.github.agentsoz.ees.util.*;
 import io.github.agentsoz.util.Location;
-import io.github.agentsoz.util.PerceptList;
 import jadex.bridge.service.ServiceScope;
 import jadex.bridge.service.search.ServiceQuery;
 
@@ -378,7 +377,7 @@ public class Utils {
 
                 //  manager
                 case DELEGATE: {
-                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_NEIGHBOURS);
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_FOR_NEIGHBOURLIST);
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     ArrayList<String> values = new ArrayList<>();
@@ -419,7 +418,7 @@ public class Utils {
                             delta);
                     break;
                 }
-                case WAITING_NEIGHBOURS:{
+                case WAITING_FOR_NEIGHBOURLIST:{
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + ASK_FOR_TRIKES_WAIT_TIME
                             || currentDecisionTask.responseReady()) {
@@ -428,7 +427,7 @@ public class Utils {
                                     request.getId().equals(UUID.fromString(currentDecisionTask.extra)));
                         }
 
-                        currentDecisionTask.setStatus(DecisionTask.Status.CFP_READY);
+                        currentDecisionTask.setStatus(DecisionTask.Status.READY_FOR_CFP);
                         hasChanged = true;
 
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
@@ -441,7 +440,7 @@ public class Utils {
                     hasChanged = false;
                     break;
                 }
-                case CFP_READY: {
+                case READY_FOR_CFP: {
                     //  if not enough trikes for cnp, broadcast it
                     if(currentDecisionTask.getAgentIds().size() < MIN_CNP_TRIKES && currentDecisionTask.isLocal){
                         currentDecisionTask.setStatus(DecisionTask.Status.DELEGATE);
@@ -463,7 +462,7 @@ public class Utils {
                         break;
                     }
 
-                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_PROPOSALS);
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_FOR_PROPOSALS);
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     Job JobForCFP = currentDecisionTask.getJob();
@@ -480,11 +479,11 @@ public class Utils {
                             delta);
                     break;
                 }
-                case WAITING_PROPOSALS: {
+                case WAITING_FOR_PROPOSALS: {
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + PROPOSALS_WAIT_TIME
                             || currentDecisionTask.numRequests == currentDecisionTask.getUTScoreList().size() - 1) {
-                        currentDecisionTask.setStatus(DecisionTask.Status.DECISION_READY);
+                        currentDecisionTask.setStatus(DecisionTask.Status.READY_FOR_DECISION);
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("WAITING PROPOSALS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
                                 delta + " " + currentDecisionTask.numRequests + " " + currentDecisionTask.numResponses.get());
@@ -497,7 +496,7 @@ public class Utils {
                     hasChanged = false;
                     break;
                 }
-                case DECISION_READY: {
+                case READY_FOR_DECISION: {
                     /**
                      *  send agree/cancel > "waitingForConfirmations"
                      */
@@ -510,7 +509,7 @@ public class Utils {
 
                             switch (tag) {
                                 case "AcceptProposal": {
-                                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_CONFIRM);
+                                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_FOR_CONFIRMATIONS);
                                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                                     ArrayList<String> values = new ArrayList<>();
@@ -553,7 +552,7 @@ public class Utils {
                     hasChanged = true;
                     break;
                 }
-                case WAITING_CONFIRM: {
+                case WAITING_FOR_CONFIRMATIONS: {
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME) {
                         synchronized (trikeAgent.requests){
@@ -575,7 +574,7 @@ public class Utils {
 
                 //  worker
                 case PROPOSED: {
-                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_MANAGER);
+                    currentDecisionTask.setStatus(DecisionTask.Status.WAITING_FOR_MANAGER);
                     currentDecisionTask.timeStamp = SharedUtils.getSimTime();
 
                     /**
@@ -601,7 +600,7 @@ public class Utils {
                             delta);
                     break;
                 }
-                case WAITING_MANAGER: {
+                case WAITING_FOR_MANAGER: {
                     //  timeout
                     long currentTime = SharedUtils.getSimTime();
                     if (currentTime >= currentDecisionTask.timeStamp + MANAGER_WAIT_TIME) {
@@ -616,7 +615,7 @@ public class Utils {
                     hasChanged = false;
                     break;
                 }
-                case CONFIRM_READY: {
+                case READY_FOR_CONFIRMATION: {
                     long currentTime = SharedUtils.getSimTime();
                     //if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
                     //    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
