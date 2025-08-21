@@ -42,7 +42,6 @@ import jadex.bridge.service.search.ServiceQuery;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService.messageToService;
 import static io.github.agentsoz.ees.trikeagent.TrikeConstants.*;
 
 public class Plans {
@@ -296,7 +295,7 @@ public class Plans {
         DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
         if (decisionTask == null) return;
 
-        if (decisionTask.getStatus() == DecisionTask.Status.WAITING_NEIGHBOURS){
+        if (decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_NEIGHBOURLIST){
             synchronized (trikeAgent.requests){
                 trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
             }
@@ -327,7 +326,7 @@ public class Plans {
                 DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                 if (decisionTask == null) break;
 
-                if(decisionTask.getStatus() == DecisionTask.Status.WAITING_PROPOSALS){
+                if(decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_PROPOSALS){
                     Double propose = Double.parseDouble(message.getContent().getValues().get(2));
                     String senderID = message.getSenderId();
                     decisionTask.setUtilityScore(senderID, propose);
@@ -344,11 +343,11 @@ public class Plans {
                     System.out.println("ERROR2");
                     break;
                 }
-                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_MANAGER) {
                     decisionTask.extra = message.getId().toString();
-                    decisionTask.setStatus(DecisionTask.Status.CONFIRM_READY);
+                    decisionTask.setStatus(DecisionTask.Status.READY_FOR_CONFIRMATION);
                 }
-                else if(decisionTask.getStatus() == DecisionTask.Status.CONFIRM_READY){
+                else if(decisionTask.getStatus() == DecisionTask.Status.READY_FOR_CONFIRMATION){
                     //  do nothing
                 }
                 else {
@@ -363,7 +362,7 @@ public class Plans {
                 DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                 if (decisionTask == null) break;
 
-                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_MANAGER) {
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_MANAGER) {
                     trikeAgent.decisionTasks.get(jobID).setStatus(DecisionTask.Status.NOT_ASSIGNED);
                 }
                 break;
@@ -372,7 +371,7 @@ public class Plans {
                 String jobID = message.getContent().getValues().get(0);
                 DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                 if (decisionTask == null) break;
-                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_CONFIRMATIONS) {
                     decisionTask.setStatus(DecisionTask.Status.DELEGATED);
                     synchronized (trikeAgent.requests){
                         trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
@@ -384,7 +383,7 @@ public class Plans {
                 String jobID = message.getContent().getValues().get(0);
                 DecisionTask decisionTask = trikeAgent.decisionTasks.get(jobID);
                 if (decisionTask == null) break;
-                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_CONFIRM) {
+                if (decisionTask.getStatus() == DecisionTask.Status.WAITING_FOR_CONFIRMATIONS) {
                     decisionTask.setStatus(DecisionTask.Status.COMMIT);
                     synchronized (trikeAgent.requests){
                         trikeAgent.requests.removeIf(request -> request.getId().equals(message.getId()));
