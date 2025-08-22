@@ -19,4 +19,6 @@ public class Trip {
     public String progress;
 
     public LocalDateTime endTime;
+
+    public LocalDateTime arriveTime;
 }

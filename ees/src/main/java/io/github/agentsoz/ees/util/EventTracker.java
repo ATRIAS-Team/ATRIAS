@@ -30,6 +30,7 @@ import io.github.agentsoz.ees.trikeagent.DecisionTask;
 import io.github.agentsoz.ees.trikeagent.TrikeAgent;
 import io.github.agentsoz.ees.trikeagent.TrikeConstants;
 import io.github.agentsoz.ees.trikeagent.Trip;
+import io.github.agentsoz.util.Location;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -225,6 +226,89 @@ public class EventTracker {
 
         addXAgProcess(agent, xAgProcess);
     }
+
+    public synchronized void AgentPosition_BeliefUpdated(TrikeAgent agent){
+        try {
+            Event<Location> event = new Event<>();
+            event.content.eventType = "AgentPosition_BeliefUpdated";
+            event.content.data = new BeliefData<>();
+
+            event.content.data.trace = "trace";
+            event.content.data.belief = "agentLocation";
+            event.summary = "AgentPosition_BeliefUpdated";
+
+            if(oldValuesMap.get(event.content.eventType) == null){
+                event.content.data.oldValue = new Location("", -1, -1);
+            }
+
+            this.addEvent(event, agent.agentLocation,
+                    "events/Trike_" + agent.agentID + ".json");
+
+            agent.events.add(event);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public synchronized void CommitDespiteCNP(TrikeAgent agent, DecisionTask decisionTask){
+        try {
+            Event<DecisionTask> event = new Event<>();
+            event.content.eventType = "CommitDespiteCNP";
+            event.content.data = new BeliefData<>();
+
+            event.content.data.trace = "trace";
+            event.content.data.belief = "decisionTask";
+            event.summary = "CommitDespiteCNP";
+
+            event.content.eventNumber = this.counter;
+            event.updated = SharedUtils.getCurrentDateTime();
+
+            event.content.data.oldValue = decisionTask;
+            event.content.data.newValue = new DecisionTask(decisionTask, DecisionTask.Status.COMMIT);
+
+            writeObjectToJsonFile(event, "events/Trike_" + agent.agentID + ".json");
+            counter++;
+
+            agent.events.add(event);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        DecisionTaskCommit(agent, decisionTask);
+    }
+
+    public synchronized void commitNewCustomerRequest(TrikeAgent agent, DecisionTask decisionTask){
+        try {
+            Event<DecisionTask> event = new Event<>();
+            event.content.eventType = "commitNewCustomerRequest";
+            event.content.data = new BeliefData<>();
+
+            event.content.data.trace = "trace";
+            event.content.data.belief = "decisionTask";
+            event.summary = "commitNewCustomerRequest";
+
+            event.content.eventNumber = this.counter;
+            event.updated = SharedUtils.getCurrentDateTime();
+
+            event.content.data.oldValue = decisionTask;
+            event.content.data.newValue = new DecisionTask(decisionTask, DecisionTask.Status.COMMIT);
+
+            writeObjectToJsonFile(event, "events/Trike_" + agent.agentID + ".json");
+            counter++;
+
+            agent.events.add(event);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        DecisionTaskCommit(agent, decisionTask);
+    }
+
+
 
     public static void removeOldEvents() {
         File dir = new File("events");

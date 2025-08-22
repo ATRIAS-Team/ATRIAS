@@ -199,7 +199,7 @@ public class Utils {
                         //  isLocal true, if the trip starts in the cell of the current area
                         currentDecisionTask.isLocal = trikeAgent.cell.equals(currentDecisionTask.cell);
                     } else {
-                        eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+                        eventTracker.commitNewCustomerRequest(trikeAgent, currentDecisionTask);
 
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
@@ -242,8 +242,10 @@ public class Utils {
                     }
 
                     long drivingTimeInSec = (long) ((((distToCustomer + distToEnd) / 1000) / DRIVING_SPEED)*60*60);
+                    long timeToArrive = (long) ((((distToCustomer) / 1000) / DRIVING_SPEED)*60*60);
 
                     newTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec));
+                    newTrip.setArriveTime(prevEndTime.plusSeconds(timeToArrive));
 
                     synchronized (trikeAgent.tripList){
                         trikeAgent.tripList.removeIf(trip -> trip.getTripID().startsWith("area"));
@@ -455,7 +457,7 @@ public class Utils {
                         System.out.println("CFP READY NEIGHBORS " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
                                 delta);
 
-                        eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+                        eventTracker.CommitDespiteCNP(trikeAgent, currentDecisionTask);
 
                         currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                         hasChanged = true;
@@ -533,7 +535,7 @@ public class Utils {
                                 }
                                 case "AcceptSelf": {
 
-                                    eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+                                    eventTracker.CommitDespiteCNP(trikeAgent, currentDecisionTask);
 
                                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms")

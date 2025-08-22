@@ -44,6 +44,8 @@ public class Trip {
     public Location endPosition ; // End of the trip used for customer trips
     public String progress;
 
+    public LocalDateTime arriveTime;
+
     public LocalDateTime endTime;
 
     //####################################################################################
@@ -134,7 +136,8 @@ public class Trip {
                 ", startPosition=" + startPosition +
                 ", endPosition=" + endPosition +
                 ", progress='" + progress + '\'' +
-                ", endTime=" + endTime +
+                ", endTime=" + endTime + '\'' +
+                ", arriveTime=" + arriveTime +
                 '}';
     }
 
@@ -179,6 +182,8 @@ public class Trip {
         return this.endTime;
     }
 
+    public LocalDateTime getArriveTime() {return this.arriveTime; }
+
 
     //####################################################################################
     // setter
@@ -212,4 +217,7 @@ public class Trip {
         this.endTime = endTime;
     }
 
+    public void setArriveTime(LocalDateTime arriveTime){
+        this.arriveTime = arriveTime;
+    }
 }

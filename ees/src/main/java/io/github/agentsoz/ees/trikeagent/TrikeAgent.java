@@ -186,7 +186,7 @@ public class TrikeAgent{
     private void log() {
     }
 
-    @Goal(recur=true, recurdelay = 10000)
+    @Goal(recur=true, recurdelay = 3000)
     private class UpdateLocation{}
 
     @Plan(trigger=@Trigger(goals=UpdateLocation.class))

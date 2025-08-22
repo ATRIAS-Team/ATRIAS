@@ -110,21 +110,20 @@ public class Main {
 
 
         for (int j = 0; j < trikesInputs.size(); j++) {
+            int startIndex = Integer.MAX_VALUE;
+            List<Event<?>> events = eventsHM.get(trikesInputs.get(j));
+
+            for (int k = 0; k < events.size(); k++) {
+                Event<?> event = events.get(k);
+
+                if (event.updated.isBefore(timeInputs.get(j)) || event.updated.isEqual(timeInputs.get(j))) {
+                    startIndex = k;
+                    break;
+                }
+            }
 
             switch (choices.get(j)){
-                case 1:
-                    int startIndex = Integer.MAX_VALUE;
-                    List<Event<?>> events = eventsHM.get(trikesInputs.get(j));
-
-                    for (int k = 0; k < events.size(); k++) {
-                        Event<?> event = events.get(k);
-
-                        if(event.updated.isBefore(timeInputs.get(j)) || event.updated.isEqual(timeInputs.get(j))){
-                            startIndex = k;
-                            break;
-                        }
-                    }
-
+                case 1: {
                     System.out.println("__________________________________________");
                     System.out.println("ANSWER " + (j + 1));
                     System.out.println("Responsible trike id: " + trikesInputs.get(j));
@@ -135,14 +134,149 @@ public class Main {
                     boolean isCause2 = isCharginTripCause(tripIds.get(j), events, startIndex);
                     System.out.println("There is a chargingTrip before your trip, that does not finish in time. :" + isCause2);
                     break;
-                case 2:
+                }
+                case 2: {
+                    Optional<LocalDateTime> answer = Optional.ofNullable(whenArrive(tripIds.get(j), events, startIndex));
+                    if(answer.isPresent()){
+                        System.out.println("I will arrive at: " + answer.get());
+                    }else{
+                        System.out.println("Unknown");
+                    }
                     break;
+                }
+                case 3: {
+                    Optional<Location> location = Optional.ofNullable(whereAreYou(tripIds.get(j), events, startIndex));
+                    if(location.isPresent()){
+                        System.out.println("I'm currently at: " + location.get().x + " " + location.get().y);
+                    }else{
+                        System.out.println("Unknown");
+                    }
+                    break;
+                }
+                case 4: {
+                    Optional<LocalDateTime> answer = Optional.ofNullable(whenReach(tripIds.get(j), events, startIndex));
+                    if(answer.isPresent()){
+                        System.out.println("We will reach the destination at: " + answer.get());
+                    }else{
+                        System.out.println("Unknown");
+                    }
+                    break;
+                }
+                case 5: {
+                    Optional<String> answer = Optional.ofNullable(whyResponsible(tripIds.get(j), events, startIndex));
+                    if(answer.isPresent()){
+                        System.out.println(answer.get());
+                    }else{
+                        System.out.println("Unknown");
+                    }
+                    break;
+                }
                 default:
                     break;
             }
         }
     }
 
+    private static String whyResponsible(String questionerTripID, List<Event<?>> events, int startIndex) {
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.summary;
+
+            if ("CommitDespiteCNP".equalsIgnoreCase(name)) {
+                DecisionTask decisionTask = gson.fromJson(gson.toJson(event.content.data.newValue), DecisionTask.class);
+                if(decisionTask.job.jobID.equals(questionerTripID)){
+                    return  "The trip was delegated from the taxi control center, " +
+                            "got a low utility score, but was still committed after a CNP";
+                }
+            }else if ("commitNewCustomerRequest".equalsIgnoreCase(name)){
+                DecisionTask decisionTask = gson.fromJson(gson.toJson(event.content.data.newValue), DecisionTask.class);
+                if(decisionTask.job.jobID.equals(questionerTripID)){
+                    return  "The trip was delegated from the taxi control center and got a high utility score";
+                }
+            }
+        }
+
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.summary;
+            if("TripList_BeliefUpdated".equalsIgnoreCase(name)) {
+                try {
+                    List<Object> trips = (List<Object>) event.content.data.newValue;
+
+
+                    for (Object tripObj : trips) {
+                        Trip trip = gson.fromJson(gson.toJson(tripObj), Trip.class);
+                        if (trip.tripID.equals(questionerTripID)) {
+                            return "The trip was delegated by another trike with id " + trip.decisionTask.origin + " after a CNP to this trike";
+                        }
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static LocalDateTime whenArrive(String questionerTripID, List<Event<?>> events, int startIndex){
+        //  search for of the trip of the customer
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.summary;
+
+            if("TripList_BeliefUpdated".equalsIgnoreCase(name)){
+                try{
+                    List<Object> trips = (List<Object>) event.content.data.newValue;
+
+
+                    for (Object tripObj: trips){
+                        Trip trip = gson.fromJson(gson.toJson(tripObj), Trip.class);
+                        if(trip.tripID.equals(questionerTripID)){
+                            return trip.arriveTime;
+                        }
+                    }
+                }catch (Exception e){}
+            }
+        }
+
+        return null;
+    }
+
+    private static LocalDateTime whenReach(String questionerTripID, List<Event<?>> events, int startIndex){
+        //  search for of the trip of the customer
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.summary;
+
+            if("TripList_BeliefUpdated".equalsIgnoreCase(name)){
+                try{
+                    List<Object> trips = (List<Object>) event.content.data.newValue;
+
+
+                    for (Object tripObj: trips){
+                        Trip trip = gson.fromJson(gson.toJson(tripObj), Trip.class);
+                        if(trip.tripID.equals(questionerTripID)){
+                            return trip.endTime;
+                        }
+                    }
+                }catch (Exception e){}
+            }
+        }
+
+        return null;
+    }
+
+    private static Location whereAreYou(String questionerTripID, List<Event<?>> events, int startIndex){
+        for (int i = startIndex; i < events.size(); i++) {
+            Event<?> event = events.get(i);
+            String name = event.summary;
+
+            if("AgentPosition_BeliefUpdated".equalsIgnoreCase(name)){
+                return gson.fromJson(gson.toJson(event.content.data.newValue), Location.class);
+            }
+        }
+        return null;
+    }
     private static boolean tripIdInput(Scanner scanner, int i){
         System.out.print(i + 1 + ". Enter trip id of interest: ");
         String input = scanner.nextLine();
@@ -382,7 +516,10 @@ public class Main {
     private static boolean questionInput(Scanner scanner, int i){
         System.out.println(i + 1 + ". QUESTIONS:");
         System.out.println("\t1) Why is my trike late?");
-        //System.out.println("\t2) Why is this trike responsible for me?");
+        System.out.println("\t2) When will you arrive?");
+        System.out.println("\t3) What is your position at the moment?");
+        System.out.println("\t4) When will I reach my destination?");
+        System.out.println("\t5) Why is this trike responsible for me?");
         System.out.print("Enter choice: ");
         try{
             int choice = Integer.parseInt(scanner.nextLine());
