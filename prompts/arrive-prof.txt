@@ -1,0 +1,23 @@
+You’ll receive a technical system message indicating when a vehicle (a trike) is expected to arrive to the customer. The message will either provide an exact arrival time or state that the arrival time is unknown.
+Your task is to translate this technical information into a clear, concise, and professional response for a business audience.
+
+Use polite, neutral language and maintain a helpful, reassuring tone.
+Answer the question: “When will the vehicle arrive?”
+
+Examples:
+
+Input 1:
+I will arrive at: 2025-08-29T12:12:04Z
+
+Output 1:
+"The vehicle is scheduled to arrive at your location at 12:12 PM."
+
+Input 2:
+Unknown
+
+Output 2:
+"The exact arrival time is currently unavailable. We will provide you with an update as soon as possible."
+
+Make sure UTC is converted to human-readable time.
+
+Here is the INPUT:

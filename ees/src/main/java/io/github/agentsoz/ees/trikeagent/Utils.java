@@ -29,6 +29,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
+import io.github.agentsoz.bdiabm.data.ActionContent;
+import io.github.agentsoz.bdiabm.data.PerceptContent;
 import io.github.agentsoz.bdiabm.v3.AgentNotFoundException;
 import io.github.agentsoz.ees.Run.Constants;
 import io.github.agentsoz.ees.firebase.FirebaseHandler;
@@ -75,6 +77,9 @@ public class Utils {
 
     //////////////////////////////////////////////////
 
+    /**
+     * Finds the closest charging station using real distance
+     * */
     public Location getNextChargingStation(){
         //CHARGING_STATION_LIST
         Location ChargingStation = CHARGING_STATION_LIST.get(0); //= new Location("", 476530.26535798033, 5552438.979076344);
@@ -629,7 +634,7 @@ public class Utils {
                     //    break;
                     //}
 
-                    eventTracker.DecisionTaskCommit(trikeAgent, currentDecisionTask);
+                    eventTracker.CommitAsCNPparticipant(trikeAgent, currentDecisionTask);
 
                     currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
                     String timeStampBooked = new SimpleDateFormat("HH.mm.ss.ms").format(new java.util.Date());
@@ -958,6 +963,10 @@ public class Utils {
         //IAreaTrikeService finalService1 = service;
         SharedUtils.sendMessage(registerMessage.getReceiverId(), registerMessage.serialize());
     }
+
+    /**
+     * Register to new AreaAgent and deregister from old one.
+     * */
     public void sendAreaAgentUpdate(String action){
         //location
         ArrayList<String> values = new ArrayList<>();
@@ -1077,6 +1086,7 @@ public class Utils {
 
         System.out.println("AgentID: " + trikeAgent.agentID + "ALL TRIPS TERMINATED");
     }
+
     public void prepareLog(Trip trip, String batteryBefore, String batteryAfter, String arrivedAtLocation, String distance){
         String tripID = trip.getTripID();
         String tripType = trip.getTripType();
@@ -1207,12 +1217,15 @@ public class Utils {
         return dist;
     }
 
-    public  Location[] getCurrentLocation() throws AgentNotFoundException {
+    public Location[] getCurrentLocation() throws AgentNotFoundException {
         Object obj = trikeAgent.SimActuator.getQueryPerceptInterface().queryPercept(String.valueOf(trikeAgent.agentID), Constants.REQUEST_LOCATION, null);
         Location[] location = (Location[]) obj;
         return location;
     }
 
+    /**
+     * Gets a real distance between 2 locations using sim environment
+     * */
     public double getDistanceBetween(Location location1, Location location2){
         double[][] args = new double[2][2];
         args[0][0] = location1.getX();
@@ -1269,6 +1282,57 @@ public class Utils {
         }
     }
 
+
+
+    /***
+     * This is a workaround sendMessage to avoid jadex service overhead issues
+     */
+    public void sendMessage(String messageStr){
+        Message messageObj = Message.deserialize(messageStr);
+
+        if(this.trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
+        this.trikeAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
+
+        switch (messageObj.getComAct()){
+            case CALL_FOR_PROPOSAL:
+            case PROPOSE:
+            case ACCEPT_PROPOSAL:
+            case REJECT_PROPOSAL:
+            case REFUSE:
+                trikeAgent.plans.checkCNPBuffer(messageObj);
+                break;
+            case INFORM:{
+                trikeAgent.plans.checkMessagesBuffer(messageObj);
+                break;
+            }
+            case REQUEST:
+                trikeAgent.plans.checkJobBuffer(messageObj);
+                break;
+            case ACK:
+                switch (messageObj.getContent().getAction()){
+                    case "confirmAccept": {
+                        trikeAgent.plans.checkCNPBuffer(messageObj);
+                        break;
+                    }
+                }
+                break;
+        }
+    }
+
+    /***
+     * This is a workaround NotifyotherAgent to avoid jadex service overhead issues
+     */
+    public void NotifyotherAgent(List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
+        SharedUtils.executorService.submit(()->{
+            if (activestatus)
+            {
+                this.trikeAgent.plans.sensoryUpdate(ActionContentList);
+            }
+        });
+    }
+
+    //////////////////
+    //  The code below is for answering customer questions in realtime
     public static boolean isCustomerTripCause(String questionerTripID, List<Event<?>> trikeEvents) {
         List<Event<?>> events = Lists.reverse(trikeEvents);
 
@@ -1464,4 +1528,6 @@ public class Utils {
 
         return causeOfDelay;
     }
+
+    ////////////////////////////////////
 }

@@ -1,0 +1,24 @@
+You’ll receive a technical system message about the current location of a vehicle (a trike).
+The message will either provide UTM coordinates (zone 19T, WGS84) or state "Unknown."
+
+Your task is to translate this technical information into a clear, concise, and professional message for a business audience.
+If the system can map the coordinates to a known place name, provide the name instead of just the coordinates.
+
+Use polite, neutral language and maintain a helpful, reassuring tone.
+Answer the question: “Where is the vehicle currently located?”
+
+Examples:
+
+Input 1:
+I'm currently at: 330212.335 4690785.138
+
+Output 1:
+"The vehicle is currently near Chinatown."
+
+Input 2:
+Unknown
+
+Output 2:
+"The vehicle’s current location is not available at this time."
+
+Here is the INPUT:

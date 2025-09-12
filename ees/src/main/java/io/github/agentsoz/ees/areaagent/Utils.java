@@ -60,10 +60,9 @@ public class Utils {
         areaAgent.locatedAgentList.setAreaAgent(areaAgent);
 
         areaAgent.areaAgentId = "area: " + index;
-        areaAgent.myTag = areaAgent.areaAgentId;
         areaAgent.cell = Cells.areaAgentCells.get(index);
         Cells.cellAgentMap.put(areaAgent.cell, areaAgent.areaAgentId);
-        areaAgent.neighbourIds = Cells.getNeighbours(areaAgent.cell);
+        areaAgent.rebalance.neighbourIds = Cells.getNeighbours(areaAgent.cell);
 
         System.out.println("AreaAgent " + areaAgent.areaAgentId + " sucessfully started;");
 
@@ -137,7 +136,6 @@ public class Utils {
         }
     }
 
-
     public void sendJobToAgent(List<Job> jobList){
         for (Job job: jobList){
             //  current job
@@ -148,15 +146,15 @@ public class Utils {
 
             if(Objects.equals(Cells.findKey(job.getStartPosition()), areaAgent.cell)){
                 long size = areaAgent.locatedAgentList.size();
-                synchronized (areaAgent.loadLock){
-                    if(areaAgent.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size == 0){
-                        areaAgent.lastDelegateRequestTS = SharedUtils.getSimTime();
+                synchronized (areaAgent.rebalance.loadLock){
+                    if(areaAgent.rebalance.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD || size == 0){
+                        areaAgent.rebalance.lastDelegateRequestTS = SharedUtils.getSimTime();
 
-                        double newLoad = areaAgent.getLoad() + 1.0;
-                        areaAgent.setLoad(newLoad);
+                        double newLoad = areaAgent.rebalance.getLoad() + 1.0;
+                        areaAgent.rebalance.setLoad(newLoad);
                     }else{
-                        double newLoad = areaAgent.getLoad() + (1.0 / size);
-                        areaAgent.setLoad(newLoad);
+                        double newLoad = areaAgent.rebalance.getLoad() + (1.0 / size);
+                        areaAgent.rebalance.setLoad(newLoad);
                     }
                 }
             }
@@ -183,7 +181,6 @@ public class Utils {
             }
         }
     }
-
 
     private void initJobs() {
         String csvFilePath = AreaConstants.CSV_SOURCE;
@@ -213,6 +210,9 @@ public class Utils {
         }
     }
 
+    /**
+     * This method is to determine the best neighboring AreaAgent to delegate the job. Only in multi-AreaAgent scenario.
+     * */
     public <T extends Comparable<T>, K> Map<String, K> findLowestChoices(Map<String, T> map1, Map<String, K> map2, T lowestValue, T stop){
         Map<String, K> choices = new HashMap<>();
 
@@ -235,5 +235,41 @@ public class Utils {
         }
 
         return choices;
+    }
+
+    /***
+     * This is a workaround sendMessage to avoid jadex service overhead issues
+     */
+    public void sendMessage(String messageStr){
+        Message messageObj = Message.deserialize(messageStr);
+
+        if(this.areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
+        this.areaAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
+
+        switch (messageObj.getComAct()){
+            case INFORM:
+            case ACK:
+            case NACK:
+                this.areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
+                break;
+            case REQUEST:
+                switch (messageObj.getContent().getAction()) {
+                    case "trikesInArea":
+                        this.areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
+                        break;
+                }
+                break;
+            case CALL_FOR_PROPOSAL:
+            case REJECT_PROPOSAL:
+                this.areaAgent.plans.checkAreaMessagesBuffer(messageObj);
+                break;
+            case PROPOSE:
+            case REFUSE:
+                this.areaAgent.plans.checkProposalBuffer(messageObj);
+                break;
+            case ACCEPT_PROPOSAL:
+                this.areaAgent.plans.checkAssignedJobs(messageObj);
+                break;
+        }
     }
 }

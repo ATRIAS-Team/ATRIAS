@@ -317,45 +317,4 @@ public class TrikeAgent{
     public void setMyLocation(Location location) {
 
     }
-
-    public void sendMessage(String messageStr){
-        Message messageObj = Message.deserialize(messageStr);
-
-        if(this.receivedMessageIds.containsKey(messageObj.getId())) return;
-        this.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
-
-        switch (messageObj.getComAct()){
-            case CALL_FOR_PROPOSAL:
-            case PROPOSE:
-            case ACCEPT_PROPOSAL:
-            case REJECT_PROPOSAL:
-            case REFUSE:
-                plans.checkCNPBuffer(messageObj);
-                break;
-            case INFORM:{
-                plans.checkMessagesBuffer(messageObj);
-                break;
-            }
-            case REQUEST:
-                plans.checkJobBuffer(messageObj);
-                break;
-            case ACK:
-                switch (messageObj.getContent().getAction()){
-                    case "confirmAccept": {
-                        plans.checkCNPBuffer(messageObj);
-                        break;
-                    }
-                }
-                break;
-        }
-    }
-
-    public void NotifyotherAgent(List<ActionContent> ActionContentList, List<PerceptContent> PerceptContentList, boolean activestatus) {
-        SharedUtils.executorService.submit(()->{
-            if (activestatus)
-            {
-                this.plans.sensoryUpdate(ActionContentList);
-            }
-        });
-    }
 }

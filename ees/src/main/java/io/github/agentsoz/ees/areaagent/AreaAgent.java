@@ -44,9 +44,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.github.agentsoz.ees.areaagent.AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
 import static io.github.agentsoz.ees.shared.SharedUtils.getCurrentDateTime;
-import static io.github.agentsoz.ees.shared.SharedUtils.getSimTime;
 
 
 @Agent(type = "bdi")
@@ -73,6 +71,7 @@ public class AreaAgent {
     protected IRequiredServicesFeature requiredServicesFeature;
 
 
+    /////////////////////////////
     //  JOB LISTS
     @Belief
     public List<Job> csvJobList = new ArrayList<>(); // job list for historic data
@@ -80,95 +79,54 @@ public class AreaAgent {
     public final List<Job> jobList = new ArrayList<>(); // job list for App data
     @Belief
     public List<Job> assignedJobs = Collections.synchronizedList(new ArrayList<>());
-
-    public LocatedAgentList locatedAgentList = new LocatedAgentList();
-
-    public String cell;
-
+    /////////////////////////////
+    //  Beliefs
     @Belief
     public String areaAgentId = null;
-    public String myTag = null;
-
     @Belief
     public List<Message> requests = Collections.synchronizedList(new ArrayList<>());  //requests are sorted by timestamp
-    public Map<UUID, Long> receivedMessageIds = new ConcurrentHashMap<>(2048);
-
     @Belief
     public List<DelegateInfo> jobsToDelegate = Collections.synchronizedList(new ArrayList<>());
+    /////////////////////////////
 
-    public List<String> neighbourIds = null;
-    public int MIN_TRIKES = AreaConstants.MIN_TRIKES;
+    public LocatedAgentList locatedAgentList = new LocatedAgentList();
+    public String cell;
+    public Map<UUID, Long> receivedMessageIds = new ConcurrentHashMap<>(2048);
+
+
 
     public Utils utils;
     public Plans plans;
+    public Rebalance rebalance = new Rebalance();
 
-    private double load = NO_TRIKES_NO_TRIPS_LOAD;
-
-    public void setLoad(double value) {
-        this.load = value;
-    }
-
-    public double getLoad() {
-        return this.load;
-    }
-
-    public Object loadLock = new Object();
-
-    public long lastDelegateRequestTS = -1;
-
-    public long lastMinTrikesUpdateTS = -1;
-
-    public long rebalanceInitTS = getSimTime() + 720000;
-    public long lastLoadUpdateTS = -1;
 
     /** The agent body. */
     @OnStart
     private void body() {
         utils = new Utils(this);
-        plans = new Plans(this, utils);
+        plans = new Plans(this);
         utils.body();
 
         SharedUtils.areaAgentMap.put(areaAgentId, this);
+
+        //  FIREBASE_ENABLED read from config file
         if(SharedConstants.FIREBASE_ENABLED){
             bdiFeature.dispatchTopLevelGoal(new MaintainDistributeFirebaseJobs());
         }
-        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
-        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
 
+        bdiFeature.dispatchTopLevelGoal(new MaintainDistributeCSVJobs());
         bdiFeature.dispatchTopLevelGoal(new PrintSimTime());
         bdiFeature.dispatchTopLevelGoal(new CheckRequests());
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
 
-        //bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
-        //bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
-        //bdiFeature.dispatchTopLevelGoal(new TrikeCount());
-        //bdiFeature.dispatchTopLevelGoal(new TripsLoad());
-    }
-
-
-    @Goal(recur = true, recurdelay = 500)
-    private class CheckDelegateInfo{
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return jobsToDelegate.isEmpty();
+        //  Goals initialized only when multiple AreaAgents
+        if(!this.rebalance.neighbourIds.isEmpty()){
+            bdiFeature.dispatchTopLevelGoal(new MaintainDistributeAssignedJobs());
+            bdiFeature.dispatchTopLevelGoal(new CheckDelegateInfo());
+            bdiFeature.dispatchTopLevelGoal(new DelegateJobs());
+            bdiFeature.dispatchTopLevelGoal(new TrikeCount());
+            bdiFeature.dispatchTopLevelGoal(new TripsLoad());
         }
-    }
-    @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
-    private void checkDelegateInfo(){
-        plans.checkDelegateInfo();
-    }
-
-
-    @Goal(recur = true, recurdelay = 500)
-    private class DelegateJobs{
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return jobsToDelegate.isEmpty();
-        }
-    }
-    @Plan(trigger=@Trigger(goals=DelegateJobs.class))
-    private void delegateJobs(){
-        plans.delegateJobs();
     }
 
 
@@ -183,28 +141,15 @@ public class AreaAgent {
             System.out.println("Simulation Time: " + getCurrentDateTime().format(dateTimeFormatter));
         }
         System.out.println(areaAgentId + ": "+ locatedAgentList.size() + " Trikes");
-        System.out.println(areaAgentId + ": " + getLoad() + " Load");
-        System.out.println(areaAgentId + ": " + MIN_TRIKES + " mintrike");
-    }
 
-
-    @Goal(recur = true, recurdelay = 500)
-    private class MaintainDistributeAssignedJobs
-    {
-        @GoalMaintainCondition
-        private boolean isEmpty(){
-            return assignedJobs.isEmpty();
+        if(!this.rebalance.neighbourIds.isEmpty()){
+            System.out.println(areaAgentId + ": " + rebalance.getLoad() + " Load");
+            System.out.println(areaAgentId + ": " + rebalance.MIN_TRIKES + " mintrike");
         }
-    }
-    @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
-    private void sendAssignedJobs()
-    {
-        utils.sendJobToAgent(assignedJobs);
     }
 
     @Goal(recur = true, recurdelay = 300)
-    private class MaintainDistributeFirebaseJobs
-    {
+    private class MaintainDistributeFirebaseJobs {
         @GoalMaintainCondition
         boolean isListEmpty(){
             return jobList.isEmpty();
@@ -216,10 +161,8 @@ public class AreaAgent {
         utils.sendJobToAgent(jobList);
     }
 
-
     @Goal(recur = true, recurdelay = 300)
-    private class MaintainDistributeCSVJobs
-    {
+    private class MaintainDistributeCSVJobs {
         @GoalMaintainCondition
         boolean isListEmpty(){
             return csvJobList.isEmpty();
@@ -232,6 +175,8 @@ public class AreaAgent {
     }
 
 
+    /////////////////////////////
+    //  Goals and plans for communication purposes
     @Goal(recur = true, recurdelay = 1000)
     private class CheckRequests{
         @GoalMaintainCondition
@@ -244,12 +189,29 @@ public class AreaAgent {
         plans.checkRequestTimeouts();
     }
 
-
     @Goal(recur = true, recurdelay = 10000)
     private class ReceivedMessages{}
     @Plan(trigger=@Trigger(goals=ReceivedMessages.class))
     private void cleanupReceivedMessages(){
         SharedPlans.cleanupReceivedMessages(receivedMessageIds);
+    }
+    /////////////////////////////
+
+
+
+    /////////////////////////////
+    //  Below are goals and plans for multi-AreaAgent setup.
+    @Goal(recur = true, recurdelay = 500)
+    private class MaintainDistributeAssignedJobs {
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return assignedJobs.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=MaintainDistributeAssignedJobs.class))
+    private void sendAssignedJobs()
+    {
+        utils.sendJobToAgent(assignedJobs);
     }
 
     @Goal(recur = true, recurdelay = 1000)
@@ -261,42 +223,33 @@ public class AreaAgent {
 
     @Goal(recur = true, recurdelay = 3000)
     private class TripsLoad{}
-
     @Plan(trigger=@Trigger(goals=TripsLoad.class))
     private void updateTripsLoad(){
         plans.updateTripsLoad();
     }
 
-    public void sendMessage(String messageStr){
-        Message messageObj = Message.deserialize(messageStr);
-
-        if(this.receivedMessageIds.containsKey(messageObj.getId())) return;
-        this.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
-
-        switch (messageObj.getComAct()){
-            case INFORM:
-            case ACK:
-            case NACK:
-                plans.checkTrikeMessagesBuffer(messageObj);
-                break;
-            case REQUEST:
-                switch (messageObj.getContent().getAction()) {
-                    case "trikesInArea":
-                        plans.checkTrikeMessagesBuffer(messageObj);
-                        break;
-                }
-                break;
-            case CALL_FOR_PROPOSAL:
-            case REJECT_PROPOSAL:
-                plans.checkAreaMessagesBuffer(messageObj);
-                break;
-            case PROPOSE:
-            case REFUSE:
-                plans.checkProposalBuffer(messageObj);
-                break;
-            case ACCEPT_PROPOSAL:
-                plans.checkAssignedJobs(messageObj);
-                break;
+    @Goal(recur = true, recurdelay = 500)
+    private class CheckDelegateInfo{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return jobsToDelegate.isEmpty();
         }
     }
+    @Plan(trigger=@Trigger(goals=CheckDelegateInfo.class))
+    private void checkDelegateInfo(){
+        plans.checkDelegateInfo();
+    }
+
+    @Goal(recur = true, recurdelay = 500)
+    private class DelegateJobs{
+        @GoalMaintainCondition
+        private boolean isEmpty(){
+            return jobsToDelegate.isEmpty();
+        }
+    }
+    @Plan(trigger=@Trigger(goals=DelegateJobs.class))
+    private void delegateJobs(){
+        plans.delegateJobs();
+    }
+    /////////////////////////////
 }

@@ -27,6 +27,9 @@ import io.github.agentsoz.ees.shared.Job;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * This class holds information about a job, that is being delegated to another AreaAgent.
+ * */
 public class DelegateInfo{
     public Job job;
     public long timeStamp = -1;

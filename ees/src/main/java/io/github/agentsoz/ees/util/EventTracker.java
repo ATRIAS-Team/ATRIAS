@@ -43,8 +43,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class handles logging of events and also keeps track of old values for next events
+ * */
 public class EventTracker {
+
+    //  to keep track of old values
     public Map<String, Object> oldValuesMap = new HashMap<>();
+
+    //  id of the written event
     private long counter = 0;
 
     private static final Gson gson = new GsonBuilder()
@@ -53,36 +60,10 @@ public class EventTracker {
             .setPrettyPrinting()
             .create();
 
-    private static final Map<String, Object> fileLocks = new HashMap<>();
 
-    private static Object getFileLock(String path) {
-        synchronized (fileLocks) {
-            return fileLocks.computeIfAbsent(path, k -> new Object());
-        }
-    }
 
-    private synchronized <V> void addEvent(Event<V> event, V newValue, String path) throws IOException {
-        event.content.eventNumber = this.counter;
-        event.updated = SharedUtils.getCurrentDateTime();
-        if(oldValuesMap.get(event.content.eventType) != null){
-            event.content.data.oldValue = (V) oldValuesMap.get(event.content.eventType);
-        }
-        event.content.data.newValue = newValue;
-        Type listType = new TypeToken<V>() {}.getType();
-        this.oldValuesMap.put(event.content.eventType, gson.fromJson(gson.toJson(event.content.data.newValue), listType));
-        writeObjectToJsonFile(event, path);
-        counter++;
-    }
-
-    private synchronized void addEvent2(Event<XAgProcess> event, String path) throws IOException {
-        event.content.eventNumber = this.counter;
-
-        event.updated = SharedUtils.getCurrentDateTime();
-
-        writeObjectToJsonFile(event, path);
-        counter++;
-    }
-
+    /////////////////////////////////////
+    //  Events
     public synchronized void DecisionTaskCommit(TrikeAgent agent, DecisionTask decisionTask){
         try {
             Event<DecisionTask> event = new Event<>();
@@ -152,26 +133,6 @@ public class EventTracker {
 
 
             this.addEvent(event, battery,
-                    "events/Trike_" + agent.agentID + ".json");
-
-            agent.events.add(event);
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    private synchronized void addXAgProcess(TrikeAgent agent,  XAgProcess xAgProcess){
-        try {
-            Event<XAgProcess> event = new Event<>();
-            event.content.eventType = "XAgentProcess";
-
-            event.content.data = xAgProcess;
-
-            event.summary = "XAgentProcess";
-
-            this.addEvent2(event,
                     "events/Trike_" + agent.agentID + ".json");
 
             agent.events.add(event);
@@ -280,6 +241,34 @@ public class EventTracker {
         DecisionTaskCommit(agent, decisionTask);
     }
 
+    public synchronized void CommitAsCNPparticipant(TrikeAgent agent, DecisionTask decisionTask){
+        try {
+            Event<DecisionTask> event = new Event<>();
+            event.content.eventType = "CommitAsCNPparticipant";
+            event.content.data = new BeliefData<>();
+
+            event.content.data.trace = "trace";
+            event.content.data.belief = "decisionTask";
+            event.summary = "CommitAsCNPparticipant";
+
+            event.content.eventNumber = this.counter;
+            event.updated = SharedUtils.getCurrentDateTime();
+
+            event.content.data.oldValue = decisionTask;
+            event.content.data.newValue = new DecisionTask(decisionTask, DecisionTask.Status.COMMIT);
+
+            writeObjectToJsonFile(event, "events/Trike_" + agent.agentID + ".json");
+            counter++;
+
+            agent.events.add(event);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        DecisionTaskCommit(agent, decisionTask);
+    }
+
     public synchronized void commitNewCustomerRequest(TrikeAgent agent, DecisionTask decisionTask){
         try {
             Event<DecisionTask> event = new Event<>();
@@ -308,7 +297,12 @@ public class EventTracker {
         DecisionTaskCommit(agent, decisionTask);
     }
 
+    //////////////////////////////////////////////////////////////////////////
 
+
+
+    /////////////////////////////////////
+    //  DO NOT MODIFY
 
     public static void removeOldEvents() {
         File dir = new File("events");
@@ -319,30 +313,8 @@ public class EventTracker {
             dir.delete();
         }
     }
-    public static <T> void writeObjectToJsonFile2(T object, String path) throws IOException {
-        String jsonString = gson.toJson(object);
 
-        File file = new File(path);
-        if (!file.exists()) {
-            Path filePath = Paths.get(path);
-            Files.createDirectories(filePath.getParent());
-
-            try (Writer writer = Files.newBufferedWriter(filePath)) {
-                writer.write("[" + jsonString + "]");
-            }
-        } else {
-            RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            long length = raf.length();
-            if (length > 1) {
-                raf.seek(length - 1);
-                raf.writeBytes(",\n" + jsonString + "]");
-            } else {
-                raf.writeBytes("[" + jsonString + "]");
-            }
-            raf.close();
-        }
-    }
-    public synchronized static <T> void writeObjectToJsonFile(T object, String path) throws IOException {
+    private synchronized static <T> void writeObjectToJsonFile(T object, String path) throws IOException {
         String jsonString = gson.toJson(object);
         Object lock = getFileLock(path); // get file-specific lock
 
@@ -368,4 +340,58 @@ public class EventTracker {
             }
         }
     }
+
+    private static final Map<String, Object> fileLocks = new HashMap<>();
+
+    private static Object getFileLock(String path) {
+        synchronized (fileLocks) {
+            return fileLocks.computeIfAbsent(path, k -> new Object());
+        }
+    }
+
+    /**
+     * When using this method, it automatically keeps track of oldValue
+     * */
+    private synchronized <V> void addEvent(Event<V> event, V newValue, String path) throws IOException {
+        event.content.eventNumber = this.counter;
+        event.updated = SharedUtils.getCurrentDateTime();
+        if(oldValuesMap.get(event.content.eventType) != null){
+            event.content.data.oldValue = (V) oldValuesMap.get(event.content.eventType);
+        }
+        event.content.data.newValue = newValue;
+        Type listType = new TypeToken<V>() {}.getType();
+        this.oldValuesMap.put(event.content.eventType, gson.fromJson(gson.toJson(event.content.data.newValue), listType));
+        writeObjectToJsonFile(event, path);
+        counter++;
+    }
+
+    /**
+     * For XAgProcess events
+     * */
+    private synchronized void addXAgProcess(TrikeAgent agent,  XAgProcess xAgProcess){
+        try {
+            Event<XAgProcess> event = new Event<>();
+            event.content.eventType = "XAgentProcess";
+
+            event.content.data = xAgProcess;
+
+            event.summary = "XAgentProcess";
+
+            event.content.eventNumber = this.counter;
+
+            event.updated = SharedUtils.getCurrentDateTime();
+
+            writeObjectToJsonFile(event, "events/Trike_" + agent.agentID + ".json");
+            counter++;
+
+            agent.events.add(event);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
 }

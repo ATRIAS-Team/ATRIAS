@@ -43,18 +43,18 @@ public class LocatedAgentList {
             case "register": {
                 LocatedAgentList.add(agent);
 
-                synchronized (areaAgent.loadLock){
-                    if(areaAgent.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
-                        double newLoad = areaAgent.getLoad() - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
-                        areaAgent.setLoad(newLoad);
+                synchronized (areaAgent.rebalance.loadLock){
+                    if(areaAgent.rebalance.getLoad() >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
+                        double newLoad = areaAgent.rebalance.getLoad() - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+                        areaAgent.rebalance.setLoad(newLoad);
                     }
                     else{
-                        double newLoad = areaAgent.getLoad() * ((size() - 1.0) / size());
-                        areaAgent.setLoad(newLoad);
+                        double newLoad = areaAgent.rebalance.getLoad() * ((size() - 1.0) / size());
+                        areaAgent.rebalance.setLoad(newLoad);
                     }
                 }
 
-                areaAgent.lastDelegateRequestTS = -1;
+                areaAgent.rebalance.lastDelegateRequestTS = -1;
                 break;
             }
             case "update": {
@@ -70,16 +70,16 @@ public class LocatedAgentList {
             case "deregister": {
                 synchronized (LocatedAgentList){
                     LocatedAgentList.removeIf(locatedAgent -> locatedAgent.getAgentID().equals(agent.getAgentID()));
-                    synchronized (areaAgent.loadLock){
+                    synchronized (areaAgent.rebalance.loadLock){
                         if(size() == 0){
-                            double newLoad = areaAgent.getLoad() + AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
-                            areaAgent.setLoad(newLoad);
+                            double newLoad = areaAgent.rebalance.getLoad() + AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+                            areaAgent.rebalance.setLoad(newLoad);
                         }else{
-                            double newLoad = areaAgent.getLoad() * ((size() + 1.0) / size());
-                            areaAgent.setLoad(newLoad);
+                            double newLoad = areaAgent.rebalance.getLoad() * ((size() + 1.0) / size());
+                            areaAgent.rebalance.setLoad(newLoad);
                         }
                     }
-                    areaAgent.lastDelegateRequestTS = -1;
+                    areaAgent.rebalance.lastDelegateRequestTS = -1;
                 }
                 break;
             }

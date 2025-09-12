@@ -32,15 +32,20 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Plans class holds methods that are called inside AreaAgent @Plan
+ * */
 public class Plans {
-    private AreaAgent areaAgent;
-    private Utils utils;
+    private final AreaAgent areaAgent;
 
-    public Plans(AreaAgent areaAgent, Utils utils){
+    public Plans(AreaAgent areaAgent){
         this.areaAgent = areaAgent;
-        this.utils = utils;
     }
 
+    /**
+     * Receives a trip request from another AreaAgent.
+     * The trip was already accepted by the receiver.
+     * */
     public void checkAssignedJobs(Message message){
         areaAgent.assignedJobs.add(new Job(message.getContent().getValues()));
 
@@ -50,13 +55,16 @@ public class Plans {
         SharedUtils.sendMessage(responseMsg.getReceiverId(), responseMsg.serialize());
     }
 
+    /**
+     *
+     * */
     public void checkAreaMessagesBuffer(Message bufferMessage){
         String areaId = bufferMessage.getSenderId();
 
         switch (bufferMessage.getComAct()){
             case CALL_FOR_PROPOSAL:{
                 Message.ComAct responseAct;
-                if(areaAgent.locatedAgentList.size() <= areaAgent.MIN_TRIKES){
+                if(areaAgent.locatedAgentList.size() <= areaAgent.rebalance.MIN_TRIKES){
                     responseAct = Message.ComAct.REFUSE;
                 }else{
                     responseAct = Message.ComAct.PROPOSE;
@@ -65,7 +73,7 @@ public class Plans {
                 messageContent.values.add(bufferMessage.getContent().getValues().get(1));
                 messageContent.values.add(areaAgent.cell);
 
-                messageContent.values.add("" + areaAgent.getLoad());
+                messageContent.values.add("" + areaAgent.rebalance.getLoad());
 
                 Message message = new Message(areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
                 SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
@@ -77,6 +85,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Reads proposals from areas
+     * */
     public void checkProposalBuffer(Message bufferMessage){
         String areaId = bufferMessage.getSenderId();
         String areaCell = bufferMessage.getContent().values.get(1);
@@ -99,6 +110,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Broadcasts to every neighboring area to delegate a trip
+     * */
     public void delegateJobs(){
         synchronized (areaAgent.jobsToDelegate){
             Iterator<DelegateInfo> iterator = areaAgent.jobsToDelegate.iterator();
@@ -107,12 +121,12 @@ public class Plans {
 
                 if (delegateInfo.timeStamp != -1) return;
 
-                if(areaAgent.neighbourIds.isEmpty()){
+                if(areaAgent.rebalance.neighbourIds.isEmpty()){
                     iterator.remove();
                     return;
                 }
 
-                for (String neighbourId : areaAgent.neighbourIds) {
+                for (String neighbourId : areaAgent.rebalance.neighbourIds) {
                     MessageContent messageContent = new MessageContent("BROADCAST", delegateInfo.job.toArrayList());
                     Message message = new Message(areaAgent.areaAgentId, neighbourId,
                             Message.ComAct.CALL_FOR_PROPOSAL, SharedUtils.getSimTime(), messageContent);
@@ -123,6 +137,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Checks for updates in an area-to-area delegation process
+     * */
     public void checkDelegateInfo(){
         long currentTime = SharedUtils.getSimTime();
         synchronized (areaAgent.jobsToDelegate){
@@ -132,7 +149,7 @@ public class Plans {
                 DelegateInfo delegateInfo = iterator.next();
                 if(delegateInfo.timeStamp == -1) return;
                 if(currentTime < delegateInfo.timeStamp + AreaConstants.NEIGHBOURS_WAIT_TIME
-                        && delegateInfo.agentHops.size() != areaAgent.neighbourIds.size()) return;
+                        && delegateInfo.agentHops.size() != areaAgent.rebalance.neighbourIds.size()) return;
 
 
                 String bestAreaAgent = null;
@@ -181,7 +198,7 @@ public class Plans {
                     return;
                 }
 
-                areaAgent.lastDelegateRequestTS = SharedUtils.getSimTime();
+                areaAgent.rebalance.lastDelegateRequestTS = SharedUtils.getSimTime();
 
                 MessageContent messageContent = new MessageContent("ASSIGN");
                 messageContent.values = delegateInfo.job.toArrayList();
@@ -195,6 +212,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Reads messages from trikes
+     * */
     public void checkTrikeMessagesBuffer(Message bufferMessage){
         switch (bufferMessage.getComAct()){
             case INFORM:{
@@ -256,6 +276,10 @@ public class Plans {
         }
     }
 
+    /**
+     * Performs a message retry.
+     * Used when no response received
+     * */
     public void checkRequestTimeouts(){
         try {
         synchronized (areaAgent.requests){
@@ -281,21 +305,25 @@ public class Plans {
         }
     }
 
+
+    /**
+     * This method starts the area-to-area delegating process when conditions are met
+     * */
     public void checkTrikeCount(){
-        if(areaAgent.MIN_TRIKES == -1 && JadexModel.simulationtime > 0){
-            areaAgent.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * 0.8);
+        if(areaAgent.rebalance.MIN_TRIKES == -1 && JadexModel.simulationtime > 0){
+            areaAgent.rebalance.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * 0.8);
         }
 
         long currentTime = SharedUtils.getSimTime();
 
-        synchronized (areaAgent.loadLock){
-        if(currentTime >= areaAgent.rebalanceInitTS && currentTime >= areaAgent.lastMinTrikesUpdateTS + 60000) {
-            if (areaAgent.getLoad() <= AreaConstants.UNLOAD_TRIGGER) {
-                areaAgent.lastMinTrikesUpdateTS = currentTime;
-                areaAgent.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * AreaConstants.UNLOAD_FACTOR);
+        synchronized (areaAgent.rebalance.loadLock){
+        if(currentTime >= areaAgent.rebalance.rebalanceInitTS && currentTime >= areaAgent.rebalance.lastMinTrikesUpdateTS + 60000) {
+            if (areaAgent.rebalance.getLoad() <= AreaConstants.UNLOAD_TRIGGER) {
+                areaAgent.rebalance.lastMinTrikesUpdateTS = currentTime;
+                areaAgent.rebalance.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * AreaConstants.UNLOAD_FACTOR);
             }
 
-            double normalizedLoad = areaAgent.getLoad();
+            double normalizedLoad = areaAgent.rebalance.getLoad();
             if(normalizedLoad >= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD){
                 normalizedLoad -= AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
             }
@@ -303,21 +331,21 @@ public class Plans {
             boolean isOverloadTrigger =
                     (normalizedLoad >= AreaConstants.OVERLOAD_TRIGGER);
 
-            boolean isEmpty = areaAgent.MIN_TRIKES == 0 && areaAgent.getLoad() == AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
+            boolean isEmpty = areaAgent.rebalance.MIN_TRIKES == 0 && areaAgent.rebalance.getLoad() == AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
 
             if (isOverloadTrigger && !isEmpty) {
-                areaAgent.lastMinTrikesUpdateTS = currentTime;
-                areaAgent.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * AreaConstants.OVERLOAD_FACTOR);
-                if (areaAgent.MIN_TRIKES == 0) {
-                    areaAgent.MIN_TRIKES = 1;
+                areaAgent.rebalance.lastMinTrikesUpdateTS = currentTime;
+                areaAgent.rebalance.MIN_TRIKES = (int) Math.floor(areaAgent.locatedAgentList.size() * AreaConstants.OVERLOAD_FACTOR);
+                if (areaAgent.rebalance.MIN_TRIKES == 0) {
+                    areaAgent.rebalance.MIN_TRIKES = 1;
                 }
             }
         }
         }
 
-        boolean isMin = areaAgent.jobsToDelegate.size() + areaAgent.locatedAgentList.size() < areaAgent.MIN_TRIKES;
+        boolean isMin = areaAgent.jobsToDelegate.size() + areaAgent.locatedAgentList.size() < areaAgent.rebalance.MIN_TRIKES;
         synchronized (areaAgent.jobsToDelegate){
-            if(isMin && currentTime >= areaAgent.lastDelegateRequestTS + 60000){
+            if(isMin && currentTime >= areaAgent.rebalance.lastDelegateRequestTS + 60000){
                 Location cellLocation = Cells.getCellLocation(areaAgent.cell);
                 LocalDateTime dt = SharedUtils.getCurrentDateTime();
 
@@ -326,27 +354,30 @@ public class Plans {
                 DelegateInfo delegateInfo = new DelegateInfo(job);
                 System.out.println(areaAgent.areaAgentId + " ask for trikes!");
                 areaAgent.jobsToDelegate.add(delegateInfo);
-                areaAgent.lastDelegateRequestTS = currentTime;
+                areaAgent.rebalance.lastDelegateRequestTS = currentTime;
             }
         }
     }
 
+    /**
+     * This method updates the load of the AreaAgent with time
+     * */
     public void updateTripsLoad(){
         long currentTime = SharedUtils.getSimTime();
-        if(currentTime >= areaAgent.lastLoadUpdateTS + 60000) {
-            areaAgent.lastLoadUpdateTS = currentTime;
-            synchronized (areaAgent.loadLock) {
-                if (areaAgent.getLoad() < AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) {
-                    double newLoad = areaAgent.getLoad() * AreaConstants.LOAD_DECAY_FACTOR;
+        if(currentTime >= areaAgent.rebalance.lastLoadUpdateTS + 60000) {
+            areaAgent.rebalance.lastLoadUpdateTS = currentTime;
+            synchronized (areaAgent.rebalance.loadLock) {
+                if (areaAgent.rebalance.getLoad() < AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) {
+                    double newLoad = areaAgent.rebalance.getLoad() * AreaConstants.LOAD_DECAY_FACTOR;
 
                     BigDecimal bigDecimal = BigDecimal.valueOf(newLoad).setScale(4, RoundingMode.HALF_UP);
-                    areaAgent.setLoad(bigDecimal.doubleValue());
-                } else if (areaAgent.getLoad() > AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) {
-                    double deltaDecay = (areaAgent.getLoad() - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) * AreaConstants.LOAD_DECAY_FACTOR;
+                    areaAgent.rebalance.setLoad(bigDecimal.doubleValue());
+                } else if (areaAgent.rebalance.getLoad() > AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) {
+                    double deltaDecay = (areaAgent.rebalance.getLoad() - AreaConstants.NO_TRIKES_NO_TRIPS_LOAD) * AreaConstants.LOAD_DECAY_FACTOR;
                     double newLoad = deltaDecay + AreaConstants.NO_TRIKES_NO_TRIPS_LOAD;
 
                     BigDecimal bigDecimal = BigDecimal.valueOf(newLoad).setScale(4, RoundingMode.HALF_UP);
-                    areaAgent.setLoad(bigDecimal.doubleValue());
+                    areaAgent.rebalance.setLoad(bigDecimal.doubleValue());
                 }
             }
         }

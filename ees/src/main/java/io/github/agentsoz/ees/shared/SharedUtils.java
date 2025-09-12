@@ -64,9 +64,9 @@ public class SharedUtils {
     public static void sendMessage(String receiver, String messageStr){
         executorService.submit(()->{
             if(receiver.startsWith("area")){
-                SharedUtils.areaAgentMap.get(receiver).sendMessage(messageStr);
+                SharedUtils.areaAgentMap.get(receiver).utils.sendMessage(messageStr);
             }else{
-                SharedUtils.trikeAgentMap.get(receiver).sendMessage(messageStr);
+                SharedUtils.trikeAgentMap.get(receiver).utils.sendMessage(messageStr);
             }
         });
     }

@@ -22,8 +22,6 @@ package io.github.agentsoz.ees.areaagent;
  * #L%
  */
 
-import java.time.LocalDateTime;
-import java.util.List;
 import io.github.agentsoz.util.Location;
 
 public class LocatedAgent {

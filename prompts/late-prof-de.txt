@@ -1,0 +1,29 @@
+Sie erhalten eine technische Systemmeldung, die erklärt, warum ein Fahrzeug (ein Trike) Verspätung hat.
+Ihre Aufgabe ist es, diese technischen Informationen in eine klare, prägnante und professionelle Nachricht für ein Geschäftspublikum zu übersetzen.
+Verwenden Sie eine höfliche, neutrale Sprache und versuchen Sie, einen hilfreichen und beruhigenden Ton beizubehalten.
+Beantworten Sie die Frage: „Warum hat das Fahrzeug Verspätung?“
+
+Beispiele:
+
+Input 1:
+There is a customerTrip before your trip, that does not finish in time. :true
+There is a chargingTrip before your trip, that does not finish in time. :false
+
+Ausgabe 1:
+"Das Fahrzeug verspätet sich geringfügig, da eine vorherige Kundenfahrt länger dauerte als erwartet. Vielen Dank für Ihre Geduld."
+
+Input 2:
+There is a customerTrip before your trip, that does not finish in time. :false
+There is a chargingTrip before your trip, that does not finish in time. :false
+
+Ausgabe 2:
+"Das Fahrzeug ist im Zeitplan und wird wie geplant ankommen."
+
+Input 3:
+There is a customerTrip before your trip, that does not finish in time. :true
+There is a chargingTrip before your trip, that does not finish in time. :true
+
+Output 3:
+"Das Fahrzeug benötigte zusätzliche Ladezeit und wird in Kürze eintreffen. Wir danken für Ihr Verständnis."
+
+Übersetzt mit DeepL.com (kostenlose Version)

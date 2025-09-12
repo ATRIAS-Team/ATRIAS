@@ -138,8 +138,9 @@ public class Plans {
 
                 long drivingTimeInSec = (long) (((distToStation / 1000.0) / DRIVING_SPEED)*60*60);
 
-                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 1800));
+                //chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec + 1800));
                 chargingTrip.setArriveTime(prevEndTime.plusSeconds(drivingTimeInSec));
+                chargingTrip.setEndTime(prevEndTime.plusSeconds(drivingTimeInSec));
 
 
                 trikeAgent.tripList.add(chargingTrip);
@@ -159,6 +160,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Executes the entire process of the trip
+     * */
     public void executeTrips() {
         utils.newCurrentTrip();
 
@@ -258,6 +262,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Reads new information from sim env
+     * */
     public void sensoryUpdate(List<ActionContent> actionContents) {
         for (ActionContent actionContent:actionContents) {
             if (!trikeAgent.currentTrip.isEmpty()) {
@@ -273,8 +280,14 @@ public class Plans {
         }
     }
 
+    /**
+     * This method update the location every n seconds, sends the update to firbase and also logs it in events
+     * */
     public void updateLocation(){
         try{
+            double prevX = trikeAgent.agentLocation.x;
+            double prevY = trikeAgent.agentLocation.y;
+
             Location currentLocation = utils.getCurrentLocation()[0];
             trikeAgent.agentLocation = currentLocation;
 
@@ -283,11 +296,18 @@ public class Plans {
             }
 
             utils.sendAreaAgentUpdate("update");
-            utils.eventTracker.AgentPosition_BeliefUpdated(trikeAgent);
+            if(prevX != currentLocation.x || prevY != currentLocation.y){
+                utils.eventTracker.AgentPosition_BeliefUpdated(trikeAgent);
+            }
         }catch (Exception e){
             System.err.println(e.getMessage());
         }
     }
+
+    /**
+     * Reads messages from AreaAgent responses.
+     * Currently only a response to the area for neighboring trikes
+     * */
     public void checkMessagesBuffer(Message message) {
         //  asking area for trikes
         ArrayList<String> neighborList = message.getContent().getValues();
@@ -315,6 +335,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Reads messages from a buffer dedicated for CNP communications between trikes
+     * */
     public void checkCNPBuffer(Message message) {
         switch (message.getComAct()){
             case CALL_FOR_PROPOSAL: {
@@ -396,6 +419,9 @@ public class Plans {
         }
     }
 
+    /**
+     * Reads new job requests from an AreaAgent
+     * */
     public void  checkJobBuffer(Message message){
         if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
             Message response = Message.nack(message);
@@ -414,6 +440,10 @@ public class Plans {
         SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
     }
 
+    /**
+     * Performs a message retry.
+     * Used when no response received
+     * */
     public void checkRequestTimeouts(){
         synchronized (trikeAgent.requests){
             Iterator<Message> iterator = trikeAgent.requests.iterator();
