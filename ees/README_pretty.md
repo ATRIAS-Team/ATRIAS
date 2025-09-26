@@ -116,7 +116,7 @@ Zusätzlich verwenden TrikeAgents ein **CNP (Contract Net Protocol)**.
 
 ## Nachrichtenstruktur
 
-```java
+```
 UUID id;           // automatisch generiert
 String senderId;
 String receiverId;
@@ -186,7 +186,7 @@ MessageContent content;
 - Wichtig: `oldValue` und `newValue` müssen denselben Datentyp haben.
 - Beispiel Initialisierung von `oldValue`:
 
-```java
+```
 if(oldValuesMap.get(event.content.eventType) == null){
     event.content.data.oldValue = new Location("", -1, -1); // für Location
 }
@@ -194,7 +194,7 @@ if(oldValuesMap.get(event.content.eventType) == null){
 
 oder
 
-```java
+```
 if(oldValuesMap.get(event.content.eventType) == null){
     event.content.data.oldValue = 0.9; // für Battery
 }
