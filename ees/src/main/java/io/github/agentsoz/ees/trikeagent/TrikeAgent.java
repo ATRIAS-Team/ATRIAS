@@ -172,6 +172,8 @@ public class TrikeAgent{
         bdiFeature.dispatchTopLevelGoal(new MaintainTripService());
         bdiFeature.dispatchTopLevelGoal(new UpdateLocation());
 
+        bdiFeature.dispatchTopLevelGoal(new MaintainBatteryLoaded());
+
         bdiFeature.dispatchTopLevelGoal(new ReceivedMessages());
         bdiFeature.dispatchTopLevelGoal(new Requests());
     }

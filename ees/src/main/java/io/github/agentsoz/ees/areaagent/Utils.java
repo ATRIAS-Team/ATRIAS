@@ -174,7 +174,7 @@ public class Utils {
                 System.out.println("START Negotiation - JobID: " + job.getID() + " Time: "+ bookingTime);
                 Message message = new Message(areaAgent.areaAgentId, closestAgent, Message.ComAct.REQUEST, SharedUtils.getSimTime(), messageContent);
                 areaAgent.requests.add(message);
-                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                SharedUtils.sendMessage(message);
                 //remove job from list
                 jobList.remove(job);
                 System.out.println("AREA AGENT: JOB was SENT");

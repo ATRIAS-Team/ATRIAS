@@ -84,18 +84,37 @@ public class AreaAgentService implements IAreaTrikeService
 
 
 
-	public IFuture<Void> sendMessage(String messageStr){
+	public void sendMessage(String messageStr){
 		final AreaAgent areaAgent	= (AreaAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
 
-		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return IFuture.DONE;
+		if(areaAgent.receivedMessageIds.containsKey(messageObj.getId())) return;
 		areaAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
-		switch (messageObj.getComAct()){
-			case INFORM:
-				areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
-				break;
-		}
-		return IFuture.DONE;
+        switch (messageObj.getComAct()){
+            case INFORM:
+            case ACK:
+            case NACK:
+                areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
+                break;
+            case REQUEST:
+                switch (messageObj.getContent().getAction()) {
+                    case "trikesInArea":
+                        areaAgent.plans.checkTrikeMessagesBuffer(messageObj);
+                        break;
+                }
+                break;
+            case CALL_FOR_PROPOSAL:
+            case REJECT_PROPOSAL:
+                areaAgent.plans.checkAreaMessagesBuffer(messageObj);
+                break;
+            case PROPOSE:
+            case REFUSE:
+                areaAgent.plans.checkProposalBuffer(messageObj);
+                break;
+            case ACCEPT_PROPOSAL:
+                areaAgent.plans.checkAssignedJobs(messageObj);
+                break;
+        }
 	}
 }

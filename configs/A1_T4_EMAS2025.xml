@@ -43,6 +43,7 @@
         <field field_name="FIREBASE_ENABLED">false</field>
         <field field_name="SIMULATION_START_TIME">01.12.2019T00:00</field>
         <field field_name="CLEANUP_TIMER">600000</field>
+        <field field_name="SERVICES_USED">true</field>
     </class>
 
     <cells resolutions="2">

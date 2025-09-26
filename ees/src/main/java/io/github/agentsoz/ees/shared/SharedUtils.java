@@ -22,6 +22,7 @@ package io.github.agentsoz.ees.shared;
  * #L%
  */
 
+import io.github.agentsoz.ees.JadexService.AreaTrikeService.IAreaTrikeService;
 import io.github.agentsoz.ees.Run.JadexModel;
 import io.github.agentsoz.ees.Run.TrikeMain;
 import io.github.agentsoz.ees.areaagent.AreaAgent;
@@ -61,13 +62,29 @@ public class SharedUtils {
 
     public static ExecutorService executorService = Executors.newWorkStealingPool(6);
 
-    public static void sendMessage(String receiver, String messageStr){
-        executorService.submit(()->{
-            if(receiver.startsWith("area")){
-                SharedUtils.areaAgentMap.get(receiver).utils.sendMessage(messageStr);
+    public static void sendMessage(Message message){
+        if(SharedConstants.SERVICES_USED){
+            IAreaTrikeService service = null;
+
+            if(message.getSenderId().startsWith("area")){
+               service = IAreaTrikeService
+                        .messageToService(SharedUtils.areaAgentMap.get(message.getSenderId()).agent, message);
             }else{
-                SharedUtils.trikeAgentMap.get(receiver).utils.sendMessage(messageStr);
+                service = IAreaTrikeService
+                        .messageToService(SharedUtils.trikeAgentMap.get(message.getSenderId()).agent, message);
             }
-        });
+
+            service.sendMessage(message.serialize());
+        }
+        else{
+            executorService.submit(()->{
+                if(message.getReceiverId().startsWith("area")){
+                    SharedUtils.areaAgentMap.get(message.getReceiverId()).utils.sendMessage(message.serialize());
+                }else{
+                    SharedUtils.trikeAgentMap.get(message.getReceiverId()).utils.sendMessage(message.serialize());
+                }
+            });
+        }
+
     }
 }

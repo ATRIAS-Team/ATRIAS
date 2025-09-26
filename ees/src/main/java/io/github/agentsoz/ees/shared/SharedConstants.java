@@ -36,6 +36,7 @@ import static io.github.agentsoz.ees.Run.XMLConfig.assignIfNotNull;
 public class SharedConstants {
     public static boolean FIREBASE_ENABLED = false;
     public static int CLEANUP_TIMER = 30000;
+    public static boolean SERVICES_USED = false;
 
     private static String SIMULATION_START_TIME = "01.12.2019T00:00";
 
@@ -51,6 +52,9 @@ public class SharedConstants {
                 value -> SharedConstants.SIMULATION_START_TIME = value);
         assignIfNotNull(classElement,"CLEANUP_TIMER", Integer::parseInt,
                 value -> SharedConstants.CLEANUP_TIMER = value);
+        assignIfNotNull(classElement,"SERVICES_USED", Boolean::parseBoolean,
+                value -> SharedConstants.SERVICES_USED = value);
+
 
         if(!FIREBASE_ENABLED){
             SIMULATION_START_TIME_DT = LocalDateTime

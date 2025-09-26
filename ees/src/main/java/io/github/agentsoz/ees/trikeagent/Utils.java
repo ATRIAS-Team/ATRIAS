@@ -401,7 +401,7 @@ public class Utils {
                         currentDecisionTask.extra = requestMessage.getId().toString();
                         trikeAgent.requests.add(requestMessage);
 
-                        SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
+                        SharedUtils.sendMessage(requestMessage);
                     }
                     else{
                         //  need to broadcast cnp
@@ -415,7 +415,7 @@ public class Utils {
                                     SharedUtils.getSimTime(),  messageContent);
                             currentDecisionTask.extra = requestMessage.getId().toString();
 
-                            SharedUtils.sendMessage(requestMessage.getReceiverId(), requestMessage.serialize());
+                            SharedUtils.sendMessage(requestMessage);
                         }
                     }
 
@@ -477,7 +477,7 @@ public class Utils {
 
                     currentDecisionTask.initRequestCount(agentIds.size());
                     for (String agentId : agentIds) {
-                        testTrikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
+                        trikeToTrikeService(agentId, Message.ComAct.CALL_FOR_PROPOSAL, "CallForProposal", JobForCFP.toArrayList());
                     }
 
                     hasChanged = true;
@@ -529,13 +529,13 @@ public class Utils {
                                     trikeAgent.requests.add(acceptMessage);
                                     currentDecisionTask.extra = acceptMessage.getId().toString();
                                     //IAreaTrikeService service = messageToService(trikeAgent.agent, acceptMessage);
-                                    SharedUtils.sendMessage(acceptMessage.getReceiverId(), acceptMessage.serialize());
+                                    SharedUtils.sendMessage(acceptMessage);
                                     break;
                                 }
                                 case "RejectProposal": {
                                     ArrayList<String> values = new ArrayList<>();
                                     values.add(currentDecisionTask.getJobID());
-                                    testTrikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
+                                    trikeToTrikeService(bidderID, Message.ComAct.REJECT_PROPOSAL, tag, values);
                                     break;
                                 }
                                 case "AcceptSelf": {
@@ -566,8 +566,8 @@ public class Utils {
                             trikeAgent.requests.removeIf(request -> request.getId()
                                     .equals(UUID.fromString(currentDecisionTask.extra)));
                         }
-                        //currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
-                        currentDecisionTask.setStatus(DecisionTask.Status.DELEGATED);
+                        currentDecisionTask.setStatus(DecisionTask.Status.COMMIT);
+                        //currentDecisionTask.setStatus(DecisionTask.Status.DELEGATED);
                         long delta = (SharedUtils.getSimTime() - SharedUtils.getTimeStamp(currentDecisionTask.getJob().getVATime())) / 1000;
                         System.out.println("WAITING CONFIRM TIMEOUT " + currentDecisionTask.getJob().getID() + ": " + currentDecisionTask.getOrigin() + " " +
                                 delta);
@@ -598,7 +598,7 @@ public class Utils {
                     values.add(String.valueOf(ownScore));
 
                     //zb. values = jobid # score
-                    testTrikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
+                    trikeToTrikeService(currentDecisionTask.getOrigin(), Message.ComAct.PROPOSE, "Propose", values);
 
 
                     hasChanged = true;
@@ -624,6 +624,10 @@ public class Utils {
                 }
                 case READY_FOR_CONFIRMATION: {
                     long currentTime = SharedUtils.getSimTime();
+
+                    //  This code ensures that the decisiontask will be NOT_ASSIGNED, if the worker didn't confirm the ACCEPT_PROPOSAL on time.
+                    //  In that case it assumes that the manager already commit the trip itself.
+
                     //if(currentTime >= currentDecisionTask.timeStamp + CONFIRM_WAIT_TIME * 3L){
                     //    currentDecisionTask.setStatus(DecisionTask.Status.NOT_ASSIGNED);
                     //    System.out.println("CANCELLED");
@@ -648,7 +652,7 @@ public class Utils {
                             SharedUtils.getSimTime(), messageContent);
                     message.setId(UUID.fromString(currentDecisionTask.extra));
                     //IAreaTrikeService service = messageToService(trikeAgent.agent, message);
-                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                    SharedUtils.sendMessage(message);
 
                     hasChanged = true;
                     break;
@@ -924,14 +928,14 @@ public class Utils {
     }
 
 
-    //  example of trike to trike communic ation
-    public void testTrikeToTrikeService(String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
+    //  example of trike to trike communication
+    public void trikeToTrikeService(String receiverID, Message.ComAct comAct, String action, ArrayList<String> values){
         //message creation
         MessageContent messageContent = new MessageContent(action, values);
         Message testMessage = new Message(trikeAgent.agentID,""+receiverID, comAct, SharedUtils.getSimTime(),  messageContent);
 
         //calls trikeMessage methods of TrikeAgentService class
-        SharedUtils.sendMessage(testMessage.getReceiverId(), testMessage.serialize());
+        SharedUtils.sendMessage(testMessage);
     }
     public Double timeInSeconds(LocalDateTime time) {
         // Option 1: If the difference is greater than 300 seconds (5 minutes OR 300 seconds or 300000 millisec), then customer missed, -oemer
@@ -950,7 +954,7 @@ public class Utils {
 
         //calls updateAreaAgent of AreaAgentService class
         //IAreaTrikeService finalService = service;
-        SharedUtils.sendMessage(deregisterMessage.getReceiverId(), deregisterMessage.serialize());
+        SharedUtils.sendMessage(deregisterMessage);
 
         //register to new
         messageContent = new MessageContent("register", null);
@@ -961,7 +965,7 @@ public class Utils {
 
         //calls updateAreaAgent of AreaAgentService class
         //IAreaTrikeService finalService1 = service;
-        SharedUtils.sendMessage(registerMessage.getReceiverId(), registerMessage.serialize());
+        SharedUtils.sendMessage(registerMessage);
     }
 
     /**
@@ -986,13 +990,10 @@ public class Utils {
         Message testMessage = new Message( trikeAgent.agentID, areaAgentTag, Message.ComAct.INFORM, JadexModel.simulationtime,  messageContent);
 
         if(action.equals("register")){
-            //query assigning
-            IAreaTrikeService service = messageToService(trikeAgent.agent, testMessage);
-            service.sendMessage(testMessage.serialize());
             System.out.println(trikeAgent.agentID + " registered to " + areaAgentTag);
-        }else{
-            SharedUtils.sendMessage(testMessage.getReceiverId(), testMessage.serialize());
         }
+
+        SharedUtils.sendMessage(testMessage);
     }
 
     // After a succefull action in MATSIm: Updates the progreess of the current Trip and the Agent location

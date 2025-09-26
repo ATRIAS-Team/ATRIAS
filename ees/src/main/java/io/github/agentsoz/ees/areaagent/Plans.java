@@ -52,7 +52,7 @@ public class Plans {
         Message responseMsg = Message.ack(message);
         responseMsg.getContent().values = new ArrayList<>();
 
-        SharedUtils.sendMessage(responseMsg.getReceiverId(), responseMsg.serialize());
+        SharedUtils.sendMessage(responseMsg);
     }
 
     /**
@@ -76,7 +76,7 @@ public class Plans {
                 messageContent.values.add("" + areaAgent.rebalance.getLoad());
 
                 Message message = new Message(areaAgent.areaAgentId, areaId, responseAct, SharedUtils.getSimTime(), messageContent);
-                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                SharedUtils.sendMessage(message);
                 break;
             }
             case REJECT_PROPOSAL: {
@@ -131,7 +131,7 @@ public class Plans {
                     Message message = new Message(areaAgent.areaAgentId, neighbourId,
                             Message.ComAct.CALL_FOR_PROPOSAL, SharedUtils.getSimTime(), messageContent);
                     delegateInfo.timeStamp = SharedUtils.getSimTime();
-                    SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                    SharedUtils.sendMessage(message);
                 }
             }
         }
@@ -203,9 +203,10 @@ public class Plans {
                 MessageContent messageContent = new MessageContent("ASSIGN");
                 messageContent.values = delegateInfo.job.toArrayList();
                 Message message = new Message( areaAgent.areaAgentId, bestAreaAgent, Message.ComAct.ACCEPT_PROPOSAL, SharedUtils.getSimTime(), messageContent);
-                //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
+
+
                 areaAgent.requests.add(message);
-                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                SharedUtils.sendMessage(message);
 
                 iterator.remove();
             }
@@ -256,7 +257,7 @@ public class Plans {
                 MessageContent messageContent = new MessageContent("sendNeighbourList", locatedAgentIds);
                 Message message = new Message(bufferMessage.getReceiverId(), bufferMessage.getSenderId(),
                         Message.ComAct.INFORM, SharedUtils.getSimTime(), messageContent);
-                SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                SharedUtils.sendMessage(message);
                 break;
             }
             case ACK: {
@@ -293,7 +294,7 @@ public class Plans {
                         //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
                         message.reattempt();
                         message.setTimeStamp(currentTimeStamp);
-                        SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                        SharedUtils.sendMessage(message);
                     }else{
                         iterator.remove();
                     }

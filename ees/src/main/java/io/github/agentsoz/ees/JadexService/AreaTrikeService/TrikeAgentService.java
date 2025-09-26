@@ -52,11 +52,11 @@ public class TrikeAgentService implements IAreaTrikeService {
 
 	public HashMap AgentMap;
 
-	public IFuture<Void> sendMessage(String messageStr){
+	public void sendMessage(String messageStr){
 		final TrikeAgent trikeAgent = (TrikeAgent) agent.getFeature(IPojoComponentFeature.class).getPojoAgent();
 		Message messageObj = Message.deserialize(messageStr);
 
-		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId())) return IFuture.DONE;
+		if(trikeAgent.receivedMessageIds.containsKey(messageObj.getId()));
 		trikeAgent.receivedMessageIds.put(messageObj.getId(), SharedUtils.getSimTime());
 
 		switch (messageObj.getComAct()){
@@ -87,6 +87,5 @@ public class TrikeAgentService implements IAreaTrikeService {
 				}
 				break;
 		}
-		return IFuture.DONE;
 	}
 }

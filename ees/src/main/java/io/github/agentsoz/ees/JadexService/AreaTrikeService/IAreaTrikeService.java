@@ -40,5 +40,5 @@ public interface IAreaTrikeService
         return service;
     }
 
-    IFuture<Void> sendMessage(String messageStr);
+    void sendMessage(String messageStr);
 }

@@ -378,7 +378,7 @@ public class Plans {
                 else {
                     Message refuseMessage = Message.refuse(message);
                     //IAreaTrikeService service = messageToService(trikeAgent.agent, refuseMessage);
-                    SharedUtils.sendMessage(refuseMessage.getReceiverId(), refuseMessage.serialize());
+                    SharedUtils.sendMessage(refuseMessage);
                 }
                 break;
             }
@@ -426,7 +426,7 @@ public class Plans {
         if(!message.getSenderId().equals(Cells.cellAgentMap.get(trikeAgent.cell))){
             Message response = Message.nack(message);
             //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
-            SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
+            SharedUtils.sendMessage(response);
             return;
         }
 
@@ -437,7 +437,7 @@ public class Plans {
 
         Message response = Message.ack(message);
         //IAreaTrikeService service = messageToService(trikeAgent.agent, response);
-        SharedUtils.sendMessage(response.getReceiverId(), response.serialize());
+        SharedUtils.sendMessage(response);
     }
 
     /**
@@ -456,7 +456,7 @@ public class Plans {
                         //IAreaTrikeService service = IAreaTrikeService.messageToService(areaAgent.agent, message);
                         message.reattempt();
                         message.setTimeStamp(currentTimeStamp);
-                        SharedUtils.sendMessage(message.getReceiverId(), message.serialize());
+                        SharedUtils.sendMessage(message);
                     }else{
                         iterator.remove();
                     }
